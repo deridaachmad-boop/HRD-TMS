@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           requestAnimationFrame(tick);
         });
-      }, { threshold: 0.15 });
+      }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
       counters.forEach(c => io.observe(c));
     }
   })();
