@@ -78,11 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
       counters.forEach(c => io.observe(c));
     }
   })();
-        requestAnimationFrame(tick);
-      });
-    }, { threshold: 0.15 });
-    counters.forEach(c => io.observe(c));
-  }
 
   /* ---- tabs (Training Center document library) ---- */
   const tabBtns = document.querySelectorAll('.tab-btn');
