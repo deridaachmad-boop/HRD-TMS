@@ -69,7 +69,7 @@ p{margin:0;}
    device (section markers, corner accents), not decoration.
    ========================================================= */
 .bolt{
-  width:9px;height:9px;
+  width:10px;height:9px;
   background:currentColor;
   clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);
   display:inline-block;
