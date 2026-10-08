@@ -183,6 +183,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /* ---- galeri foto: slider geser (scroll-snap) + tombol + titik ---- */
+  const slider = document.getElementById('gallery-slider');
+  if (slider) {
+    const slides = slider.querySelectorAll('.slide');
+    const dotsBox = document.querySelector('.slider-dots');
+    const prev = document.querySelector('.slider-btn.prev');
+    const next = document.querySelector('.slider-btn.next');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function current() { return Math.round(slider.scrollLeft / slider.clientWidth); }
+    function goTo(i) {
+      const n = Math.max(0, Math.min(slides.length - 1, i));
+      slider.scrollTo({ left: n * slider.clientWidth, behavior: reduce ? 'auto' : 'smooth' });
+    }
+
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.setAttribute('aria-label', 'Ke foto ' + (i + 1));
+      dot.addEventListener('click', () => goTo(i));
+      dotsBox.appendChild(dot);
+    });
+    const dots = dotsBox.querySelectorAll('button');
+
+    function update() {
+      const i = current();
+      dots.forEach((d, k) => d.classList.toggle('active', k === i));
+      prev.disabled = i === 0;
+      next.disabled = i === slides.length - 1;
+    }
+
+    prev.addEventListener('click', () => goTo(current() - 1));
+    next.addEventListener('click', () => goTo(current() + 1));
+    slider.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+  
   /* ---- contact form (Hotline) — client-side only, opens mail client ---- */
   const hotlineForm = document.getElementById('hotline-form');
   if (hotlineForm) {
