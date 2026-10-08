@@ -79,6 +79,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 
+  /* ---- ticker: perbanyak isi otomatis supaya selalu memenuhi lebar layar ---- */
+  const ticker = document.querySelector('.ticker');
+  if (ticker) {
+    const baseHTML = ticker.innerHTML;
+    const buildTicker = () => {
+      ticker.innerHTML = baseHTML;                 // mulai dari isi asli di HTML
+      const setWidth = ticker.scrollWidth;         // lebar satu set quote
+      if (!setWidth) return;
+      const copies = Math.ceil(window.innerWidth / setWidth) + 1;
+      ticker.innerHTML = baseHTML.repeat(copies * 2);   // kelipatan genap untuk loop mulus
+    };
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(buildTicker);
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(buildTicker, 250);
+    });
+  }
+  
   /* ---- tabs (Training Center document library) ---- */
   const tabBtns = document.querySelectorAll('.tab-btn');
   if (tabBtns.length) {
