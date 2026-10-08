@@ -1025,3 +1025,142 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
   width:100%;height:100%;
   border:0;
 }
+
+/* =========================================================
+   SIKLUS K3 — 5 komitmen melingkar + perisai Zero Accident
+   ========================================================= */
+.cyc{
+  position:relative;
+  width:500px;height:500px;
+  margin:36px auto 20px;
+}
+.cyc-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
+
+/* panah putus-putus mengalir searah jarum jam */
+.cyc-arcs path{stroke-dasharray:7 7;animation:cyc-flow 2.4s linear infinite;}
+@keyframes cyc-flow{to{stroke-dashoffset:-28;}}
+
+/* cahaya lembut di belakang perisai */
+.cyc-halo{transform-origin:250px 250px;animation:cyc-breathe 5s ease-in-out infinite;}
+@keyframes cyc-breathe{
+  0%,100%{transform:scale(1);opacity:.85;}
+  50%{transform:scale(1.08);opacity:1;}
+}
+
+/* perisai di tengah */
+.cyc-center{
+  position:absolute;left:50%;top:50%;z-index:1;
+  width:160px;
+  transform:translate(-50%,-50%);
+  filter:drop-shadow(0 16px 24px rgba(13,27,61,.35));
+  animation:cyc-float 6s ease-in-out infinite;
+}
+.cyc-center svg{display:block;width:100%;height:auto;}
+@keyframes cyc-float{
+  0%,100%{transform:translate(-50%,-50%);}
+  50%{transform:translate(-50%,calc(-50% - 5px));}
+}
+.sh-zero{font-family:var(--f-display);font-weight:800;font-size:28px;letter-spacing:4px;fill:#fff;}
+.sh-acc{font-family:var(--f-mono);font-weight:500;font-size:10.5px;letter-spacing:3px;fill:#f2d48a;}
+
+/* lingkaran komitmen (putih -> biru gradasi saat disorot) */
+.cyc-node{
+  position:absolute;left:var(--x);top:var(--y);z-index:3;
+  width:96px;height:96px;
+  transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  border:2px solid transparent;border-radius:50%;
+  background:linear-gradient(#fff,#fff) padding-box, var(--grad-blue) border-box;
+  box-shadow:var(--shadow-card);
+  text-align:center;color:var(--ink-900);
+  transition:transform .3s ease, box-shadow .3s ease, color .3s ease;
+}
+.cyc-node::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:var(--grad-blue);
+  opacity:0;transition:opacity .35s ease;
+}
+.cyc-num,.cyc-label{position:relative;z-index:1;}
+.cyc-num{font-family:var(--f-mono);font-size:10.5px;color:var(--forge-500);transition:color .35s ease;}
+.cyc-label{font-family:var(--f-display);font-weight:700;font-size:12.5px;line-height:1.15;}
+.cyc-node:hover,
+.cyc-node:focus-visible{
+  z-index:6;color:#fff;
+  transform:translate(-50%,-50%) scale(1.07);
+  box-shadow:0 18px 34px -12px rgba(36,86,217,.6);
+}
+.cyc-node:hover::before,
+.cyc-node:focus-visible::before{opacity:1;}
+.cyc-node:hover .cyc-num,
+.cyc-node:focus-visible .cyc-num{color:rgba(255,255,255,.8);}
+
+/* garis + kartu foto di samping lingkaran */
+.cyc-pop{
+  position:absolute;top:50%;
+  display:flex;align-items:center;
+  transform:translateY(-50%);
+  visibility:hidden;pointer-events:none;
+  transition:visibility 0s linear .3s;
+}
+.cyc-node.r .cyc-pop{left:100%;}
+.cyc-node.l .cyc-pop{right:100%;flex-direction:row-reverse;}
+.cyc-node:hover .cyc-pop,
+.cyc-node:focus-visible .cyc-pop{
+  visibility:visible;pointer-events:auto;
+  transition:visibility 0s;
+}
+
+.cyc-line{
+  flex:none;width:48px;height:2px;
+  background:linear-gradient(90deg,var(--forge-500),var(--forge-300));
+  clip-path:inset(0 100% 0 0);
+  transition:clip-path .35s ease;
+}
+.cyc-node.l .cyc-line{
+  background:linear-gradient(270deg,var(--forge-500),var(--forge-300));
+  clip-path:inset(0 0 0 100%);
+}
+.cyc-node:hover .cyc-line,
+.cyc-node:focus-visible .cyc-line{clip-path:inset(0);}
+
+.cyc-card{
+  flex:none;display:block;width:230px;
+  background:#fff;color:var(--ink-900);
+  border:1px solid var(--paper-100);border-radius:14px;overflow:hidden;
+  box-shadow:0 22px 44px -18px rgba(13,27,61,.4);
+  opacity:0;transform:translateX(-14px);
+  transition:opacity .3s ease .12s, transform .35s ease .12s;
+}
+.cyc-node.l .cyc-card{transform:translateX(14px);}
+.cyc-node:hover .cyc-card,
+.cyc-node:focus-visible .cyc-card{opacity:1;transform:none;}
+
+.cyc-photo{display:block;height:110px;background:var(--grad-blue);}
+.cyc-photo img{display:block;width:100%;height:100%;object-fit:cover;}
+.cyc-cap{
+  display:block;padding:10px 14px 12px;
+  font-family:var(--f-display);font-weight:700;font-size:14px;line-height:1.2;
+}
+.cyc-cap small{
+  display:block;margin-top:3px;
+  font-family:var(--f-mono);font-weight:500;font-size:10.5px;letter-spacing:.3px;
+  color:var(--forge-500);
+}
+
+/* layar sempit: berubah jadi daftar vertikal (tanpa foto hover) */
+@media (max-width:1100px){
+  .cyc{width:100%;max-width:520px;height:auto;display:grid;gap:12px;margin-top:28px;}
+  .cyc-ring{display:none;}
+  .cyc-center{position:static;transform:none;animation:none;margin:0 auto 10px;}
+  .cyc-node{
+    position:relative;left:auto;top:auto;transform:none;
+    width:100%;height:auto;min-height:64px;
+    flex-direction:row;justify-content:flex-start;gap:14px;
+    padding:14px 20px;border-radius:18px;text-align:left;
+  }
+  .cyc-node::before{border-radius:18px;}
+  .cyc-node:hover,.cyc-node:focus-visible{transform:none;}
+  .cyc-label{font-size:15px;}
+  .cyc-label br{display:none;}
+  .cyc-pop{display:none;}
+}
