@@ -840,3 +840,97 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 
 /* jarak antar quote di teks berjalan */
 .ticker span{padding:0 64px;}
+
+/* =========================================================
+   GALERI FOTO — 1 besar (bisa digeser), 1 persegi panjang, 2 persegi
+   ========================================================= */
+.gallery-section{padding-top:0;}
+
+.gallery{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr;
+  grid-template-areas:
+    "big wide wide"
+    "big sq1  sq2";
+  gap:16px;
+}
+.gallery-item{
+  position:relative;
+  overflow:hidden;
+  border-radius:var(--radius-card);
+  box-shadow:var(--shadow-card);
+  background:var(--paper-100);
+}
+.gallery-item img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
+}
+.g-big{grid-area:big;}
+.g-wide{grid-area:wide;aspect-ratio:2/1;}
+.g-sq1{grid-area:sq1;aspect-ratio:1/1;}
+.g-sq2{grid-area:sq2;aspect-ratio:1/1;}
+
+/* ---- slider foto besar ---- */
+.slider{
+  position:absolute;inset:0;
+  display:flex;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.slider::-webkit-scrollbar{display:none;}
+.slide{
+  position:relative;
+  flex:0 0 100%;
+  height:100%;
+  margin:0;
+  scroll-snap-align:start;
+}
+
+/* bayangan tipis di bawah supaya titik-titik terlihat jelas */
+.g-big::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:70px;
+  background:linear-gradient(transparent,rgba(13,27,61,.45));
+  pointer-events:none;z-index:1;
+}
+.slider-btn{
+  position:absolute;top:50%;transform:translateY(-50%);
+  z-index:2;
+  width:40px;height:40px;
+  border:none;border-radius:50%;
+  background:rgba(255,255,255,.92);color:var(--ink-900);
+  font-size:22px;line-height:1;cursor:pointer;
+  box-shadow:0 6px 16px -6px rgba(13,27,61,.45);
+  transition:background .2s ease, color .2s ease, opacity .2s ease;
+}
+.slider-btn.prev{left:14px;}
+.slider-btn.next{right:14px;}
+.slider-btn:hover:not(:disabled){background:var(--forge-500);color:#fff;}
+.slider-btn:disabled{opacity:.35;cursor:default;}
+
+.slider-dots{
+  position:absolute;left:0;right:0;bottom:14px;z-index:2;
+  display:flex;justify-content:center;gap:8px;
+}
+.slider-dots button{
+  width:9px;height:9px;padding:0;border:none;border-radius:999px;
+  background:rgba(255,255,255,.55);cursor:pointer;
+  transition:width .25s ease, background .25s ease;
+}
+.slider-dots button.active{width:24px;background:#fff;}
+
+/* HP: susun ke bawah */
+@media (max-width:780px){
+  .gallery{
+    grid-template-columns:1fr 1fr;
+    grid-template-areas:
+      "big  big"
+      "wide wide"
+      "sq1  sq2";
+    gap:12px;
+  }
+  .g-big{aspect-ratio:4/3;}
+}
