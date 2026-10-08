@@ -242,6 +242,27 @@ section{padding:64px 0;}
 .eyebrow .bolt{color:var(--forge-500);}
 .section-head h2{font-size:clamp(26px,3.4vw,36px);color:var(--ink-900);}
 .section-head p{margin-top:10px;color:var(--steel-400);font-size:15.5px;}
+/* Judul bagian di tengah, gradasi biru seperti tombol Hotline
+   (pakai: class="section-head center") */
+.section-head.center{max-width:none;text-align:center;}
+.section-head.center .eyebrow{justify-content:center;}
+.section-head.center h2{
+  display:block;
+  width:fit-content;
+  max-width:100%;
+  margin-left:auto;margin-right:auto;
+  line-height:1.2;
+  padding-bottom:.12em;        /* supaya ekor huruf p, g tidak terpotong gradasi */
+  text-wrap:balance;
+  background:var(--grad-blue); /* gradasi yang sama dengan tombol Hotline */
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+.section-head.center p{max-width:60ch;margin-left:auto;margin-right:auto;}
+
+@media (min-width:900px){
+  .section-head.center h2{white-space:nowrap;} /* satu baris di layar lebar */
+}
 .on-dark .section-head h2{color:#fff;}
 .on-dark .section-head p{color:var(--steel-300);}
 .section-dark{background:var(--graphite-900);color:var(--steel-200);}
