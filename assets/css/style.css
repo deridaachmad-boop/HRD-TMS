@@ -733,7 +733,7 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 /* mata rantai (gambar SVG diulang ke bawah) */
 .chain-links{
   display:block;flex:none;
-  width:20px;height:80px;
+  width:20px;height:40px;
   margin:-4px 0 -8px;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='40' viewBox='0 0 20 40'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23cbd5e1'/%3E%3Cstop offset='1' stop-color='%2364748b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='7.5' y='16' width='5' height='28.5' rx='2.5' fill='url(%23g)'/%3E%3Crect x='7.5' y='-24' width='5' height='28.5' rx='2.5' fill='url(%23g)'/%3E%3Crect x='2' y='1.5' width='16' height='25' rx='8' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3C/svg%3E") repeat-y center top / 20px 40px;
   filter:drop-shadow(0 1px 1px rgba(13,27,61,.2));
