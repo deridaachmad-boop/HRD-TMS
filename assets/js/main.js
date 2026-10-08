@@ -21,61 +21,132 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => el.classList.add('in'), 90 * i);
   });
 
-  /* ---- fetch live stats from Google Sheets (published CSV) ---- */
+  /* ---- data live dari Google Sheets (published CSV) ---- */
   const STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8rATuqH6Hm2iHW4XpAWdF83MwGumG8dDWGRm_7aIrNj5w26FhXhssiKhSVW5V04MwR3GeeFBgZ7z9/pub?gid=1107685349&single=true&output=csv';
+  const TRAINING_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRaCpN0v9MKrbdGqGIXpdxxaRqKheRMIHsg2N_mUiFQwRUdbIXRLLKCNeFaFeVma1pZNZKwqhLHzRQu/pub?gid=1813580930&single=true&output=csv';
+  const REFRESH_MS = 60000; // cek ulang data tiap 60 detik
 
-  (async function loadDashboardStats() {
+  // Pembaca CSV yang benar: paham sel berkutip seperti "0,56"
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], cell = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (inQuotes) {
+        if (ch === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+        else if (ch === '"') { inQuotes = false; }
+        else { cell += ch; }
+      } else if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        row.push(cell); cell = '';
+      } else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
+        row.push(cell); rows.push(row); row = []; cell = '';
+      } else {
+        cell += ch;
+      }
+    }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+
+  async function fetchSheetRow(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = parseCSV((await res.text()).trim());
+    const headers = rows[0].map(h => h.trim());
+    const values = rows[1] || [];
+    const data = {};
+    headers.forEach((h, i) => { if (h) data[h] = (values[i] || '').trim(); });
+    return data;
+  }
+
+  function formatNumber(num, decimals, suffix) {
+    return num.toFixed(decimals).replace('.', ',') + suffix;
+  }
+
+  // Isi elemen yang punya atribut `attr` (data-sheet / data-quarter) dari sheet
+  async function loadSheet(url, attr) {
+    const els = document.querySelectorAll('[' + attr + ']');
     try {
-      const res = await fetch(STATS_CSV_URL, { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const text = await res.text();
-
-      const rows = text.trim().split('\n').map(r => r.split(',').map(c => c.replace(/"/g, '').trim()));
-      const headers = rows[0];
-      const values = rows[1] || [];
-      const data = {};
-      headers.forEach((h, i) => { data[h] = values[i] || ''; });
-
-      document.querySelectorAll('[data-quarter]').forEach(el => {
-        const key = el.getAttribute('data-quarter');
-        const raw = (data[key] || '').replace('%', '').trim();
+      const data = await fetchSheetRow(url);
+      els.forEach(el => {
+        const suffix = el.getAttribute('data-suffix') || '';
+        const raw = (data[el.getAttribute(attr)] || '').replace('%', '').trim();
         const num = parseFloat(raw.replace(',', '.'));
         if (raw === '' || isNaN(num)) {
           el.textContent = '—';
+          el.removeAttribute('data-count');
+          el.dataset.done = '1';
+          return;
+        }
+        const decimals = (raw.split(/[.,]/)[1] || '').length; // "0,56" -> 2, "83" -> 0
+        el.setAttribute('data-count', num);
+        el.setAttribute('data-decimals', decimals);
+        if (el.dataset.done) {
+          el.textContent = formatNumber(num, decimals, suffix); // animasi sudah selesai: langsung ganti angka
         } else {
-          el.setAttribute('data-count', num);
-          el.textContent = '0' + (el.getAttribute('data-suffix') || '');
+          el.textContent = '0' + suffix;
         }
       });
     } catch (err) {
-      console.error('Gagal memuat data capaian dari Google Sheets:', err);
-      document.querySelectorAll('[data-quarter]').forEach(el => { el.textContent = '—'; });
+      console.error('Gagal memuat data dari Google Sheets:', err);
+      els.forEach(el => {
+        if (el.dataset.done) return; // angka yang sudah tampil dibiarkan
+        el.textContent = '—';
+        el.removeAttribute('data-count');
+        el.dataset.done = '1';
+      });
     }
+  }
 
-    /* animate only the ones that got real data */
+  // Animasi hitung naik saat elemen terlihat di layar
+  function startCounters() {
     const counters = document.querySelectorAll('[data-count]');
-    if (counters.length) {
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target;
-          io.unobserve(el);
-          const target = parseFloat(el.getAttribute('data-count'));
-          const decimals = el.getAttribute('data-count').includes('.') ? 1 : 0;
-          const suffix = el.getAttribute('data-suffix') || '';
-          const dur = 4000;
-          const start = performance.now();
-          function tick(now) {
-            const p = Math.min(1, (now - start) / dur);
-            const eased = 1 - Math.pow(1 - p, 3);
-            const val = target * eased;
-            el.textContent = val.toFixed(decimals).replace('.', ',') + suffix;
-            if (p < 1) requestAnimationFrame(tick);
-          }
-          requestAnimationFrame(tick);
-        });
-      }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
-      counters.forEach(c => io.observe(c));
+    if (!counters.length) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        io.unobserve(el);
+        const attr = el.getAttribute('data-count');
+        const target = parseFloat(attr);
+        const decimals = el.hasAttribute('data-decimals')
+          ? parseInt(el.getAttribute('data-decimals'), 10)
+          : (attr.split('.')[1] || '').length;
+        const suffix = el.getAttribute('data-suffix') || '';
+        const dur = 4000;
+        const start = performance.now();
+        function tick(now) {
+          const p = Math.min(1, (now - start) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = formatNumber(target * eased, decimals, suffix);
+          if (p < 1) requestAnimationFrame(tick);
+          else el.dataset.done = '1';
+        }
+        requestAnimationFrame(tick);
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
+    counters.forEach(c => io.observe(c));
+  }
+
+  (async function initStats() {
+    // hanya ambil sheet yang memang dipakai di halaman ini
+    const sources = [
+      { url: STATS_CSV_URL, attr: 'data-quarter' },
+      { url: TRAINING_CSV_URL, attr: 'data-sheet' }
+    ].filter(s => document.querySelector('[' + s.attr + ']'));
+
+    await Promise.all(sources.map(s => loadSheet(s.url, s.attr)));
+    startCounters();
+
+    // update berkala selama halaman terbuka
+    if (sources.length) {
+      setInterval(() => {
+        if (document.hidden) return; // jangan fetch kalau tab sedang tidak dilihat
+        sources.forEach(s => loadSheet(s.url, s.attr));
+      }, REFRESH_MS);
     }
   })();
 
