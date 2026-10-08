@@ -694,3 +694,112 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 .metric:not(.on-dark):hover .m-label{color:rgba(255,255,255,.85);}
 .metric:not(.on-dark):hover .m-num{color:#fff;}
 .metric:not(.on-dark):hover .m-sub{color:rgba(255,255,255,.8);}
+
+/* =========================================================
+   RANTAI MENJUNTAI — 4 pilar kerja HR (hero, sisi kanan)
+   ========================================================= */
+.hero-chain{
+  position:relative;
+  align-self:start;
+  margin-top:-76px;            /* naik ke tepi atas hero, tepat di bawah navbar */
+  display:flex;flex-direction:column;align-items:center;
+}
+
+/* dudukan tempat rantai menggantung */
+.chain-rail{
+  position:relative;z-index:3;
+  width:64px;height:8px;flex:none;
+  border-radius:0 0 8px 8px;
+  background:linear-gradient(180deg,#94a3b8,#64748b);
+  box-shadow:0 3px 8px -2px rgba(13,27,61,.35);
+}
+
+/* satu ruas = rantai + papan poin; ruas berikutnya bersarang di dalamnya,
+   jadi goyangan menjalar ke bawah seperti gelombang */
+.chain-seg{
+  display:flex;flex-direction:column;align-items:center;
+  transform-origin:50% 0;
+  animation:chain-sway 7s ease-in-out infinite;
+}
+.chain-seg .chain-seg{animation-delay:-6.1s;}
+.chain-seg .chain-seg .chain-seg{animation-delay:-5.2s;}
+.chain-seg .chain-seg .chain-seg .chain-seg{animation-delay:-4.3s;}
+
+@keyframes chain-sway{
+  0%,100%{transform:rotate(-1.2deg);}
+  50%{transform:rotate(1.2deg);}
+}
+
+/* mata rantai (gambar SVG diulang ke bawah) */
+.chain-links{
+  display:block;flex:none;
+  width:20px;height:80px;
+  margin:-4px 0 -8px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='40' viewBox='0 0 20 40'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23cbd5e1'/%3E%3Cstop offset='1' stop-color='%2364748b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='7.5' y='16' width='5' height='28.5' rx='2.5' fill='url(%23g)'/%3E%3Crect x='7.5' y='-24' width='5' height='28.5' rx='2.5' fill='url(%23g)'/%3E%3Crect x='2' y='1.5' width='16' height='25' rx='8' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3C/svg%3E") repeat-y center top / 20px 40px;
+  filter:drop-shadow(0 1px 1px rgba(13,27,61,.2));
+}
+
+/* papan poin (biru gradasi, berbalik putih saat disorot) */
+.chain-tag{
+  position:relative;z-index:1;
+  display:flex;align-items:center;justify-content:center;
+  width:320px;max-width:84vw;
+  padding:13px 20px;
+  border-radius:14px;
+  font-family:var(--f-display);font-weight:700;font-size:15px;line-height:1.25;
+  color:#fff;
+  background-color:#fff;
+  background-image:linear-gradient(#fff,#fff), var(--grad-blue);
+  background-repeat:no-repeat;
+  background-origin:border-box;
+  background-position:center bottom;
+  background-size:100% 0%, 100% 100%;
+  box-shadow:0 12px 26px -12px rgba(36,86,217,.65);
+  transition:background-size .4s ease, color .4s ease, box-shadow .4s ease;
+}
+.chain-tag:hover{
+  background-size:100% 100%, 100% 100%;
+  color:var(--forge-500);
+  box-shadow:inset 0 0 0 1.5px var(--forge-500), 0 14px 28px -12px rgba(36,86,217,.5);
+}
+.chain-tag span::after{
+  content:'→';display:inline-block;margin-left:8px;
+  transition:transform .3s ease;
+}
+.chain-tag:hover span::after{transform:translateX(4px);}
+
+/* kait kecil tempat rantai terpasang di papan */
+.chain-tag::before,
+.chain-tag::after{
+  content:'';position:absolute;left:50%;
+  width:11px;height:11px;margin-left:-5.5px;
+  border-radius:50%;
+  border:2.5px solid #94a3b8;
+  background:#fff;
+}
+.chain-tag::before{top:-6px;}
+.chain-tag::after{bottom:-6px;}
+.chain-tag:last-child::after{display:none;}
+
+/* goyangan berhenti sementara saat kursor di atas papan, supaya mudah diklik */
+.hero-chain:has(.chain-tag:hover) .chain-seg{animation-play-state:paused;}
+
+.chain-caption{margin-top:26px;max-width:340px;text-align:center;}
+.chain-caption strong{
+  display:block;margin-bottom:6px;
+  font-family:var(--f-display);font-size:20px;color:var(--ink-900);
+}
+.chain-caption p{font-size:13.5px;color:var(--steel-400);}
+
+/* kartu pilar tujuan: berhenti di bawah navbar + berkedip halus saat dituju */
+.pillar{scroll-margin-top:96px;}
+.pillar:target{animation:pillar-flash 1.8s ease 1;}
+@keyframes pillar-flash{
+  0%{box-shadow:0 0 0 0 rgba(36,86,217,.55);}
+  45%{box-shadow:0 0 0 12px rgba(36,86,217,.16);}
+  100%{box-shadow:0 10px 28px -14px rgba(13,27,61,.18);}
+}
+
+@media (max-width:880px){
+  .hero-chain{margin-top:0;align-self:center;}
+}
