@@ -807,3 +807,12 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 /* hero: judul naik ke atas + ukuran paragraf disamakan dengan keterangan 4 pilar */
 .hero-inner{align-items:start;}
 .hero .lede{font-size:13.5px;max-width:60ch;}
+
+/* 1. jarak antara paragraf dan 2 tombol (Lihat 5R Dashboard / Training Center) */
+.hero .cta-row{margin-top:48px;}
+
+/* 2. jarak antara kartu Capaian dan teks berjalan */
+.hero{padding-bottom:44px;}
+
+/* 3. "Development." tidak miring */
+.hero h1 em{font-style:normal;}
