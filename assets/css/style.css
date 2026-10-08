@@ -579,3 +579,118 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
   transition:opacity .55s ease, transform .55s ease;
 }
 .reveal-ready [data-reveal].in{opacity:1;transform:translateY(0);}
+
+/* =========================================================
+   HOVER INVERT — biru <-> putih (efek isi naik dari bawah)
+   ========================================================= */
+
+/* ---------- A. Elemen BIRU -> jadi PUTIH saat hover ---------- */
+.btn-primary,
+.nav .nav-cta,
+.split-figure .tag,
+.badge-top{
+  background-color:transparent;
+  background-image:linear-gradient(#fff,#fff), var(--grad-blue);
+  background-repeat:no-repeat;
+  background-origin:border-box;
+  background-position:center bottom;
+  background-size:100% 0%, 100% 100%;
+  transition:background-size .4s ease, color .4s ease, box-shadow .4s ease, transform .15s ease;
+}
+.btn-primary:hover,
+.nav .nav-cta:hover,
+.split-figure .tag:hover,
+.badge-top:hover{
+  background-image:linear-gradient(#fff,#fff), var(--grad-blue);
+  background-repeat:no-repeat;
+  background-origin:border-box;
+  background-position:center bottom;
+  background-size:100% 100%, 100% 100%;
+  color:var(--forge-500);
+  box-shadow:inset 0 0 0 1.5px var(--forge-500), 0 8px 20px -10px rgba(36,86,217,.5);
+}
+.nav .nav-cta:hover{color:var(--forge-500) !important;}
+
+/* ---------- B. Elemen PUTIH -> jadi BIRU gradasi saat hover ---------- */
+.btn-ghost,
+.btn-outline,
+.tab-btn{
+  background-color:#fff;
+  background-image:var(--grad-blue);
+  background-repeat:no-repeat;
+  background-origin:border-box;
+  background-position:center bottom;
+  background-size:100% 0%;
+  transition:background-size .4s ease, color .4s ease, border-color .4s ease, transform .15s ease;
+}
+.btn-ghost:hover,
+.btn-outline:hover,
+.tab-btn:hover{
+  background-size:100% 100%;
+  color:#fff;
+  border-color:transparent;
+}
+
+/* ---------- C. Kartu PUTIH -> jadi BIRU gradasi saat hover ---------- */
+.statstrip .stat,
+.pillar,
+.card,
+.metric:not(.on-dark){
+  background-color:#fff;
+  background-image:var(--grad-blue);
+  background-repeat:no-repeat;
+  background-origin:border-box;
+  background-position:center bottom;
+  background-size:100% 0%;
+  transition:background-size .45s ease, transform .18s ease, box-shadow .3s ease, border-color .45s ease;
+}
+.statstrip .stat:hover,
+.pillar:hover,
+.card:hover,
+.metric:not(.on-dark):hover{
+  background-size:100% 100%;
+  border-color:transparent;
+  box-shadow:0 18px 38px -14px rgba(36,86,217,.55);
+}
+
+/* --- isi kartu statistik (angka Q1-Q4 ikut jadi putih) --- */
+.statstrip .stat .num{
+  background-image:linear-gradient(#fff,#fff), var(--grad-blue-text);
+  background-repeat:no-repeat;
+  background-position:center bottom;
+  background-size:100% 0%, 100% 100%;
+  transition:background-size .45s ease;
+}
+.statstrip .stat:hover .num{background-size:100% 100%, 100% 100%;}
+.statstrip .stat .label{transition:color .45s ease;}
+.statstrip .stat:hover .label{color:#fff;}
+
+/* --- isi kartu pilar --- */
+.pillar::before{transition:opacity .45s ease;}
+.pillar:hover::before{opacity:0;}
+.pillar .idx,
+.pillar h3,
+.pillar p,
+.pillar a.more{transition:color .45s ease, border-color .45s ease;}
+.pillar:hover .idx,
+.pillar:hover h3{color:#fff;}
+.pillar:hover p{color:rgba(255,255,255,.88);}
+.pillar:hover a.more{color:#fff;border-bottom-color:#fff;}
+
+/* --- isi kartu umum (halaman dalam) --- */
+.card .icon,
+.card h3,
+.card p,
+.card .num-tag{transition:color .45s ease, background-color .45s ease;}
+.card:hover h3,
+.card:hover .num-tag{color:#fff;}
+.card:hover p{color:rgba(255,255,255,.88);}
+.card:hover .icon{background:#fff;color:var(--forge-500);}
+
+/* --- isi kartu metrik (halaman dalam) --- */
+.metric .m-label,
+.metric .m-num,
+.metric .m-sub{transition:color .45s ease;}
+.metric:not(.on-dark):hover .m-label{color:rgba(255,255,255,.85);}
+.metric:not(.on-dark):hover .m-num{color:#fff;}
+.metric:not(.on-dark):hover .m-sub{color:rgba(255,255,255,.8);}
