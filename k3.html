@@ -92,26 +92,115 @@
       <h2>Komitmen K3 dalam kegiatan nyata</h2>
       <p>Komitmen kami terhadap K3 tercermin lewat pelatihan berkelanjutan, penerapan kebijakan, inspeksi tempat kerja, dan identifikasi bahaya secara proaktif.</p>
     </div>
-    <div class="split">
-      <div>
-        <!-- GANTI tiap # dengan link dokumen masing-masing -->
-        <div class="doclist">
-          <a href="#" target="_blank" rel="noopener"><span class="fname"><span class="bolt"></span> Training Schedule</span><span class="dl">BUKA ↗</span></a>
-          <a href="#" target="_blank" rel="noopener"><span class="fname"><span class="bolt"></span> OHS Policy</span><span class="dl">BUKA ↗</span></a>
-          <a href="#" target="_blank" rel="noopener"><span class="fname"><span class="bolt"></span> Without Accident</span><span class="dl">BUKA ↗</span></a>
-          <a href="#" target="_blank" rel="noopener"><span class="fname"><span class="bolt"></span> Inspection Report</span><span class="dl">BUKA ↗</span></a>
-          <a href="#" target="_blank" rel="noopener"><span class="fname"><span class="bolt"></span> HIRADC</span><span class="dl">BUKA ↗</span></a>
-        </div>
-        <div style="margin-top:24px;">
-          <a href="#" class="btn btn-primary" target="_blank" rel="noopener">Laporan Inspeksi</a>
-        </div>
+
+    <div class="cyc">
+      <!-- lingkaran + panah siklus -->
+      <svg class="cyc-ring" viewBox="0 0 500 500" aria-hidden="true">
+        <defs>
+          <radialGradient id="cyc-glow">
+            <stop offset="0" stop-color="#bfdbfe" stop-opacity=".85"/>
+            <stop offset="1" stop-color="#bfdbfe" stop-opacity="0"/>
+          </radialGradient>
+          <marker id="cyc-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="#2456d9"/>
+          </marker>
+        </defs>
+        <circle class="cyc-halo" cx="250" cy="250" r="125" fill="url(#cyc-glow)"/>
+        <circle cx="250" cy="250" r="190" fill="none" stroke="#cbd5e1" stroke-opacity=".6"/>
+        <g class="cyc-arcs" fill="none" stroke="#2456d9" stroke-width="2.4" stroke-linecap="round">
+          <path d="M308.7 69.3 A190 190 0 0 1 403.7 138.3" marker-end="url(#cyc-arrow)"/>
+          <path d="M440 250 A190 190 0 0 1 403.7 361.7" marker-end="url(#cyc-arrow)"/>
+          <path d="M308.7 430.7 A190 190 0 0 1 191.3 430.7" marker-end="url(#cyc-arrow)"/>
+          <path d="M96.3 361.7 A190 190 0 0 1 60 250" marker-end="url(#cyc-arrow)"/>
+          <path d="M96.3 138.3 A190 190 0 0 1 191.3 69.3" marker-end="url(#cyc-arrow)"/>
+        </g>
+      </svg>
+
+      <!-- perisai di tengah -->
+      <div class="cyc-center">
+        <svg viewBox="0 0 150 190" role="img" aria-label="Zero Accident">
+          <defs>
+            <linearGradient id="sh-fill" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#1e3a8a"/>
+              <stop offset=".55" stop-color="#2456d9"/>
+              <stop offset="1" stop-color="#0d1b3d"/>
+            </linearGradient>
+            <linearGradient id="sh-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f6dc9a"/>
+              <stop offset=".5" stop-color="#e0a93e"/>
+              <stop offset="1" stop-color="#f6dc9a"/>
+            </linearGradient>
+          </defs>
+          <path d="M75 4 L140 28 V92 C140 138 110 168 75 184 C40 168 10 138 10 92 V28 Z" fill="url(#sh-fill)" stroke="url(#sh-gold)" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M75 14 L131 34 V92 C131 131 105 158 75 172 C45 158 19 131 19 92 V34 Z" fill="none" stroke="#ffffff" stroke-opacity=".35"/>
+          <circle cx="75" cy="52" r="14" fill="none" stroke="url(#sh-gold)" stroke-width="2"/>
+          <path d="M68 52.5 L73.5 58 L83 46.5" fill="none" stroke="url(#sh-gold)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="75" y="98" text-anchor="middle" class="sh-zero">ZERO</text>
+          <line x1="50" y1="108" x2="100" y2="108" stroke="url(#sh-gold)" stroke-width="1.2"/>
+          <text x="75" y="126" text-anchor="middle" class="sh-acc">ACCIDENT</text>
+        </svg>
       </div>
-      <div class="k3-photos">
-        <div class="gallery-item"><img src="assets/img/k3-1.jpg" alt="Kegiatan K3 di area produksi" loading="lazy"></div>
-        <div class="gallery-item"><img src="assets/img/k3-2.jpg" alt="Praktik penanganan bahan di lapangan" loading="lazy"></div>
-        <div class="gallery-item"><img src="assets/img/k3-3.jpg" alt="Apel keselamatan karyawan" loading="lazy"></div>
-        <div class="gallery-item"><img src="assets/img/k3-4.jpg" alt="Pengarahan keselamatan kerja" loading="lazy"></div>
-      </div>
+
+      <!-- 5 komitmen. GANTI tiap href="#" dengan link dokumen masing-masing -->
+      <a class="cyc-node r" style="--x:50%;--y:12%;" href="#" target="_blank" rel="noopener">
+        <span class="cyc-num">01</span>
+        <span class="cyc-label">Training<br>Schedule</span>
+        <span class="cyc-pop" aria-hidden="true">
+          <span class="cyc-line"></span>
+          <span class="cyc-card">
+            <span class="cyc-photo"><img src="assets/img/k3-1.jpg" alt="" loading="lazy" onerror="this.remove()"></span>
+            <span class="cyc-cap">Training Schedule<small>BUKA DOKUMEN ↗</small></span>
+          </span>
+        </span>
+      </a>
+
+      <a class="cyc-node r" style="--x:86.14%;--y:38.26%;" href="#" target="_blank" rel="noopener">
+        <span class="cyc-num">02</span>
+        <span class="cyc-label">OHS<br>Policy</span>
+        <span class="cyc-pop" aria-hidden="true">
+          <span class="cyc-line"></span>
+          <span class="cyc-card">
+            <span class="cyc-photo"><img src="assets/img/k3-2.jpg" alt="" loading="lazy" onerror="this.remove()"></span>
+            <span class="cyc-cap">OHS Policy<small>BUKA DOKUMEN ↗</small></span>
+          </span>
+        </span>
+      </a>
+
+      <a class="cyc-node r" style="--x:72.34%;--y:80.74%;" href="#" target="_blank" rel="noopener">
+        <span class="cyc-num">03</span>
+        <span class="cyc-label">Without<br>Accident</span>
+        <span class="cyc-pop" aria-hidden="true">
+          <span class="cyc-line"></span>
+          <span class="cyc-card">
+            <span class="cyc-photo"><img src="assets/img/k3-3.jpg" alt="" loading="lazy" onerror="this.remove()"></span>
+            <span class="cyc-cap">Without Accident<small>BUKA DOKUMEN ↗</small></span>
+          </span>
+        </span>
+      </a>
+
+      <a class="cyc-node l" style="--x:27.66%;--y:80.74%;" href="#" target="_blank" rel="noopener">
+        <span class="cyc-num">04</span>
+        <span class="cyc-label">Inspection<br>Report</span>
+        <span class="cyc-pop" aria-hidden="true">
+          <span class="cyc-line"></span>
+          <span class="cyc-card">
+            <span class="cyc-photo"><img src="assets/img/k3-4.jpg" alt="" loading="lazy" onerror="this.remove()"></span>
+            <span class="cyc-cap">Inspection Report<small>BUKA DOKUMEN ↗</small></span>
+          </span>
+        </span>
+      </a>
+
+      <a class="cyc-node l" style="--x:13.86%;--y:38.26%;" href="#" target="_blank" rel="noopener">
+        <span class="cyc-num">05</span>
+        <span class="cyc-label">HIRADC</span>
+        <span class="cyc-pop" aria-hidden="true">
+          <span class="cyc-line"></span>
+          <span class="cyc-card">
+            <span class="cyc-photo"><img src="assets/img/k3-5.jpg" alt="" loading="lazy" onerror="this.remove()"></span>
+            <span class="cyc-cap">HIRADC<small>BUKA DOKUMEN ↗</small></span>
+          </span>
+        </span>
+      </a>
     </div>
   </div>
 </section>
