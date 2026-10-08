@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const target = parseFloat(el.getAttribute('data-count'));
           const decimals = el.getAttribute('data-count').includes('.') ? 1 : 0;
           const suffix = el.getAttribute('data-suffix') || '';
-          const dur = 2000;
+          const dur = 4000;
           const start = performance.now();
           function tick(now) {
             const p = Math.min(1, (now - start) / dur);
