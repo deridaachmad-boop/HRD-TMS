@@ -803,3 +803,7 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 @media (max-width:880px){
   .hero-chain{margin-top:0;align-self:center;}
 }
+
+/* hero: judul naik ke atas + ukuran paragraf disamakan dengan keterangan 4 pilar */
+.hero-inner{align-items:start;}
+.hero .lede{font-size:13.5px;max-width:60ch;}
