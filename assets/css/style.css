@@ -816,3 +816,6 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 
 /* 3. "Development." tidak miring */
 .hero h1 em{font-style:normal;}
+
+/* jarak antar quote di teks berjalan */
+.ticker span{padding:0 64px;}
