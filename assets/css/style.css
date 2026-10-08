@@ -1009,3 +1009,19 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
 @media (max-width:880px){.grid-4{grid-template-columns:repeat(2,1fr);}}
 @media (max-width:560px){.grid-4{grid-template-columns:1fr;}}
+
+/* video YouTube memenuhi kolomnya, rasio 16:9 */
+.video-wrap{
+  position:relative;
+  width:100%;
+  aspect-ratio:16/9;
+  border-radius:var(--radius-card);
+  overflow:hidden;
+  background:#000;
+  box-shadow:var(--shadow-card);
+}
+.video-wrap iframe{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  border:0;
+}
