@@ -1249,9 +1249,10 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 /* Logo K3 di header halaman (pakai: <div class="hero-logo">) */
 .hero-logo{
   flex:none;
-  width:180px;aspect-ratio:1/1;
+  width:140px;aspect-ratio:1/1;
   display:flex;align-items:center;justify-content:center;
-  padding:22px;
+  padding:14px;
+  overflow:hidden;               /* memotong sudut gambar yang keluar dari lingkaran */
   border-radius:50%;
   background:#fff;
   box-shadow:0 14px 34px -14px rgba(0,0,0,.55);
@@ -1262,5 +1263,5 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 .btn-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:24px;}
 
 @media (max-width:780px){
-  .hero-logo{width:120px;padding:16px;}
+  .hero-logo{width:100px;padding:10px;}
 }
