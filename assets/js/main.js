@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---- data live dari Google Sheets (published CSV) ---- */
   const STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8rATuqH6Hm2iHW4XpAWdF83MwGumG8dDWGRm_7aIrNj5w26FhXhssiKhSVW5V04MwR3GeeFBgZ7z9/pub?gid=1107685349&single=true&output=csv';
   const TRAINING_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRaCpN0v9MKrbdGqGIXpdxxaRqKheRMIHsg2N_mUiFQwRUdbIXRLLKCNeFaFeVma1pZNZKwqhLHzRQu/pub?gid=1813580930&single=true&output=csv';
+  const PELAMAR_CSV_URL = 'GANTI-LINK-CSV-TAB-RINGKASAN';
+  const BIDANG_CSV_URL = 'GANTI-LINK-CSV-TAB-BIDANG-USAHA';
   const REFRESH_MS = 60000; // cek ulang data tiap 60 detik
 
   // Pembaca CSV yang benar: paham sel berkutip seperti "0,56"
@@ -135,9 +137,70 @@ document.addEventListener('DOMContentLoaded', () => {
     // hanya ambil sheet yang memang dipakai di halaman ini
     const sources = [
       { url: STATS_CSV_URL, attr: 'data-quarter' },
-      { url: TRAINING_CSV_URL, attr: 'data-sheet' }
+      { url: TRAINING_CSV_URL, attr: 'data-sheet' },
+      { url: PELAMAR_CSV_URL, attr: 'data-pelamar' }
     ].filter(s => document.querySelector('[' + s.attr + ']'));
 
+      /* ---- grafik bidang usaha pelamar non-fresh graduate ---- */
+  const ICONS = {
+    factory: '<path d="M3 21V11l6 4v-4l6 4V7h3v14H3z"/>',
+    cart: '<path d="M3 4h2l2.4 10h9.2L19 7H6"/><circle cx="9" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/>',
+    bank: '<path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>',
+    truck: '<path d="M2 6h11v9H2zM13 9h5l3 3v3h-8"/><circle cx="6" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/>',
+    chip: '<rect x="7" y="7" width="10" height="10" rx="1"/><path d="M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4"/>',
+    health: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/>',
+    hat: '<path d="M4 17h16M6 17a6 6 0 0 1 12 0M12 7V5"/>',
+    bolt: '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
+    edu: '<path d="M2 9l10-5 10 5-10 5zM6 11.5V16c3 2 9 2 12 0v-4.5"/>',
+    brief: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6h6v2M3 13h18"/>'
+  };
+  const ICON_RULES = [
+    [/manufaktur|pabrik|industri|produksi|logam|baja/i, 'factory'],
+    [/dagang|retail|ritel|toko|distribusi/i, 'cart'],
+    [/keuangan|bank|asuransi|finans|leasing/i, 'bank'],
+    [/logistik|transport|ekspedisi|pelayaran|kargo/i, 'truck'],
+    [/teknologi|\bit\b|software|digital|telekom/i, 'chip'],
+    [/kesehatan|rumah sakit|farmasi|medis/i, 'health'],
+    [/konstruksi|kontraktor|properti|bangunan/i, 'hat'],
+    [/energi|tambang|migas|listrik|batu bara/i, 'bolt'],
+    [/pendidikan|sekolah|kampus|pelatihan/i, 'edu']
+  ];
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  (async function loadBidangChart() {
+    const box = document.getElementById('bidang-chart');
+    if (!box) return;
+    try {
+      const res = await fetch(BIDANG_CSV_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const rows = parseCSV((await res.text()).trim()).slice(1)
+        .map(r => ({ name: (r[0] || '').trim(), n: parseFloat((r[1] || '').replace(',', '.')) }))
+        .filter(r => r.name && !isNaN(r.n) && r.n > 0)
+        .sort((a, b) => b.n - a.n);
+      if (!rows.length) throw new Error('Data kosong');
+      if (rows.length > 8) {                       // gabungkan sisanya jadi "Lainnya"
+        const rest = rows.splice(7).reduce((s, r) => s + r.n, 0);
+        rows.push({ name: 'Lainnya', n: rest });
+      }
+      const total = rows.reduce((s, r) => s + r.n, 0);
+      const max = Math.max(...rows.map(r => r.n));
+      box.innerHTML = rows.map((r, i) => {
+        const key = (ICON_RULES.find(x => x[0].test(r.name)) || [0, 'brief'])[1];
+        const h = Math.max(8, Math.round(r.n / max * 100));
+        const pct = Math.round(r.n / total * 100);
+        return '<div class="bar-col" style="--i:' + i + ';--h:' + h + '%">' +
+          '<div class="bar-fill"><span class="bar-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICONS[key] + '</svg></span></div>' +
+          '<span class="bar-label">' + esc(r.name) + '<b>' + pct + '%</b></span></div>';
+      }).join('');
+      new IntersectionObserver((entries, io) => {
+        if (entries[0].isIntersecting) { box.classList.add('in'); io.disconnect(); }
+      }, { threshold: 0.25 }).observe(box);
+    } catch (err) {
+      console.error('Gagal memuat grafik bidang usaha:', err);
+      box.innerHTML = '<p class="chart-empty">Data grafik belum tersedia.</p>';
+    }
+  })();
+    
     await Promise.all(sources.map(s => loadSheet(s.url, s.attr)));
     startCounters();
 
