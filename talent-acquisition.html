@@ -46,33 +46,31 @@
   </div>
 </section>
 
-<!-- ================= LOWONGAN ================= -->
+<!-- ================= DATA PELAMAR ================= -->
 <section>
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow"><span class="bolt"></span> LOWONGAN TERBUKA</div>
-      <h2>Posisi yang sedang dibuka</h2>
-      <p>Pilih posisi yang sesuai, baca kualifikasinya, lalu kirim lamaran lewat formulir.</p>
+      <div class="eyebrow"><span class="bolt"></span> DATA PELAMAR</div>
+      <h2>Profil pelamar PT TMS</h2>
+      <p>Jumlah pelamar dan latar belakang pelamar berpengalaman, diperbarui otomatis dari data rekrutmen.</p>
     </div>
-    <div class="grid-3">
-      <!-- Salin satu blok card untuk menambah lowongan; ganti isi dan link Lamar -->
-      <div class="card plate">
-        <span class="num-tag">ENGINEERING · GRESIK</span>
-        <h3>Nama Posisi</h3>
-        <p>Isi ringkasan tugas dan kualifikasi utama posisi ini. Batas pendaftaran: isi tanggal.</p>
-        <a href="#" class="btn btn-ghost" style="margin-top:18px;" target="_blank" rel="noopener">Lamar</a>
+    <div class="ta-layout">
+      <div class="ta-side">
+        <div class="metric plate">
+          <div class="m-label"><span class="bolt"></span> TOTAL PELAMAR</div>
+          <div class="m-num" data-pelamar="TOTAL" data-suffix="">0</div>
+          <div class="m-sub">Seluruh pelamar yang masuk</div>
+        </div>
+        <div class="metric plate">
+          <div class="m-label"><span class="bolt"></span> FRESH GRADUATE</div>
+          <div class="m-num" data-pelamar="FRESHGRAD" data-suffix="">0</div>
+          <div class="m-sub">Pelamar fresh graduate</div>
+        </div>
       </div>
-      <div class="card plate">
-        <span class="num-tag">QUALITY CONTROL · GRESIK</span>
-        <h3>Nama Posisi</h3>
-        <p>Isi ringkasan tugas dan kualifikasi utama posisi ini. Batas pendaftaran: isi tanggal.</p>
-        <a href="#" class="btn btn-ghost" style="margin-top:18px;" target="_blank" rel="noopener">Lamar</a>
-      </div>
-      <div class="card plate">
-        <span class="num-tag">MANAGEMENT TRAINEE · GRESIK</span>
-        <h3>Nama Posisi</h3>
-        <p>Isi ringkasan tugas dan kualifikasi utama posisi ini. Batas pendaftaran: isi tanggal.</p>
-        <a href="#" class="btn btn-ghost" style="margin-top:18px;" target="_blank" rel="noopener">Lamar</a>
+      <div class="chart plate">
+        <h3>Latar belakang pelamar berpengalaman</h3>
+        <p class="chart-sub">Persentase pelamar non-fresh graduate menurut bidang usaha perusahaan asal.</p>
+        <div class="bars" id="bidang-chart"></div>
       </div>
     </div>
   </div>
