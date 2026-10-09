@@ -1314,3 +1314,68 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 .apd summary::after{content:'+';color:var(--forge-500);font-size:16px;line-height:1;}
 .apd[open] summary::after{content:'−';}
 .apd p{padding:0 18px 16px;font-size:14px;color:var(--steel-400);}
+
+/* ---- Data pelamar: statistik + grafik bidang usaha ---- */
+.ta-layout{display:grid;grid-template-columns:1fr 2fr;gap:20px;align-items:stretch;}
+.ta-side{display:grid;gap:20px;}
+@media (max-width:880px){.ta-layout{grid-template-columns:1fr;}}
+
+.chart{padding:26px;display:flex;flex-direction:column;}
+.chart h3{font-size:19px;margin-bottom:4px;}
+.chart-sub{font-size:13.5px;color:var(--steel-400);margin-bottom:12px;}
+.chart-empty{font-size:14px;color:var(--steel-400);font-style:italic;align-self:center;margin:auto;}
+
+.bars{
+  height:340px;
+  display:flex;align-items:flex-end;
+  gap:clamp(8px,2vw,18px);
+  padding-top:44px;
+  overflow-x:auto;overflow-y:hidden;
+  border-bottom:1px solid var(--paper-100);
+}
+.bar-col{
+  flex:1;min-width:58px;height:100%;
+  display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+}
+.bar-fill{
+  position:relative;
+  width:min(56px,100%);height:0;
+  border-radius:12px 12px 4px 4px;
+  background:var(--grad-blue);
+  box-shadow:0 10px 22px -10px rgba(36,86,217,.6);
+}
+.bar-label{
+  margin-top:8px;font-size:12px;line-height:1.25;text-align:center;
+  color:var(--steel-400);word-break:break-word;
+}
+.bar-label b{display:block;margin-top:2px;font-family:var(--f-mono);font-size:13px;color:var(--ink-900);}
+
+/* ikon di ujung batang */
+.bar-ico{
+  position:absolute;left:50%;top:-42px;margin-left:-17px;
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:#fff;color:var(--forge-500);
+  border:1px solid var(--paper-100);
+  box-shadow:0 8px 18px -8px rgba(13,27,61,.45);
+  opacity:0;
+}
+.bar-ico svg{width:18px;height:18px;}
+
+/* batang naik satu per satu, ikon muncul lalu bergerak */
+.bars.in .bar-fill{
+  animation:bar-rise .9s cubic-bezier(.2,.8,.2,1) forwards;
+  animation-delay:calc(var(--i) * .16s);
+}
+.bars.in .bar-ico{
+  opacity:1;
+  transition:opacity .4s ease;
+  transition-delay:calc(var(--i) * .16s + .6s);
+  animation:ico-float 3s ease-in-out infinite;
+  animation-delay:calc(var(--i) * .16s + .9s);
+}
+@keyframes bar-rise{from{height:0;}to{height:calc(var(--h) * .78);}}
+@keyframes ico-float{
+  0%,100%{transform:translateY(0) rotate(-4deg);}
+  50%{transform:translateY(-7px) rotate(4deg);}
+}
