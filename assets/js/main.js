@@ -169,6 +169,105 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
+    /* ---- K3: angka indikator live dari Google Sheets (published CSV) ---- */
+  const K3_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvda3YSXQp_-4bHncAqp-fBCWhRlypuAQDNIPHLmRoZE_lJWvZeHQUtMUpYtDbnA/pub?gid=959271243&single=true&output=csv';
+
+  (async function loadK3Metrics() {
+    const targets = document.querySelectorAll('[data-metric]');
+    if (!targets.length) return;
+
+    const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const toNum = s => {
+      const m = String(s || '').trim().match(/^-?\d+([.,]\d+)?/);
+      return m ? parseFloat(m[0].replace(',', '.')) : null;
+    };
+
+    const parseCSV = text => {
+      const rows = [];
+      let row = [], cell = '', quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (quoted) {
+          if (ch === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+          else if (ch === '"') quoted = false;
+          else cell += ch;
+        } else if (ch === '"') {
+          quoted = true;
+        } else if (ch === ',') {
+          row.push(cell); cell = '';
+        } else if (ch === '\n' || ch === '\r') {
+          if (ch === '\r' && text[i + 1] === '\n') i++;
+          row.push(cell); rows.push(row); row = []; cell = '';
+        } else {
+          cell += ch;
+        }
+      }
+      row.push(cell); rows.push(row);
+      return rows;
+    };
+
+    /* cari label, ambil angka di sebelah kanannya atau di bawahnya */
+    const findValue = (grid, key) => {
+      for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < grid[r].length; c++) {
+          if (norm(grid[r][c]) !== key) continue;
+          for (let cc = c + 1; cc < grid[r].length; cc++) {
+            const n = toNum(grid[r][cc]);
+            if (n !== null) return n;
+          }
+          if (grid[r + 1]) {
+            const n = toNum(grid[r + 1][c]);
+            if (n !== null) return n;
+          }
+        }
+      }
+      return null;
+    };
+
+    let grid = [];
+    try {
+      const res = await fetch(K3_CSV_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      grid = parseCSV(await res.text());
+    } catch (err) {
+      console.error('Gagal memuat data K3 dari Google Sheets:', err);
+    }
+
+    const values = new Map();
+    targets.forEach(el => {
+      const label = el.getAttribute('data-metric');
+      const n = findValue(grid, norm(label));
+      if (n === null) {
+        console.warn('Data K3 tidak ditemukan untuk "' + label + '". Isi sheet yang terbaca:', grid.flat().filter(Boolean));
+        el.textContent = '—';
+      } else {
+        values.set(el, n);
+      }
+    });
+
+    /* animasi hitung naik saat kartu terlihat */
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        io.unobserve(el);
+        const target = values.get(el);
+        const decimals = Number.isInteger(target) ? 0 : 1;
+        const dur = 2000;
+        const start = performance.now();
+        const tick = now => {
+          const p = Math.min(1, (now - start) / dur);
+          const val = target * (1 - Math.pow(1 - p, 3));
+          el.textContent = val.toFixed(decimals).replace('.', ',');
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
+
+    values.forEach((n, el) => { el.textContent = '0'; io.observe(el); });
+  })();
+  
   /* ---- tabs (Training Center document library) ---- */
   const tabBtns = document.querySelectorAll('.tab-btn');
   if (tabBtns.length) {
