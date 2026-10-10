@@ -14,10 +14,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ---- hero reveal sequence (single orchestrated load) ---- */
+  /* ---- loading screen "Halo, HRD!" + animasi masuk hero ---- */
   document.body.classList.add('reveal-ready');
   const reveals = document.querySelectorAll('[data-reveal]');
-  reveals.forEach((el, i) => {
+  let revealed = false;
+  const startReveal = () => {
+    if (revealed) return;
+    revealed = true;
+    reveals.forEach((el, i) => setTimeout(() => el.classList.add('in'), 90 * i));
+  };
+
+  const pre = document.getElementById('preloader');
+  if (pre && !document.documentElement.classList.contains('no-preload')) {
+    const MIN_MS = 1800;   // tampil minimal 1,8 detik sejak halaman dibuka
+    const MAX_MS = 5000;   // batas aman jika ada yang lambat dimuat
+    let closed = false;
+    const closePre = () => {
+      if (closed) return;
+      closed = true;
+      pre.classList.add('done');
+      try { sessionStorage.setItem('hrdHello', '1'); } catch (e) {}
+      setTimeout(startReveal, 250);
+      setTimeout(() => pre.remove(), 800);
+    };
+    const onLoaded = () => setTimeout(closePre, Math.max(0, MIN_MS - performance.now()));
+    if (document.readyState === 'complete') onLoaded();
+    else window.addEventListener('load', onLoaded, { once: true });
+    setTimeout(closePre, MAX_MS);
+  } else {
+    startReveal();
+  }
     setTimeout(() => el.classList.add('in'), 90 * i);
   });
 
