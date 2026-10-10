@@ -592,8 +592,8 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 /* =========================================================
    REVEAL
    ========================================================= */
-[data-reveal]{opacity:0;transform:translateY(10px);}
 .reveal-ready [data-reveal]{
+  opacity:0;transform:translateY(10px);
   transition:opacity .55s ease, transform .55s ease;
 }
 .reveal-ready [data-reveal].in{opacity:1;transform:translateY(0);}
