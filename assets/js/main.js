@@ -142,28 +142,36 @@ document.addEventListener('DOMContentLoaded', () => {
     ].filter(s => document.querySelector('[' + s.attr + ']'));
 
       /* ---- grafik bidang usaha pelamar non-fresh graduate ---- */
-  const ICONS = {
+    const ICONS = {
     factory: '<path d="M3 21V11l6 4v-4l6 4V7h3v14H3z"/>',
     cart: '<path d="M3 4h2l2.4 10h9.2L19 7H6"/><circle cx="9" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/>',
-    bank: '<path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>',
     truck: '<path d="M2 6h11v9H2zM13 9h5l3 3v3h-8"/><circle cx="6" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/>',
     chip: '<rect x="7" y="7" width="10" height="10" rx="1"/><path d="M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4"/>',
     health: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/>',
     hat: '<path d="M4 17h16M6 17a6 6 0 0 1 12 0M12 7V5"/>',
     bolt: '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
     edu: '<path d="M2 9l10-5 10 5-10 5zM6 11.5V16c3 2 9 2 12 0v-4.5"/>',
+    oil: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+    car: '<path d="M5 17H3v-5l2-5h14l2 5v5h-2M5 12h14"/><circle cx="7.5" cy="17" r="1.6"/><circle cx="16.5" cy="17" r="1.6"/>',
+    food: '<path d="M7 3v8a2 2 0 0 0 2 2v8M11 3v8M9 3v10M17 3c-2 2-2 7 0 9v9"/>',
+    leaf: '<path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14M5 19c3-5 6-8 10-10"/>',
+    flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
     brief: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6h6v2M3 13h18"/>'
   };
   const ICON_RULES = [
+    [/minyak|gas|pupuk|migas/i, 'oil'],
+    [/otomotif|kendaraan/i, 'car'],
+    [/makanan|minuman|fmcg/i, 'food'],
+    [/agri|pertanian|perikanan|perkebunan/i, 'leaf'],
     [/manufaktur|pabrik|industri|produksi|logam|baja/i, 'factory'],
     [/dagang|retail|ritel|toko|distribusi/i, 'cart'],
-    [/keuangan|bank|asuransi|finans|leasing/i, 'bank'],
     [/logistik|transport|ekspedisi|pelayaran|kargo/i, 'truck'],
     [/teknologi|\bit\b|software|digital|telekom/i, 'chip'],
-    [/kesehatan|rumah sakit|farmasi|medis/i, 'health'],
+    [/kesehatan|rumah sakit|farmasi|medis|laboratorium/i, 'health'],
     [/konstruksi|kontraktor|properti|bangunan/i, 'hat'],
-    [/energi|tambang|migas|listrik|batu bara/i, 'bolt'],
-    [/pendidikan|sekolah|kampus|pelatihan/i, 'edu']
+    [/energi|tambang|smelter|listrik|batu bara/i, 'bolt'],
+    [/pendidikan|sekolah|kampus|pelatihan/i, 'edu'],
+    [/jasa|pemerintah/i, 'flag']
   ];
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -178,19 +186,15 @@ document.addEventListener('DOMContentLoaded', () => {
         .filter(r => r.name && !isNaN(r.n) && r.n > 0)
         .sort((a, b) => b.n - a.n);
       if (!rows.length) throw new Error('Data kosong');
-      if (rows.length > 8) {                       // gabungkan sisanya jadi "Lainnya"
-        const rest = rows.splice(7).reduce((s, r) => s + r.n, 0);
-        rows.push({ name: 'Lainnya', n: rest });
-      }
       const total = rows.reduce((s, r) => s + r.n, 0);
-      const max = Math.max(...rows.map(r => r.n));
+      const max = rows[0].n;
       box.innerHTML = rows.map((r, i) => {
         const key = (ICON_RULES.find(x => x[0].test(r.name)) || [0, 'brief'])[1];
-        const h = Math.max(8, Math.round(r.n / max * 100));
+        const f = Math.max(0.05, r.n / max).toFixed(3);
         const pct = Math.round(r.n / total * 100);
-        return '<div class="bar-col" style="--i:' + i + ';--h:' + h + '%">' +
+        return '<div class="bar-col" style="--i:' + i + ';--f:' + f + '" title="' + esc(r.name) + ': ' + r.n + ' pelamar">' +
           '<div class="bar-fill"><span class="bar-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICONS[key] + '</svg></span></div>' +
-          '<span class="bar-label">' + esc(r.name) + '<b>' + pct + '%</b></span></div>';
+          '<span class="bar-label"><b>' + pct + '%</b><span class="bar-name">' + esc(r.name) + '</span></span></div>';
       }).join('');
       new IntersectionObserver((entries, io) => {
         if (entries[0].isIntersecting) { box.classList.add('in'); io.disconnect(); }
