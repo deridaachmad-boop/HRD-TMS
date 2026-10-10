@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 
   /* ---- Training Center: record pelatihan dari Google Sheets ---- */
-  const TRAINING_LOG_CSV_URL = 'GANTI-LINK-CSV-DATA-WEB-TRAINING';
+  const TRAINING_LOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRaCpN0v9MKrbdGqGIXpdxxaRqKheRMIHsg2N_mUiFQwRUdbIXRLLKCNeFaFeVma1pZNZKwqhLHzRQu/pub?gid=18777712&single=true&output=csv';
 
   (async function loadTrainingLog() {
     const list = document.getElementById('log-list');
