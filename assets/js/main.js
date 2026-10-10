@@ -24,8 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---- data live dari Google Sheets (published CSV) ---- */
   const STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8rATuqH6Hm2iHW4XpAWdF83MwGumG8dDWGRm_7aIrNj5w26FhXhssiKhSVW5V04MwR3GeeFBgZ7z9/pub?gid=1107685349&single=true&output=csv';
   const TRAINING_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRaCpN0v9MKrbdGqGIXpdxxaRqKheRMIHsg2N_mUiFQwRUdbIXRLLKCNeFaFeVma1pZNZKwqhLHzRQu/pub?gid=1813580930&single=true&output=csv';
-  const PELAMAR_CSV_URL = 'GANTI-LINK-CSV-TAB-RINGKASAN';
-  const BIDANG_CSV_URL = 'GANTI-LINK-CSV-TAB-BIDANG-USAHA';
+  const PELAMAR_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR9EmXXiKrqqjDEXLWlkjh1T0lGUeH3MEuvvHtOV2lQMbU4ecOXmX3aC3Oqn1yu3gjRfTiggtoww02Z/pubhtml?gid=1631684246&single=true';
+  const BIDANG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR9EmXXiKrqqjDEXLWlkjh1T0lGUeH3MEuvvHtOV2lQMbU4ecOXmX3aC3Oqn1yu3gjRfTiggtoww02Z/pubhtml?gid=1631684246&single=true';
   const REFRESH_MS = 60000; // cek ulang data tiap 60 detik
 
   // Pembaca CSV yang benar: paham sel berkutip seperti "0,56"
