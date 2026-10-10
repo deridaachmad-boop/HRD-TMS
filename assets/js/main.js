@@ -425,18 +425,32 @@ document.addEventListener('DOMContentLoaded', () => {
       const multiYear = new Set(rows.map(r => r.dt.y)).size > 1;
       const label = k => NAMA[k % 100] + (multiYear ? ' ' + Math.floor(k / 100) : '');
       const tabs = document.getElementById('log-tabs');
-      let active = 'all';
+      const q = document.getElementById('log-q');
+      const info = document.getElementById('log-info');
+      const picked = new Set();   // bulan yang dipilih; kosong = semua bulan
 
-      const render = () => {
-        const shown = active === 'all' ? rows : rows.filter(r => r.key === active);
-        list.innerHTML = shown.map((r, i) =>
-          '<div class="log-row" style="--i:' + Math.min(i, 12) + '">' +
-            '<div class="log-date"><b>' + (r.dt.d || '–') + '</b><span>' + NAMA[r.dt.m].slice(0, 3).toUpperCase() + ' ' + r.dt.y + '</span></div>' +
-            '<div class="log-main"><strong>' + escL(r.materi) + '</strong><span>' + escL(r.bagian || 'Semua bagian') + '</span></div>' +
-            '<div class="log-n">' + r.n + ' peserta</div>' +
-          '</div>').join('');
+      const render = (animate = true) => {
+        const terms = (q ? q.value : '').toLowerCase().split(/\s+/).filter(Boolean);
+        const shown = rows.filter(r =>
+          (!picked.size || picked.has(r.key)) &&
+          terms.every(t => (r.materi + ' ' + r.bagian).toLowerCase().includes(t))
+        );
+        list.classList.toggle('no-anim', !animate);
+        list.innerHTML = shown.length
+          ? shown.map((r, i) =>
+              '<div class="log-row" style="--i:' + Math.min(i, 12) + '">' +
+                '<div class="log-date"><b>' + (r.dt.d || '–') + '</b><span>' + NAMA[r.dt.m].slice(0, 3).toUpperCase() + ' ' + r.dt.y + '</span></div>' +
+                '<div class="log-main"><strong>' + escL(r.materi) + '</strong><span>' + escL(r.bagian || 'Semua bagian') + '</span></div>' +
+                '<div class="log-n">' + r.n + ' peserta</div>' +
+              '</div>').join('')
+          : '<p class="log-empty">Tidak ada pelatihan yang cocok dengan filter.</p>';
         list.scrollTop = 0;
-        tabs.querySelectorAll('.log-tab').forEach(b => b.classList.toggle('active', b.dataset.k === String(active)));
+        tabs.querySelectorAll('.log-tab').forEach(b => {
+          const on = b.dataset.k === 'all' ? picked.size === 0 : picked.has(Number(b.dataset.k));
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on);
+        });
+        if (info) info.textContent = shown.length + ' dari ' + rows.length + ' sesi ditampilkan';
       };
 
       tabs.innerHTML = '<button type="button" class="log-tab" data-k="all">Semua</button>' +
@@ -444,9 +458,15 @@ document.addEventListener('DOMContentLoaded', () => {
       tabs.addEventListener('click', e => {
         const b = e.target.closest('.log-tab');
         if (!b) return;
-        active = b.dataset.k === 'all' ? 'all' : Number(b.dataset.k);
+        if (b.dataset.k === 'all') {
+          picked.clear();
+        } else {
+          const k = Number(b.dataset.k);
+          if (picked.has(k)) picked.delete(k); else picked.add(k);
+        }
         render();
       });
+      if (q) q.addEventListener('input', () => render(false));   // tanpa animasi saat mengetik
       render();
     } catch (err) {
       console.error('Gagal memuat record pelatihan:', err);
