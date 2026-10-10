@@ -1503,3 +1503,17 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 .log-tabs{margin:16px 0 14px;}
 .log-info{margin-bottom:12px;font-family:var(--f-mono);font-size:12px;color:var(--steel-400);}
 .log-list.no-anim .log-row{animation:none;}
+
+/* Record pelatihan: judul di kiri, kotak cari di kanan */
+.log-head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:24px;flex-wrap:wrap;
+  margin-bottom:36px;
+}
+.log-head .section-head{margin-bottom:0;}
+.log-head .log-search{margin-top:0;flex:0 1 380px;}
+.log-tabs{margin:30px 0 14px;}
+
+@media (max-width:780px){
+  .log-head .log-search{flex-basis:100%;max-width:none;}
+}
