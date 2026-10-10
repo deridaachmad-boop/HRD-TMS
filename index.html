@@ -12,28 +12,34 @@
 </head>
 <body>
 <div id="preloader" role="status" aria-live="polite" aria-label="Memuat halaman">
-  <svg class="pl-figure" viewBox="0 0 200 220" aria-hidden="true">
-    <g class="pl-bob" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
-      <!-- badan, kaki, lengan kiri -->
-      <path d="M100 96V150M100 150L82 198M100 150L118 198M100 110L76 140"/>
-      <!-- lengan kanan melambai -->
-      <path d="M100 110L124 98"/>
-      <g class="pl-wave">
-        <path d="M124 98L134 66"/>
-        <circle cx="134" cy="62" r="5" fill="#fff"/>
-      </g>
-      <!-- kepala dan wajah -->
-      <circle cx="100" cy="72" r="24" fill="#fff"/>
-      <circle cx="91" cy="78" r="2.6" fill="#0d1b3d" stroke="none"/>
-      <circle cx="109" cy="78" r="2.6" fill="#0d1b3d" stroke="none"/>
-      <path d="M90 85Q100 95 110 85" stroke="#0d1b3d" stroke-width="3"/>
-      <!-- helm proyek -->
-<!-- helm proyek -->
-<path d="M72 68C72 36 128 36 128 68Z" fill="#3b82f6" stroke="#2456d9" stroke-width="3"/>
-<path d="M64 68H136" stroke="#2456d9" stroke-width="6"/>
-<path d="M100 40V54" stroke="#2456d9" stroke-width="3"/>
+  <svg class="pl-figure" viewBox="0 0 240 260" aria-hidden="true">
+  <g class="pl-bob">
+    <!-- lengan kiri -->
+    <rect x="28" y="148" width="28" height="112" rx="14" fill="#f1f5f9"/>
+    <!-- badan: rompi keselamatan oranye dengan strip pantul -->
+    <path d="M52 260V182C52 154 74 140 100 138H140C166 140 188 154 188 182V260Z" fill="#f97316"/>
+    <path d="M52 192H188M52 216H188" stroke="#fff" stroke-width="7" opacity=".9"/>
+    <path d="M102 138L120 164L138 138Z" fill="#fff"/>
+    <!-- leher -->
+    <rect x="109" y="124" width="22" height="22" rx="8" fill="#f2b98d"/>
+    <!-- kepala: hanya senyum, helm biru -->
+    <g class="pl-head">
+      <circle cx="82" cy="100" r="8" fill="#f2b98d"/>
+      <circle cx="158" cy="100" r="8" fill="#f2b98d"/>
+      <circle cx="120" cy="96" r="38" fill="#f6c9a3"/>
+      <path d="M102 112Q120 130 138 112" fill="none" stroke="#0d1b3d" stroke-width="5" stroke-linecap="round"/>
+      <path d="M74 88C74 26 166 26 166 88Z" fill="#3b82f6"/>
+      <rect x="114" y="38" width="12" height="40" rx="6" fill="#2456d9"/>
+      <rect x="66" y="82" width="108" height="11" rx="5.5" fill="#2456d9"/>
     </g>
-  </svg>
+    <!-- lengan kanan melambai -->
+    <path d="M178 164L204 136" stroke="#f1f5f9" stroke-width="28" stroke-linecap="round" fill="none"/>
+    <g class="pl-wave">
+      <path d="M204 136L214 92" stroke="#f6c9a3" stroke-width="20" stroke-linecap="round" fill="none"/>
+      <circle cx="215" cy="80" r="14" fill="#f6c9a3"/>
+    </g>
+  </g>
+</svg>
   <div class="pl-hello">Halo, HRD!</div>
   <div class="pl-bar"><span></span></div>
 </div>
