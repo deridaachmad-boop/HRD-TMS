@@ -10,6 +10,33 @@
 <script>try{if(sessionStorage.getItem('hrdHello'))document.documentElement.classList.add('no-preload')}catch(e){}</script>
 <noscript><style>#preloader{display:none}</style></noscript>
 </head>
+<body>
+<div id="preloader" role="status" aria-live="polite" aria-label="Memuat halaman">
+  <svg class="pl-figure" viewBox="0 0 200 220" aria-hidden="true">
+    <g class="pl-bob" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <!-- badan, kaki, lengan kiri -->
+      <path d="M100 96V150M100 150L82 198M100 150L118 198M100 110L76 140"/>
+      <!-- lengan kanan melambai -->
+      <path d="M100 110L124 98"/>
+      <g class="pl-wave">
+        <path d="M124 98L134 66"/>
+        <circle cx="134" cy="62" r="5" fill="#fff"/>
+      </g>
+      <!-- kepala dan wajah -->
+      <circle cx="100" cy="72" r="24" fill="#fff"/>
+      <circle cx="91" cy="78" r="2.6" fill="#0d1b3d" stroke="none"/>
+      <circle cx="109" cy="78" r="2.6" fill="#0d1b3d" stroke="none"/>
+      <path d="M90 85Q100 95 110 85" stroke="#0d1b3d" stroke-width="3"/>
+      <!-- helm proyek -->
+<!-- helm proyek -->
+<path d="M72 68C72 36 128 36 128 68Z" fill="#3b82f6" stroke="#2456d9" stroke-width="3"/>
+<path d="M64 68H136" stroke="#2456d9" stroke-width="6"/>
+<path d="M100 40V54" stroke="#2456d9" stroke-width="3"/>
+    </g>
+  </svg>
+  <div class="pl-hello">Halo, HRD!</div>
+  <div class="pl-bar"><span></span></div>
+</div>
 
 <header class="topbar">
   <div class="wrap topbar-inner">
