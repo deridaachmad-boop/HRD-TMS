@@ -1437,3 +1437,12 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 @keyframes pl-bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
 @keyframes pl-tilt{from{transform:rotate(-2.5deg);}to{transform:rotate(2.5deg);}}
 @keyframes pl-wave{from{transform:rotate(-20deg);}to{transform:rotate(22deg);}}
+
+/* loading screen: karakter dengan papan "Harap tunggu" */
+.pl-figure{width:min(300px,76vw);}   /* kanvas dilebarkan supaya papan muat di sisi kiri */
+.pl-sign{transform-origin:32px 140px;animation:pl-sign 1.6s ease-in-out infinite alternate;}
+@keyframes pl-sign{
+  from{transform:rotate(-3deg);}
+  to{transform:rotate(3deg);}
+}
+.pl-sign-t{font-family:var(--f-display);font-weight:800;font-size:16px;letter-spacing:.8px;fill:#0d1b3d;}
