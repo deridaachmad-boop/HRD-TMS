@@ -358,6 +358,101 @@ document.addEventListener('DOMContentLoaded', () => {
 
     values.forEach((n, el) => { el.textContent = '0'; io.observe(el); });
   })();
+
+  /* ---- Training Center: record pelatihan dari Google Sheets ---- */
+  const TRAINING_LOG_CSV_URL = 'GANTI-LINK-CSV-DATA-WEB-TRAINING';
+
+  (async function loadTrainingLog() {
+    const list = document.getElementById('log-list');
+    if (!list) return;
+    const BULAN = ['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
+    const NAMA = BULAN.map(b => b.charAt(0).toUpperCase() + b.slice(1));
+    const escL = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    function parseDate(tgl, bulan, year) {
+      const t = String(tgl || '').toLowerCase();
+      const slash = t.match(/(\d{1,2})\/(\d{1,2})\/(20\d\d)/);          // 11/08/2026 = dd/mm/yyyy
+      if (slash) return { d: +slash[1], m: +slash[2] - 1, y: +slash[3] };
+      let m = BULAN.findIndex(b => t.includes(b));
+      const y = (t.match(/\b(20\d\d)\b/) || [])[1];
+      const day = (t.match(/\d{1,2}/) || [])[0];
+      if (m >= 0) return { d: day ? +day : 0, m, y: y ? +y : year };
+      m = BULAN.findIndex(b => String(bulan || '').toLowerCase().includes(b));  // tanggal kosong: pakai bulan
+      return m >= 0 ? { d: 0, m, y: year } : null;
+    }
+
+    function setCount(id, target) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = '0';
+      new IntersectionObserver((es, o) => {
+        if (!es[0].isIntersecting) return;
+        o.disconnect();
+        const start = performance.now();
+        const tick = now => {
+          const p = Math.min(1, (now - start) / 1800);
+          el.textContent = formatNumber(target * (1 - Math.pow(1 - p, 3)), 0, '');
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }, { threshold: 0.1 }).observe(el);
+    }
+
+    try {
+      const res = await fetch(TRAINING_LOG_CSV_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const raw = parseCSV((await res.text()).trim()).slice(1);
+      const years = raw.map(r => (String(r[2] || '').match(/\b(20\d\d)\b/) || [])[1]).filter(Boolean).map(Number);
+      const defYear = years.length ? Math.max(...years) : new Date().getFullYear();
+
+      // kolom: A Materi | B Bulan | C Tanggal | D Bagian | E Peserta
+      const rows = raw.map(r => ({
+        materi: (r[0] || '').trim(),
+        bagian: (r[3] || '').trim(),
+        n: parseInt(r[4], 10) || 0,
+        dt: parseDate(r[2], r[1], defYear)
+      })).filter(r => r.materi && r.dt);
+      if (!rows.length) throw new Error('Data kosong');
+
+      rows.forEach(r => { r.key = r.dt.y * 100 + r.dt.m; r.sort = Date.UTC(r.dt.y, r.dt.m, r.dt.d); });
+      rows.sort((a, b) => b.sort - a.sort);                      // terbaru di atas
+
+      setCount('log-sesi', rows.length);
+      setCount('log-materi', new Set(rows.map(r => r.materi.toUpperCase())).size);
+      setCount('log-peserta', rows.reduce((s, r) => s + r.n, 0));
+
+      const keys = [...new Set(rows.map(r => r.key))].sort((a, b) => a - b);
+      const multiYear = new Set(rows.map(r => r.dt.y)).size > 1;
+      const label = k => NAMA[k % 100] + (multiYear ? ' ' + Math.floor(k / 100) : '');
+      const tabs = document.getElementById('log-tabs');
+      let active = 'all';
+
+      const render = () => {
+        const shown = active === 'all' ? rows : rows.filter(r => r.key === active);
+        list.innerHTML = shown.map((r, i) =>
+          '<div class="log-row" style="--i:' + Math.min(i, 12) + '">' +
+            '<div class="log-date"><b>' + (r.dt.d || '–') + '</b><span>' + NAMA[r.dt.m].slice(0, 3).toUpperCase() + ' ' + r.dt.y + '</span></div>' +
+            '<div class="log-main"><strong>' + escL(r.materi) + '</strong><span>' + escL(r.bagian || 'Semua bagian') + '</span></div>' +
+            '<div class="log-n">' + r.n + ' peserta</div>' +
+          '</div>').join('');
+        list.scrollTop = 0;
+        tabs.querySelectorAll('.log-tab').forEach(b => b.classList.toggle('active', b.dataset.k === String(active)));
+      };
+
+      tabs.innerHTML = '<button type="button" class="log-tab" data-k="all">Semua</button>' +
+        keys.map(k => '<button type="button" class="log-tab" data-k="' + k + '">' + label(k) + '</button>').join('');
+      tabs.addEventListener('click', e => {
+        const b = e.target.closest('.log-tab');
+        if (!b) return;
+        active = b.dataset.k === 'all' ? 'all' : Number(b.dataset.k);
+        render();
+      });
+      render();
+    } catch (err) {
+      console.error('Gagal memuat record pelatihan:', err);
+      list.innerHTML = '<p class="log-empty">Data pelatihan belum tersedia.</p>';
+    }
+  })();
   
   /* ---- tabs (Training Center document library) ---- */
   const tabBtns = document.querySelectorAll('.tab-btn');
