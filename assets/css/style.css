@@ -1386,6 +1386,3 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
   0%,100%{transform:translateY(0) rotate(-4deg);}
   50%{transform:translateY(-7px) rotate(4deg);}
 }
-  0%,100%{transform:translateY(0) rotate(-4deg);}
-  50%{transform:translateY(-7px) rotate(4deg);}
-}
