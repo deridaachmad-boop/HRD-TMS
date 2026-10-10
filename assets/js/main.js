@@ -44,8 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     startReveal();
   }
-    setTimeout(() => el.classList.add('in'), 90 * i);
-  });
 
   /* ---- data live dari Google Sheets (published CSV) ---- */
   const STATS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8rATuqH6Hm2iHW4XpAWdF83MwGumG8dDWGRm_7aIrNj5w26FhXhssiKhSVW5V04MwR3GeeFBgZ7z9/pub?gid=1107685349&single=true&output=csv';
