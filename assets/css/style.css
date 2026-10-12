@@ -1564,3 +1564,99 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
   flex:none;font-style:normal;
   font-family:var(--f-mono);font-size:11px;color:var(--steel-400);
 }
+
+/* =========================================================
+   ANIMASI PENUTUP — kelas -> area mesin -> quote (siklus 21 detik)
+   ========================================================= */
+.scene{
+  position:relative;aspect-ratio:16/7;
+  border-radius:var(--radius-card);overflow:hidden;
+  background:var(--graphite-900);box-shadow:var(--shadow-card);
+}
+@media (max-width:700px){.scene{aspect-ratio:4/3;}}
+.scene.js-wait *{animation-play-state:paused !important;}   /* diam sampai terlihat di layar */
+
+.sc{position:absolute;inset:0;opacity:0;animation:sc-fade 21s infinite both;}
+.sc svg{display:block;width:100%;height:100%;}
+.sc-2{animation-delay:7s;}
+.sc-3{animation-delay:14s;}
+@keyframes sc-fade{0%{opacity:0;}4%{opacity:1;}30%{opacity:1;}34%,100%{opacity:0;}}
+
+.sc-tag{
+  position:absolute;left:18px;bottom:16px;z-index:2;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:999px;
+  font-family:var(--f-mono);font-size:12px;font-weight:600;color:#fff;
+  background:var(--grad-blue);
+}
+
+/* gerak tokoh */
+.bob{animation:sc-bob 2.4s ease-in-out infinite;}
+@keyframes sc-bob{0%,100%{transform:translateY(0);}50%{transform:translateY(3px);}}
+.swing-a,.swing-b{transform-box:fill-box;animation:sc-swing 1.6s ease-in-out infinite alternate;}
+.swing-a{transform-origin:100% 100%;}
+.swing-b{transform-origin:0% 100%;}
+@keyframes sc-swing{from{transform:rotate(-10deg);}to{transform:rotate(12deg);}}
+
+/* papan tulis ditulis tiap kali adegan kelas muncul */
+.draw{stroke-dasharray:100;stroke-dashoffset:100;animation:sc-draw 21s infinite both;}
+@keyframes sc-draw{0%{stroke-dashoffset:100;}10%{stroke-dashoffset:0;}30%{stroke-dashoffset:0;}34%,100%{stroke-dashoffset:100;}}
+
+/* mesin */
+.spin{transform-box:fill-box;transform-origin:center;animation:sc-spin 6s linear infinite;}
+.spin-rev{animation-direction:reverse;animation-duration:4s;}
+@keyframes sc-spin{to{transform:rotate(360deg);}}
+.piston{animation:sc-piston 1.2s ease-in-out infinite alternate;}
+@keyframes sc-piston{from{transform:translateY(0);}to{transform:translateY(-26px);}}
+.belt{animation:sc-belt .8s linear infinite;}
+@keyframes sc-belt{to{stroke-dashoffset:-22;}}
+.part{animation:sc-part 4s linear infinite;}
+@keyframes sc-part{from{transform:translateX(0);}to{transform:translateX(270px);}}
+.spark{animation:sc-spark .9s ease-out infinite;}
+@keyframes sc-spark{0%{opacity:1;transform:translate(0,0);}100%{opacity:0;transform:translate(10px,-18px);}}
+
+/* quote penutup */
+.sc-3{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;text-align:center;
+  background-color:var(--graphite-900);
+  background-image:
+    linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:34px 34px;
+}
+.q-line{
+  display:block;opacity:0;
+  font-family:var(--f-display);font-weight:800;line-height:1.12;
+  font-size:clamp(28px,5.4vw,60px);color:#fff;
+  animation:sc-q 21s infinite both;animation-delay:14.3s;
+}
+.q2{
+  animation-delay:14.9s;
+  background:linear-gradient(110deg,#89a9f5,#fff 55%,#89a9f5);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+@keyframes sc-q{0%{opacity:0;transform:translateY(14px);}6%{opacity:1;transform:none;}28%{opacity:1;transform:none;}32%,100%{opacity:0;transform:none;}}
+
+.grow-bars{display:flex;align-items:flex-end;gap:8px;height:56px;margin-top:16px;}
+.grow-bars i{
+  display:block;width:10px;border-radius:5px 5px 2px 2px;
+  background:linear-gradient(180deg,#89a9f5,#2456d9);
+  transform-origin:bottom;transform:scaleY(0);
+  animation:sc-grow 21s infinite both;
+}
+.grow-bars i:nth-child(1){height:18px;animation-delay:15.3s;}
+.grow-bars i:nth-child(2){height:28px;animation-delay:15.5s;}
+.grow-bars i:nth-child(3){height:38px;animation-delay:15.7s;}
+.grow-bars i:nth-child(4){height:48px;animation-delay:15.9s;}
+.grow-bars i:nth-child(5){height:56px;animation-delay:16.1s;}
+@keyframes sc-grow{0%{transform:scaleY(0);}7%{transform:scaleY(1);}28%{transform:scaleY(1);}32%,100%{transform:scaleY(0);}}
+
+/* pengguna yang mengurangi gerakan: tampilkan quote saja, tanpa animasi */
+@media (prefers-reduced-motion: reduce){
+  .sc-1,.sc-2{display:none;}
+  .sc-3{opacity:1;animation:none;}
+  .q-line{opacity:1;transform:none;animation:none;}
+  .grow-bars i{transform:none;animation:none;}
+}
