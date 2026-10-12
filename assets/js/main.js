@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+    /* ---- tandai menu aktif otomatis sesuai halaman yang dibuka ---- */
+  const hereName = location.pathname.replace(/\/+$/, '').split('/').pop().replace(/\.html$/, '') || 'index';
+  document.querySelectorAll('.nav a:not(.nav-cta)').forEach(a => {
+    const target = (a.getAttribute('href') || '').split('#')[0].replace(/\.html$/, '');
+    a.classList.toggle('active', target === hereName);
+  });
+
   /* ---- loading screen "Halo, HRD!" + animasi masuk hero ---- */
   document.body.classList.add('reveal-ready');
   const reveals = document.querySelectorAll('[data-reveal]');
