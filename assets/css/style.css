@@ -1703,3 +1703,111 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 .nav a.active::after{view-transition-name:nav-underline;}
 ::view-transition-old(root),::view-transition-new(root){animation:none;}
 ::view-transition-group(nav-underline){animation-duration:.35s;}
+
+/* =========================================================
+   REPORT IMPROVEMENT — lampu ide menyala + pesawat mengorbit
+   ========================================================= */
+.improve{padding:56px 0 24px;}
+.improve .section-head{margin-bottom:10px;}
+
+.imp{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  width:fit-content;margin:0 auto;
+}
+
+/* panggung lingkaran */
+.imp-stage{position:relative;display:block;width:210px;height:210px;}
+
+.imp-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:1.5px dashed rgba(36,86,217,.38);
+}
+
+/* pesawat kertas berputar mengelilingi lampu */
+.imp-orbit{
+  position:absolute;inset:0;
+  animation:imp-spin 6s linear infinite;
+}
+.imp-plane{
+  position:absolute;left:50%;top:0;
+  width:34px;height:34px;margin:-17px 0 0 -17px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--forge-500);
+  background:#fff;border-radius:50%;
+  box-shadow:0 8px 18px -6px rgba(36,86,217,.55);
+  transform:rotate(45deg);          /* hidung pesawat menghadap arah putaran */
+}
+.imp-plane svg{width:18px;height:18px;}
+@keyframes imp-spin{to{transform:rotate(360deg);}}
+
+/* lampu */
+.imp-bulb{
+  position:absolute;left:50%;top:50%;
+  width:112px;height:112px;
+  transform:translate(-50%,-50%);
+  overflow:visible;
+}
+.imp-glass{
+  stroke:#94a3b8;stroke-width:2.5;
+  fill:#e2e8f0;
+  animation:imp-on 2.6s ease-in-out infinite;
+}
+.imp-fil{stroke:#94a3b8;animation:imp-fil 2.6s ease-in-out infinite;}
+.imp-halo{
+  fill:#fbbf24;opacity:0;
+  transform-origin:50px 40px;
+  filter:blur(7px);
+  animation:imp-halo 2.6s ease-in-out infinite;
+}
+.imp-rays{stroke:var(--accent-orange);opacity:0;animation:imp-rays 2.6s ease-in-out infinite;}
+.imp-rays line:nth-child(even){animation:imp-ray2 2.6s ease-in-out infinite;}
+
+@keyframes imp-on{
+  0%,18%{fill:#e2e8f0;stroke:#94a3b8;}
+  40%,78%{fill:#fde68a;stroke:#f59e0b;}
+  100%{fill:#e2e8f0;stroke:#94a3b8;}
+}
+@keyframes imp-fil{
+  0%,18%{stroke:#94a3b8;}
+  40%,78%{stroke:#f97316;}
+  100%{stroke:#94a3b8;}
+}
+@keyframes imp-halo{
+  0%,18%{opacity:0;transform:scale(.7);}
+  45%,78%{opacity:.75;transform:scale(1.25);}
+  100%{opacity:0;transform:scale(.7);}
+}
+@keyframes imp-rays{
+  0%,22%{opacity:0;}
+  42%,78%{opacity:1;}
+  100%{opacity:0;}
+}
+@keyframes imp-ray2{
+  0%,28%{opacity:0;}
+  50%,82%{opacity:1;}
+  100%{opacity:0;}
+}
+
+/* tombol: ikut berbalik putih saat seluruh blok disorot */
+.imp-btn{font-size:16px;padding:14px 30px;}
+.imp:hover .imp-btn,
+.imp:focus-visible .imp-btn{
+  background-size:100% 100%,100% 100%;
+  color:var(--forge-500);
+  box-shadow:inset 0 0 0 1.5px var(--forge-500), 0 8px 20px -10px rgba(36,86,217,.5);
+}
+.imp:hover .imp-btn{transform:translateY(-1px);}
+.imp:hover .imp-orbit{animation-duration:2.6s;}   /* pesawat ngebut saat disorot */
+
+@media (max-width:560px){
+  .imp-stage{width:180px;height:180px;}
+  .imp-bulb{width:96px;height:96px;}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .imp-orbit{animation:none;transform:rotate(40deg);}
+  .imp-glass{animation:none;fill:#fde68a;stroke:#f59e0b;}
+  .imp-fil{animation:none;stroke:#f97316;}
+  .imp-halo{animation:none;opacity:.5;}
+  .imp-rays,.imp-rays line{animation:none !important;opacity:1;}
+}
