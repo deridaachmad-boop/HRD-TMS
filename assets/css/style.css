@@ -1680,3 +1680,7 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 .grow-bars i:nth-child(3){animation-delay:calc(var(--t) * 2.24);}
 .grow-bars i:nth-child(4){animation-delay:calc(var(--t) * 2.27);}
 .grow-bars i:nth-child(5){animation-delay:calc(var(--t) * 2.3);}
+
+/* dokumen di tangan operator bergoyang pelan */
+.doc{transform-box:fill-box;transform-origin:50% 100%;animation:sc-doc 2s ease-in-out infinite alternate;}
+@keyframes sc-doc{from{transform:rotate(-3deg);}to{transform:rotate(3deg);}}
