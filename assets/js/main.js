@@ -530,6 +530,15 @@ const rows = raw.map(r => {
     }
   })();
   
+  /* ---- animasi penutup Training Center: berjalan hanya saat terlihat ---- */
+  const scene = document.querySelector('.scene');
+  if (scene) {
+    scene.classList.add('js-wait');
+    new IntersectionObserver(es => {
+      scene.classList.toggle('js-wait', !es[0].isIntersecting);
+    }, { threshold: 0.25 }).observe(scene);
+  }
+  
   /* ---- tabs (Training Center document library) ---- */
   const tabBtns = document.querySelectorAll('.tab-btn');
   if (tabBtns.length) {
