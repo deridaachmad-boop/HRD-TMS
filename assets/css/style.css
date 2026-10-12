@@ -1662,7 +1662,7 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 }
 
 /* ===== Atur kecepatan animasi penutup: cukup ubah --t ===== */
-.scene{--t:5s;}   /* lama tiap adegan (sebelumnya 7s) */
+.scene{--t:4s;}   /* lama tiap adegan (sebelumnya 7s) */
 
 .sc,.draw,.q-line,.grow-bars i{animation-duration:calc(var(--t) * 3);}
 .sc-2{animation-delay:var(--t);}
