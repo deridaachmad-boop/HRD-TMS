@@ -1705,45 +1705,55 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 ::view-transition-group(nav-underline){animation-duration:.35s;}
 
 /* =========================================================
-   REPORT IMPROVEMENT — lampu ide menyala + pesawat mengorbit
+   REPORT IMPROVEMENT — lampu ide menyala + roket mengorbit (elips lebar)
    ========================================================= */
 .improve{padding:56px 0 24px;}
 .improve .section-head{margin-bottom:10px;}
 
 .imp{
   display:flex;flex-direction:column;align-items:center;gap:10px;
-  width:fit-content;margin:0 auto;
+  width:fit-content;max-width:100%;margin:0 auto;
 }
 
-/* panggung lingkaran */
-.imp-stage{position:relative;display:block;width:210px;height:210px;}
+/* panggung lebar: 760 x 230 px, diskalakan di layar kecil */
+.imp-stage{
+  --s:1;
+  position:relative;display:block;
+  width:760px;height:230px;
+  transform:scale(var(--s));
+  transform-origin:center top;
+  margin:0 calc(-380px * (1 - var(--s))) calc(-230px * (1 - var(--s)));
+}
 
+/* jalur elips putus-putus (sama dengan jalur roket) */
 .imp-ring{
-  position:absolute;inset:0;border-radius:50%;
+  position:absolute;left:10px;top:15px;
+  width:740px;height:200px;border-radius:50%;
   border:1.5px dashed rgba(36,86,217,.38);
 }
 
-/* pesawat kertas berputar mengelilingi lampu */
-.imp-orbit{
-  position:absolute;inset:0;
-  animation:imp-spin 6s linear infinite;
+/* roket berjalan di sepanjang elips, hidung selalu searah gerak */
+.imp-rocket{
+  position:absolute;left:0;top:0;z-index:2;
+  width:56px;height:24px;
+  offset-path:path("M380 15 A370 100 0 0 1 380 215 A370 100 0 0 1 380 15 Z");
+  offset-rotate:auto;
+  offset-anchor:50% 50%;
+  animation:imp-fly 9s linear infinite;
+  filter:drop-shadow(0 6px 8px rgba(36,86,217,.4));
 }
-.imp-plane{
-  position:absolute;left:50%;top:0;
-  width:34px;height:34px;margin:-17px 0 0 -17px;
-  display:flex;align-items:center;justify-content:center;
-  color:var(--forge-500);
-  background:#fff;border-radius:50%;
-  box-shadow:0 8px 18px -6px rgba(36,86,217,.55);
-  transform:rotate(45deg);          /* hidung pesawat menghadap arah putaran */
-}
-.imp-plane svg{width:18px;height:18px;}
-@keyframes imp-spin{to{transform:rotate(360deg);}}
+.imp-rocket svg{display:block;width:100%;height:100%;overflow:visible;}
+@keyframes imp-fly{from{offset-distance:0%;}to{offset-distance:100%;}}
+
+/* api roket berkedip */
+.imp-flame{transform-box:fill-box;transform-origin:100% 50%;animation:imp-flick .18s ease-in-out infinite alternate;}
+.imp-flame2{animation-duration:.13s;}
+@keyframes imp-flick{from{transform:scaleX(.6);}to{transform:scaleX(1.15);}}
 
 /* lampu */
 .imp-bulb{
-  position:absolute;left:50%;top:50%;
-  width:112px;height:112px;
+  position:absolute;left:50%;top:50%;z-index:1;
+  width:120px;height:120px;
   transform:translate(-50%,-50%);
   overflow:visible;
 }
@@ -1797,15 +1807,16 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
   box-shadow:inset 0 0 0 1.5px var(--forge-500), 0 8px 20px -10px rgba(36,86,217,.5);
 }
 .imp:hover .imp-btn{transform:translateY(-1px);}
-.imp:hover .imp-orbit{animation-duration:2.6s;}   /* pesawat ngebut saat disorot */
 
-@media (max-width:560px){
-  .imp-stage{width:180px;height:180px;}
-  .imp-bulb{width:96px;height:96px;}
-}
+/* layar kecil: panggung diperkecil proporsional */
+@media (max-width:820px){.imp-stage{--s:.88;}}
+@media (max-width:700px){.imp-stage{--s:.72;}}
+@media (max-width:560px){.imp-stage{--s:.58;}}
+@media (max-width:460px){.imp-stage{--s:.42;}}
 
 @media (prefers-reduced-motion: reduce){
-  .imp-orbit{animation:none;transform:rotate(40deg);}
+  .imp-rocket{animation:none;offset-distance:12%;}
+  .imp-flame{animation:none;}
   .imp-glass{animation:none;fill:#fde68a;stroke:#f59e0b;}
   .imp-fil{animation:none;stroke:#f97316;}
   .imp-halo{animation:none;opacity:.5;}
