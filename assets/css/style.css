@@ -1660,3 +1660,23 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
   .q-line{opacity:1;transform:none;animation:none;}
   .grow-bars i{transform:none;animation:none;}
 }
+
+/* ===== Atur kecepatan animasi penutup: cukup ubah --t ===== */
+.scene{--t:5s;}   /* lama tiap adegan (sebelumnya 7s) */
+
+.sc,.draw,.q-line,.grow-bars i{animation-duration:calc(var(--t) * 3);}
+.sc-2{animation-delay:var(--t);}
+.sc-3{animation-delay:calc(var(--t) * 2);}
+
+.draw:nth-child(1){animation-delay:0s !important;}
+.draw:nth-child(2){animation-delay:calc(var(--t) * .07) !important;}
+.draw:nth-child(3){animation-delay:calc(var(--t) * .14) !important;}
+
+.q1{animation-delay:calc(var(--t) * 2.04);}
+.q2{animation-delay:calc(var(--t) * 2.1);}
+
+.grow-bars i:nth-child(1){animation-delay:calc(var(--t) * 2.19);}
+.grow-bars i:nth-child(2){animation-delay:calc(var(--t) * 2.21);}
+.grow-bars i:nth-child(3){animation-delay:calc(var(--t) * 2.24);}
+.grow-bars i:nth-child(4){animation-delay:calc(var(--t) * 2.27);}
+.grow-bars i:nth-child(5){animation-delay:calc(var(--t) * 2.3);}
