@@ -365,20 +365,27 @@ document.addEventListener('DOMContentLoaded', () => {
   (async function loadTrainingLog() {
     const list = document.getElementById('log-list');
     if (!list) return;
-    const BULAN = ['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
-    const NAMA = BULAN.map(b => b.charAt(0).toUpperCase() + b.slice(1));
+    const NAMA = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    const BLN_ALIAS = [
+      ['januari', 'jan'], ['februari', 'pebruari', 'feb'], ['maret', 'mar'], ['april', 'apr'],
+      ['mei'], ['juni', 'jun'], ['juli', 'jul'], ['agustus', 'agu', 'agt', 'ags'],
+      ['september', 'sept', 'sep'], ['oktober', 'okt'], ['november', 'nov', 'nop'], ['desember', 'des']
+    ];
+    const findMonth = s => BLN_ALIAS.findIndex(a => a.some(x => new RegExp('(^|[^a-z])' + x).test(s)));
     const escL = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
     function parseDate(tgl, bulan, year) {
       const t = String(tgl || '').toLowerCase();
-      const slash = t.match(/(\d{1,2})\/(\d{1,2})\/(20\d\d)/);          // 11/08/2026 = dd/mm/yyyy
-      if (slash) return { d: +slash[1], m: +slash[2] - 1, y: +slash[3] };
-      let m = BULAN.findIndex(b => t.includes(b));
-      const y = (t.match(/\b(20\d\d)\b/) || [])[1];
-      const day = (t.match(/\d{1,2}/) || [])[0];
-      if (m >= 0) return { d: day ? +day : 0, m, y: y ? +y : year };
-      m = BULAN.findIndex(b => String(bulan || '').toLowerCase().includes(b));  // tanggal kosong: pakai bulan
-      return m >= 0 ? { d: 0, m, y: year } : null;
+      let m = t.match(/(20\d\d)[-\/.](\d{1,2})[-\/.](\d{1,2})/);            // 2026-01-14
+      if (m && +m[2] >= 1 && +m[2] <= 12) return { d: +m[3], m: +m[2] - 1, y: +m[1] };
+      m = t.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);               // 14/01/2026
+      if (m && +m[2] >= 1 && +m[2] <= 12) return { d: +m[1], m: +m[2] - 1, y: m[3].length === 2 ? 2000 + +m[3] : +m[3] };
+      const mi = findMonth(t);                                              // 14 Januari 2026, 14 Jan 2026
+      const yr = (t.match(/\b(20\d\d)\b/) || [])[1];
+      const dm = t.match(/(?:^|\D)(\d{1,2})(?!\d)/);
+      if (mi >= 0) return { d: dm && +dm[1] <= 31 ? +dm[1] : 0, m: mi, y: yr ? +yr : year };
+      const bi = findMonth(String(bulan || '').toLowerCase());              // tanggal kosong: pakai bulan
+      return bi >= 0 ? { d: 0, m: bi, y: year } : null;
     }
 
     function setCount(id, target) {
@@ -406,16 +413,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const defYear = years.length ? Math.max(...years) : new Date().getFullYear();
 
       // kolom: A Materi | B Bulan | C Tanggal | D Bagian | E Peserta
-const rows = raw.map(r => {
-  const mats = (r[0] || '').split(' | ').map(s => s.trim()).filter(Boolean);
-  return {
-    mats,
-    materi: mats.join(', '),
-    bagian: (r[3] || '').trim(),
-    n: parseInt(r[4], 10) || 0,
-    dt: parseDate(r[2], r[1], defYear)
-  };
-}).filter(r => r.mats.length && r.dt);
+      const rows = raw.map(r => {
+        const mats = (r[0] || '').split(' | ').map(s => s.trim()).filter(Boolean);
+        return {
+          mats,
+          materi: mats.join(', '),
+          bagian: (r[3] || '').trim(),
+          n: parseInt(r[4], 10) || 0,
+          dt: parseDate(r[2], r[1], defYear)
+        };
+      }).filter(r => r.mats.length && r.dt);
       if (!rows.length) throw new Error('Data kosong');
 
       rows.forEach(r => { r.key = r.dt.y * 100 + r.dt.m; r.sort = Date.UTC(r.dt.y, r.dt.m, r.dt.d); });
@@ -443,7 +450,7 @@ const rows = raw.map(r => {
         list.innerHTML = shown.length
           ? shown.map((r, i) =>
               '<div class="log-row" style="--i:' + Math.min(i, 12) + '">' +
-                '<div class="log-date"><b>' + (r.dt.d || '–') + '</b><span>' + NAMA[r.dt.m].slice(0, 3).toUpperCase() + ' ' + r.dt.y + '</span></div>' +
+                '<div class="log-date"><b>' + (r.dt.d || NAMA[r.dt.m].slice(0, 3).toUpperCase()) + '</b><span>' + (r.dt.d ? NAMA[r.dt.m].slice(0, 3).toUpperCase() + ' ' : '') + r.dt.y + '</span></div>' +
                 '<div class="log-main"><strong>' + escL(r.bagian || 'Semua bagian') + '</strong><span>' + escL(r.materi) + '</span></div>' +
                 '<div class="log-n">' + r.n + ' peserta</div>' +
               '</div>').join('')
