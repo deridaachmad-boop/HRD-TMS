@@ -1697,3 +1697,9 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 .topbar .brand-logo + .brand-text{padding-left:12px;border-left:1px solid var(--paper-100);}
 .topbar .brand-text span{color:var(--steel-400);}
 .topbar .nav{flex:0 0 auto;}
+
+/* Garis menu aktif meluncur saat pindah halaman (Chrome/Edge terbaru) */
+@view-transition{navigation:auto;}
+.nav a.active::after{view-transition-name:nav-underline;}
+::view-transition-old(root),::view-transition-new(root){animation:none;}
+::view-transition-group(nav-underline){animation-duration:.35s;}
