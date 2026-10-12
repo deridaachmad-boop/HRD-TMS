@@ -249,16 +249,32 @@
           <circle class="spark" cx="452" cy="212" r="3" fill="#fbbf24"/>
           <circle class="spark" style="animation-delay:-.4s" cx="470" cy="212" r="2.5" fill="#fbbf24"/>
           <circle class="spark" style="animation-delay:-.7s" cx="436" cy="212" r="2.5" fill="#fbbf24"/>
-          <!-- operator dan pembimbing -->
-          <rect x="228" y="206" width="12" height="82" rx="5" fill="#0d1b3d"/>
-          <rect x="244" y="206" width="12" height="82" rx="5" fill="#0d1b3d"/>
-          <g class="bob"><use href="#sc-person" x="242" y="122"/><use href="#sc-hat" x="242" y="118"/></g>
-          <rect x="318" y="206" width="12" height="82" rx="5" fill="#0d1b3d"/>
-          <rect x="334" y="206" width="12" height="82" rx="5" fill="#0d1b3d"/>
-          <g class="bob" style="animation-delay:-1s">
-            <use href="#sc-person" x="332" y="122" style="--shirt:#f97316"/>
-            <use href="#sc-hat" x="332" y="118" style="--hat:#fff;--hat2:#cbd5e1"/>
-            <path class="swing-b" d="M352 152L398 134" stroke="#f6c9a3" stroke-width="9" stroke-linecap="round" fill="none"/>
+          <!-- operator dan pembimbing (digeser ke kiri) -->
+          <g transform="translate(-75 0)">
+            <!-- operator berbaju biru membawa dokumen -->
+            <rect x="228" y="206" width="12" height="82" rx="5" fill="#0d1b3d"/>
+            <rect x="244" y="206" width="12" height="82" rx="5" fill="#0d1b3d"/>
+            <g class="bob">
+              <use href="#sc-person" x="242" y="122"/>
+              <use href="#sc-hat" x="242" y="118"/>
+              <path d="M258 154L277 180" stroke="#f6c9a3" stroke-width="9" stroke-linecap="round" fill="none"/>
+              <g transform="rotate(-8 286 172)">
+                <g class="doc">
+                  <rect x="272" y="150" width="30" height="42" rx="3" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+                  <rect x="280" y="145" width="14" height="8" rx="2" fill="#94a3b8"/>
+                  <path d="M277 164H297M277 172H297M277 180H290" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="276" cy="184" r="5" fill="#f6c9a3"/>
+                </g>
+              </g>
+            </g>
+            <!-- pembimbing berompi oranye -->
+            <rect x="318" y="206" width="12" height="82" rx="5" fill="#0d1b3d"/>
+            <rect x="334" y="206" width="12" height="82" rx="5" fill="#0d1b3d"/>
+            <g class="bob" style="animation-delay:-1s">
+              <use href="#sc-person" x="332" y="122" style="--shirt:#f97316"/>
+              <use href="#sc-hat" x="332" y="118" style="--hat:#fff;--hat2:#cbd5e1"/>
+              <path class="swing-b" d="M352 152L398 134" stroke="#f6c9a3" stroke-width="9" stroke-linecap="round" fill="none"/>
+            </g>
           </g>
         </svg>
         <span class="sc-tag"><span class="bolt"></span> Praktik di area mesin</span>
