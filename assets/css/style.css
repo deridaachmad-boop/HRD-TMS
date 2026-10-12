@@ -1689,3 +1689,11 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 .brand-logo{height:34px;width:auto;display:block;}
 .brand-logo + .brand-text{padding-left:12px;border-left:1px solid var(--paper-100);}
 .topbar .brand-text span{color:var(--steel-400);}   /* keterangan lebih terbaca di header putih */
+
+/* Header: logo kiri, menu kanan, satu baris */
+.topbar .topbar-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;height:68px;}
+.topbar .brand{flex:0 0 auto;display:flex;align-items:center;gap:12px;}
+.topbar .brand-logo{height:32px !important;width:auto !important;max-width:none;display:block;}
+.topbar .brand-logo + .brand-text{padding-left:12px;border-left:1px solid var(--paper-100);}
+.topbar .brand-text span{color:var(--steel-400);}
+.topbar .nav{flex:0 0 auto;}
