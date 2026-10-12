@@ -406,19 +406,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const defYear = years.length ? Math.max(...years) : new Date().getFullYear();
 
       // kolom: A Materi | B Bulan | C Tanggal | D Bagian | E Peserta
-      const rows = raw.map(r => ({
-        materi: (r[0] || '').trim(),
-        bagian: (r[3] || '').trim(),
-        n: parseInt(r[4], 10) || 0,
-        dt: parseDate(r[2], r[1], defYear)
-      })).filter(r => r.materi && r.dt);
+const rows = raw.map(r => {
+  const mats = (r[0] || '').split(' | ').map(s => s.trim()).filter(Boolean);
+  return {
+    mats,
+    materi: mats.join(', '),
+    bagian: (r[3] || '').trim(),
+    n: parseInt(r[4], 10) || 0,
+    dt: parseDate(r[2], r[1], defYear)
+  };
+}).filter(r => r.mats.length && r.dt);
       if (!rows.length) throw new Error('Data kosong');
 
       rows.forEach(r => { r.key = r.dt.y * 100 + r.dt.m; r.sort = Date.UTC(r.dt.y, r.dt.m, r.dt.d); });
       rows.sort((a, b) => b.sort - a.sort);                      // terbaru di atas
 
       setCount('log-sesi', rows.length);
-      setCount('log-materi', new Set(rows.map(r => r.materi.toUpperCase())).size);
+      setCount('log-materi', new Set(rows.flatMap(r => r.mats.map(m => m.toUpperCase()))).size);
       setCount('log-peserta', rows.reduce((s, r) => s + r.n, 0));
 
       const keys = [...new Set(rows.map(r => r.key))].sort((a, b) => a - b);
@@ -440,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ? shown.map((r, i) =>
               '<div class="log-row" style="--i:' + Math.min(i, 12) + '">' +
                 '<div class="log-date"><b>' + (r.dt.d || '–') + '</b><span>' + NAMA[r.dt.m].slice(0, 3).toUpperCase() + ' ' + r.dt.y + '</span></div>' +
-                '<div class="log-main"><strong>' + escL(r.materi) + '</strong><span>' + escL(r.bagian || 'Semua bagian') + '</span></div>' +
+                '<div class="log-main"><strong>' + escL(r.bagian || 'Semua bagian') + '</strong><span>' + escL(r.materi) + '</span></div>' +
                 '<div class="log-n">' + r.n + ' peserta</div>' +
               '</div>').join('')
           : '<p class="log-empty">Tidak ada pelatihan yang cocok dengan filter.</p>';
