@@ -450,6 +450,40 @@ const rows = raw.map(r => {
       const info = document.getElementById('log-info');
       const picked = new Set();   // bulan yang dipilih; kosong = semua bulan
 
+      /* popup daftar materi di kartu "Materi" (mengikuti bulan yang dipilih) */
+      const matEl = document.getElementById('log-materi');
+      const matCard = matEl ? (matEl.closest('.metric, .plate') || matEl.parentElement) : null;
+      let pop = null;
+      if (matCard) {
+        if (getComputedStyle(matCard).position === 'static') matCard.style.position = 'relative';
+        matCard.classList.add('has-pop');
+        matCard.setAttribute('tabindex', '0');          // supaya bisa dibuka lewat sentuhan / keyboard
+        pop = document.createElement('div');
+        pop.className = 'log-pop';
+        pop.setAttribute('role', 'tooltip');
+        matCard.appendChild(pop);
+      }
+      const updatePop = () => {
+        if (!pop) return;
+        const count = new Map();                        // nama materi -> jumlah sesi
+        rows.filter(r => !picked.size || picked.has(r.key)).forEach(r => {
+          r.mats.forEach(m => {
+            const k = m.trim().toUpperCase();
+            count.set(k, (count.get(k) || 0) + 1);
+          });
+        });
+        const names = [...count.keys()].sort((a, b) => a.localeCompare(b, 'id'));
+        const period = !picked.size ? 'Semua bulan'
+          : picked.size <= 3 ? [...picked].sort((a, b) => a - b).map(label).join(', ')
+          : picked.size + ' bulan dipilih';
+        pop.innerHTML =
+          '<div class="log-pop-in">' +
+            '<strong>' + names.length + ' materi · ' + escL(period) + '</strong>' +
+            '<ul>' + names.map(n =>
+              '<li><span>' + escL(n) + '</span><em>' + count.get(n) + ' sesi</em></li>').join('') + '</ul>' +
+          '</div>';
+      };
+      
       const render = (animate = true) => {
         const terms = (q ? q.value : '').toLowerCase().split(/\s+/).filter(Boolean);
         const shown = rows.filter(r =>
@@ -472,6 +506,7 @@ const rows = raw.map(r => {
           b.setAttribute('aria-pressed', on);
         });
         if (info) info.textContent = shown.length + ' dari ' + rows.length + ' sesi ditampilkan';
+             updatePop();
       };
 
       tabs.innerHTML = '<button type="button" class="log-tab" data-k="all">Semua</button>' +
