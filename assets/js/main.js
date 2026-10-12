@@ -371,14 +371,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function parseDate(tgl, bulan, year) {
       const t = String(tgl || '').toLowerCase();
-      const slash = t.match(/(\d{1,2})\/(\d{1,2})\/(20\d\d)/);          // 11/08/2026 = dd/mm/yyyy
-      if (slash) return { d: +slash[1], m: +slash[2] - 1, y: +slash[3] };
+      const bi = BULAN.findIndex(b => String(bulan || '').toLowerCase().includes(b));  // bulan dari kolom B
+
+      // format 2026-05-02
+      const iso = t.match(/(20\d\d)-(\d{1,2})-(\d{1,2})/);
+      if (iso) return { d: +iso[3], m: +iso[2] - 1, y: +iso[1] };
+
+      // angka bergaris miring: bisa bulan/tanggal/tahun (tanggal asli Sheets) atau tanggal/bulan/tahun (teks)
+      const slash = t.match(/(\d{1,2})\/(\d{1,2})\/(20\d\d)/);
+      if (slash) {
+        const a = +slash[1], b = +slash[2], y = +slash[3];
+        let d, m;
+        if (a > 12) { d = a; m = b - 1; }                                            // pasti tanggal/bulan
+        else if (b > 12) { m = a - 1; d = b; }                                       // pasti bulan/tanggal
+        else if (bi >= 0 && a - 1 === bi && b - 1 !== bi) { m = a - 1; d = b; }     // kolom Bulan cocok dengan angka pertama
+        else if (bi >= 0 && b - 1 === bi) { d = a; m = b - 1; }                     // kolom Bulan cocok dengan angka kedua
+        else { m = a - 1; d = b; }                                                   // bawaan: format Google Sheets
+        return { d, m, y };
+      }
+
+      // teks seperti "2 Mei 2026" atau "21 & 23 Juli 2026"
       let m = BULAN.findIndex(b => t.includes(b));
       const y = (t.match(/\b(20\d\d)\b/) || [])[1];
       const day = (t.match(/\d{1,2}/) || [])[0];
       if (m >= 0) return { d: day ? +day : 0, m, y: y ? +y : year };
-      m = BULAN.findIndex(b => String(bulan || '').toLowerCase().includes(b));  // tanggal kosong: pakai bulan
-      return m >= 0 ? { d: 0, m, y: year } : null;
+      return bi >= 0 ? { d: 0, m: bi, y: year } : null;                             // tanggal kosong: pakai kolom Bulan
     }
 
     function setCount(id, target) {
@@ -415,7 +432,7 @@ const rows = raw.map(r => {
     n: parseInt(r[4], 10) || 0,
     dt: parseDate(r[2], r[1], defYear)
   };
-}).filter(r => r.mats.length && r.dt);
+}).filter(r => r.mats.length && r.dt && r.dt.m >= 0 && r.dt.m <= 11);
       if (!rows.length) throw new Error('Data kosong');
 
       rows.forEach(r => { r.key = r.dt.y * 100 + r.dt.m; r.sort = Date.UTC(r.dt.y, r.dt.m, r.dt.d); });
