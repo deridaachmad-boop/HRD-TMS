@@ -646,70 +646,72 @@ const rows = raw.map(r => {
   /* ---- animasi muncul saat scroll (semua halaman) ---- */
   (function scrollReveal() {
     const root = document.documentElement;
-    const release = () => root.classList.remove('sr-js');   // lepas penyembunyi awal dari CSS
+    const release = () => root.classList.remove('sr-js');
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
-      release();
-      return;
-    }
+    try {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+        release();
+        return;
+      }
 
-    const RULES = [
-      ['pop',   '.gallery-item, .video-wrap, .split-figure, .scene'],
-      ['left',  '.split > :first-child'],
-      ['right', '.split > :last-child'],
-      ['up',    '.section-head, .statstrip .stat, .metric, .card, .pillar, .plate, .chart, ' +
-                '.doclist, .table-wrap, .log-head, .log-tabs, .k3-banner, .hoc-step, .apd, .btn-row, .imp']
-    ];
-    const SKIP = '.hero, .pagehero, .topbar, footer, #preloader, [data-reveal]';
+      const RULES = [
+        ['pop',   '.gallery-item, .video-wrap, .split-figure, .scene'],
+        ['left',  '.split > :first-child'],
+        ['right', '.split > :last-child'],
+        ['up',    '.section-head, .statstrip .stat, .metric, .card, .pillar, .plate, .chart, ' +
+                  '.doclist, .table-wrap, .log-head, .log-tabs, .k3-banner, .hoc-step, .apd, .btn-row, .imp']
+      ];
+      const SKIP = '.hero, .pagehero, .topbar, footer, #preloader, [data-reveal]';
 
-    const items = [];
-    RULES.forEach(([kind, sel]) => {
-      document.querySelectorAll(sel).forEach(el => {
-        if (el.dataset.sr || el.closest(SKIP)) return;
-        el.dataset.sr = kind;
-        items.push(el);
-      });
-    });
-
-    const count = new Map();
-    items.forEach(el => {
-      const n = count.get(el.parentElement) || 0;
-      count.set(el.parentElement, n + 1);
-      el.style.setProperty('--sr-d', Math.min(n, 6) * 90 + 'ms');
-      el.classList.add('sr');
-    });
-    release();   // .sr sudah memegang kendali, jadi tidak ada kedipan
-
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const el = entry.target;
-        io.unobserve(el);
-        el.classList.add('sr-in');
-        el.addEventListener('animationend', e => {
-          if (e.target !== el) return;
-          el.classList.remove('sr', 'sr-in');
-          el.style.removeProperty('--sr-d');
+      const items = [];
+      RULES.forEach(([kind, sel]) => {
+        document.querySelectorAll(sel).forEach(el => {
+          if (el.dataset.sr || el.closest(SKIP)) return;
+          el.dataset.sr = kind;
+          items.push(el);
         });
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
 
-    // di Beranda, tunggu loading screen "Halo, HRD!" selesai dulu (hanya jika benar-benar tampil)
-    const start = () => items.forEach(el => io.observe(el));
-    const preEl = document.getElementById('preloader');
-    const preActive = preEl && !root.classList.contains('no-preload');
-    if (preActive) {
-      const t0 = performance.now();
-      const wait = setInterval(() => {
-        const finished = !document.getElementById('preloader') ||
-                         document.getElementById('preloader').classList.contains('done');
-        if (finished || performance.now() - t0 > 6000) {
-          clearInterval(wait);
-          start();
-        }
-      }, 100);
-    } else {
-      start();
+      const count = new Map();
+      items.forEach(el => {
+        const n = count.get(el.parentElement) || 0;
+        count.set(el.parentElement, n + 1);
+        el.style.setProperty('--sr-d', Math.min(n, 6) * 90 + 'ms');
+        el.classList.add('sr');
+      });
+      release();
+
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const el = entry.target;
+          io.unobserve(el);
+          el.classList.add('sr-in');
+          el.addEventListener('animationend', e => {
+            if (e.target !== el) return;
+            el.classList.remove('sr', 'sr-in');
+            el.style.removeProperty('--sr-d');
+          });
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+      const startObserve = () => items.forEach(el => io.observe(el));
+      const preEl = document.getElementById('preloader');
+      const preActive = preEl && !root.classList.contains('no-preload');
+      if (preActive) {
+        const t0 = performance.now();
+        const wait = setInterval(() => {
+          const p = document.getElementById('preloader');
+          if (!p || p.classList.contains('done') || performance.now() - t0 > 6000) {
+            clearInterval(wait);
+            startObserve();
+          }
+        }, 100);
+      } else {
+        startObserve();
+      }
+    } catch (err) {
+      console.error('scrollReveal gagal:', err);
+      release();   // jangan biarkan halaman tersembunyi jika ada error
     }
   })();
-});
