@@ -68,7 +68,7 @@
 
       <div class="hotline-form">
         <h3>Kirim pesan</h3>
-        <p class="hint">Formulir ini akan membuka aplikasi email Anda yang ditujukan ke hrd@ptTMS.co.id.</p>
+        <p class="hint">Pilih kirim lewat WhatsApp atau Email. Pesan akan terisi otomatis, Anda tinggal menekan kirim.</p>
         <form id="hotline-form">
           <div class="field">
             <label for="f-name">Nama (opsional bila anonim)</label>
@@ -96,7 +96,10 @@
             <input type="checkbox" id="f-anon" name="anon">
             <label for="f-anon" style="margin:0;">Kirim sebagai anonim</label>
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Kirim ke HRD</button>
+          <div class="btn-row" style="margin-top:0;">
+            <button type="submit" data-via="wa" class="btn btn-primary">Kirim via WhatsApp</button>
+            <button type="submit" data-via="email" class="btn btn-outline">Kirim via Email</button>
+          </div>
         </form>
       </div>
     </div>
