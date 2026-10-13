@@ -28,7 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const startReveal = () => {
     if (revealed) return;
     revealed = true;
-    reveals.forEach((el, i) => setTimeout(() => el.classList.add('in'), 90 * i));
+    const lateIO = new IntersectionObserver((es, o) => {
+      es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); o.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    let n = 0;
+    reveals.forEach(el => {
+      if (el.getBoundingClientRect().top < window.innerHeight) {
+        setTimeout(() => el.classList.add('in'), 90 * n++);   // yang sudah terlihat: muncul beruntun
+      } else {
+        lateIO.observe(el);                                    // yang di bawah: tunggu di-scroll
+      }
+    });
   };
 
   const pre = document.getElementById('preloader');
@@ -616,4 +626,54 @@ const rows = raw.map(r => {
       window.location.href = `mailto:hrd@ptTMS.co.id?subject=${subject}&body=${body}`;
     });
   }
+
+  /* ---- animasi muncul saat scroll (semua halaman) ---- */
+  (function scrollReveal() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!('IntersectionObserver' in window)) return;
+
+    // jenis animasi -> elemen yang kena. Urutan penting: yang atas menang.
+    const RULES = [
+      ['pop',   '.gallery-item, .video-wrap, .split-figure, .scene'],
+      ['left',  '.split > :first-child'],
+      ['right', '.split > :last-child'],
+      ['up',    '.section-head, .statstrip .stat, .metric, .card, .pillar, .plate, .chart, ' +
+                '.doclist, .table-wrap, .log-head, .log-tabs, .k3-banner, .hoc-step, .apd, .btn-row, .imp']
+    ];
+    const SKIP = '.hero, .pagehero, .topbar, footer, #preloader, [data-reveal]';
+
+    const items = [];
+    RULES.forEach(([kind, sel]) => {
+      document.querySelectorAll(sel).forEach(el => {
+        if (el.dataset.sr || el.closest(SKIP)) return;
+        el.dataset.sr = kind;
+        items.push(el);
+      });
+    });
+
+    // jeda bertingkat antar saudara (kartu 1, 2, 3 muncul beruntun)
+    const count = new Map();
+    items.forEach(el => {
+      const n = count.get(el.parentElement) || 0;
+      count.set(el.parentElement, n + 1);
+      el.style.setProperty('--sr-d', Math.min(n, 6) * 90 + 'ms');
+      el.classList.add('sr');
+    });
+
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        io.unobserve(el);
+        el.classList.add('sr-in');
+        el.addEventListener('animationend', e => {
+          if (e.target !== el) return;
+          el.classList.remove('sr', 'sr-in');       // bersihkan, agar efek hover tidak terganggu
+          el.style.removeProperty('--sr-d');
+        });
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+    items.forEach(el => io.observe(el));
+  })();
 });
