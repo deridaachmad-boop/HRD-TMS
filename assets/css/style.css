@@ -1877,3 +1877,6 @@ html.sr-js :is(
 @media (prefers-reduced-motion: reduce){
   html.sr-js *{opacity:1 !important;}
 }
+
+/* sembunyikan elemen hero (data-reveal) sejak awal, sebelum JS dimuat */
+html.sr-js [data-reveal]:not(.in){opacity:0;}
