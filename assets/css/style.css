@@ -1862,3 +1862,18 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
 @keyframes sr-pop  {from{opacity:0;transform:translateY(18px) scale(.92);}}
 @keyframes sr-left {from{opacity:0;transform:translateX(-44px);}}
 @keyframes sr-right{from{opacity:0;transform:translateX(44px);}}
+
+/* sembunyikan sejak awal (sebelum JS dimuat) supaya tidak "tampil dulu lalu muncul ulang".
+   Daftar selektor harus sama dengan RULES di main.js */
+html.sr-js :is(
+  .gallery-item, .video-wrap, .split-figure, .scene,
+  .split > :first-child, .split > :last-child,
+  .section-head, .statstrip .stat, .metric, .card, .pillar, .plate, .chart,
+  .doclist, .table-wrap, .log-head, .log-tabs, .k3-banner, .hoc-step, .apd, .btn-row, .imp
+):not(.hero *):not(.pagehero *):not(.topbar *):not(footer *):not(#preloader *):not([data-reveal]):not(.sr-in){
+  opacity:0;
+}
+
+@media (prefers-reduced-motion: reduce){
+  html.sr-js *{opacity:1 !important;}
+}
