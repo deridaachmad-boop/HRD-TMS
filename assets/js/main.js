@@ -608,22 +608,38 @@ const rows = raw.map(r => {
     update();
   }
   
-  /* ---- contact form (Hotline) — client-side only, opens mail client ---- */
+  /* ---- contact form (Hotline) — kirim ke WhatsApp atau Email HR ---- */
   const hotlineForm = document.getElementById('hotline-form');
   if (hotlineForm) {
+    const WA_NUMBER = '6281234567890';        // GANTI: nomor WA HR, format 62 tanpa + dan tanpa 0 di depan
+    const HR_EMAIL  = 'emailanda@gmail.com';  // GANTI: email pribadi HR
+
     hotlineForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const data = new FormData(hotlineForm);
-      const subject = encodeURIComponent('Hotline HRD — ' + (data.get('topic') || 'Masukan Karyawan'));
-      const anon = data.get('anon') ? 'Ya (anonim)' : 'Tidak';
-      const body = encodeURIComponent(
-        `Nama: ${data.get('name') || '-'}\n` +
-        `Bagian/Unit: ${data.get('unit') || '-'}\n` +
-        `Topik: ${data.get('topic') || '-'}\n` +
-        `Anonim: ${anon}\n\n` +
-        `Pesan:\n${data.get('message') || '-'}`
-      );
-      window.location.href = `mailto:hrd@ptTMS.co.id?subject=${subject}&body=${body}`;
+      const via = (e.submitter && e.submitter.dataset.via) || 'wa';
+      const anon = !!data.get('anon');
+      const topic = data.get('topic') || 'Masukan Karyawan';
+
+      const lines = [
+        '*Hotline HRD — ' + topic + '*',
+        '',
+        'Nama: ' + (anon ? 'Anonim' : (data.get('name') || '-')),
+        'Bagian/Unit: ' + (data.get('unit') || '-'),
+        'Topik: ' + topic,
+        '',
+        'Pesan:',
+        data.get('message') || '-'
+      ];
+      const text = lines.join('\n');
+
+      if (via === 'wa') {
+        window.open('https://wa.me/' + 6281216697357 + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
+      } else {
+        window.location.href = 'mailto:' + deridaachmad@gmail.com +
+          '?subject=' + encodeURIComponent('Hotline HRD — ' + topic) +
+          '&body=' + encodeURIComponent(text.replace(/\*/g, ''));
+      }
     });
   }
 
