@@ -642,7 +642,6 @@ const rows = raw.map(r => {
       }
     });
   }
-  }
 
   /* ---- animasi muncul saat scroll (semua halaman) ---- */
   (function scrollReveal() {
@@ -716,3 +715,4 @@ const rows = raw.map(r => {
       release();   // jangan biarkan halaman tersembunyi jika ada error
     }
   })();
+});
