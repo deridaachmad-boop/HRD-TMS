@@ -1880,3 +1880,8 @@ html.sr-js :is(
 
 /* sembunyikan elemen hero (data-reveal) sejak awal, sebelum JS dimuat */
 html.sr-js [data-reveal]:not(.in){opacity:0;}
+
+/* pesan status formulir Hotline */
+.hotline-status{margin-top:14px;font-size:14px;font-weight:600;min-height:1.4em;}
+.hotline-status.ok{color:var(--ok-500);}
+.hotline-status.err{color:var(--warn-500);}
