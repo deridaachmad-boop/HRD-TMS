@@ -489,19 +489,20 @@ const rows = raw.map(r => {
         pop.setAttribute('role', 'tooltip');
         matCard.appendChild(pop);
       }
-      const updatePop = () => {
+      const updatePop = (list2, searching) => {
         if (!pop) return;
         const count = new Map();                        // nama materi -> jumlah sesi
-        rows.filter(r => !picked.size || picked.has(r.key)).forEach(r => {
+        list2.forEach(r => {
           r.mats.forEach(m => {
             const k = m.trim().toUpperCase();
             count.set(k, (count.get(k) || 0) + 1);
           });
         });
         const names = [...count.keys()].sort((a, b) => a.localeCompare(b, 'id'));
-        const period = !picked.size ? 'Semua bulan'
+        let period = !picked.size ? 'Semua bulan'
           : picked.size <= 3 ? [...picked].sort((a, b) => a - b).map(label).join(', ')
           : picked.size + ' bulan dipilih';
+        if (searching) period += ' · hasil pencarian';
         pop.innerHTML =
           '<div class="log-pop-in">' +
             '<strong>' + names.length + ' materi · ' + escL(period) + '</strong>' +
@@ -536,7 +537,7 @@ const rows = raw.map(r => {
         setCount('log-sesi', shown.length);
         setCount('log-materi', new Set(shown.flatMap(r => r.mats.map(m => m.toUpperCase()))).size);
         setCount('log-peserta', shown.reduce((s, r) => s + r.n, 0));  
-        updatePop();
+        updatePop(shown, terms.length > 0);
       };
 
       tabs.innerHTML = '<button type="button" class="log-tab" data-k="all">Semua</button>' +
