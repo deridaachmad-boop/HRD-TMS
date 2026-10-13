@@ -678,12 +678,16 @@ const rows = raw.map(r => {
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
 
-    // di Beranda, tunggu loading screen "Halo, HRD!" selesai dulu
+    // di Beranda, tunggu loading screen "Halo, HRD!" selesai dulu (hanya jika benar-benar tampil)
     const start = () => items.forEach(el => io.observe(el));
-    if (document.getElementById('preloader')) {
+    const preEl = document.getElementById('preloader');
+    const preActive = preEl && !root.classList.contains('no-preload');
+    if (preActive) {
       const t0 = performance.now();
       const wait = setInterval(() => {
-        if (!document.getElementById('preloader') || performance.now() - t0 > 6000) {
+        const finished = !document.getElementById('preloader') ||
+                         document.getElementById('preloader').classList.contains('done');
+        if (finished || performance.now() - t0 > 6000) {
           clearInterval(wait);
           start();
         }
