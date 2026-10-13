@@ -1841,3 +1841,24 @@ footer{background:var(--graphite-900);color:var(--steel-300);padding:56px 0 26px
   .imp-halo{animation:none;opacity:.5;}
   .imp-rays,.imp-rays line{animation:none !important;opacity:1;}
 }
+
+/* =========================================================
+   ANIMASI MUNCUL SAAT SCROLL
+   ========================================================= */
+.sr{opacity:0;}
+.sr.sr-in{
+  opacity:1;
+  animation-duration:.75s;
+  animation-timing-function:cubic-bezier(.2,.8,.2,1);
+  animation-delay:var(--sr-d,0ms);
+  animation-fill-mode:backwards;     /* backwards, bukan forwards: hover tetap bisa menggeser kartu */
+}
+.sr-in[data-sr="up"]   {animation-name:sr-up;}
+.sr-in[data-sr="pop"]  {animation-name:sr-pop;}
+.sr-in[data-sr="left"] {animation-name:sr-left;}
+.sr-in[data-sr="right"]{animation-name:sr-right;}
+
+@keyframes sr-up   {from{opacity:0;transform:translateY(36px);}}
+@keyframes sr-pop  {from{opacity:0;transform:translateY(18px) scale(.92);}}
+@keyframes sr-left {from{opacity:0;transform:translateX(-44px);}}
+@keyframes sr-right{from{opacity:0;transform:translateX(44px);}}
