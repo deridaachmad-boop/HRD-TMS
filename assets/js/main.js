@@ -611,8 +611,8 @@ const rows = raw.map(r => {
   /* ---- contact form (Hotline) — kirim ke WhatsApp atau Email HR ---- */
   const hotlineForm = document.getElementById('hotline-form');
   if (hotlineForm) {
-    const WA_NUMBER = '6281234567890';        // GANTI: nomor WA HR, format 62 tanpa + dan tanpa 0 di depan
-    const HR_EMAIL  = 'emailanda@gmail.com';  // GANTI: email pribadi HR
+    const WA_NUMBER = '6281216697357';
+    const HR_EMAIL  = 'deridaachmad@gmail.com';
 
     hotlineForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -634,13 +634,14 @@ const rows = raw.map(r => {
       const text = lines.join('\n');
 
       if (via === 'wa') {
-        window.open('https://wa.me/' + 6281216697357 + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
+        window.open('https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
       } else {
-        window.location.href = 'mailto:' + deridaachmad@gmail.com +
+        window.location.href = 'mailto:' + HR_EMAIL +
           '?subject=' + encodeURIComponent('Hotline HRD — ' + topic) +
           '&body=' + encodeURIComponent(text.replace(/\*/g, ''));
       }
     });
+  }
   }
 
   /* ---- animasi muncul saat scroll (semua halaman) ---- */
