@@ -532,11 +532,10 @@ const rows = raw.map(r => {
           b.setAttribute('aria-pressed', on);
         });
         if (info) info.textContent = shown.length + ' dari ' + rows.length + ' sesi ditampilkan';
-        /* tiga kotak ringkasan mengikuti bulan yang dipilih */
-        const inMonth = rows.filter(r => !picked.size || picked.has(r.key));
-        setCount('log-sesi', inMonth.length);
-        setCount('log-materi', new Set(inMonth.flatMap(r => r.mats.map(m => m.toUpperCase()))).size);
-        setCount('log-peserta', inMonth.reduce((s, r) => s + r.n, 0));    
+        /* tiga kotak ringkasan mengikuti bulan DAN kotak pencarian */
+        setCount('log-sesi', shown.length);
+        setCount('log-materi', new Set(shown.flatMap(r => r.mats.map(m => m.toUpperCase()))).size);
+        setCount('log-peserta', shown.reduce((s, r) => s + r.n, 0));  
         updatePop();
       };
 
