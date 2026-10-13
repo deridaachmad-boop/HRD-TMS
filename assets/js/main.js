@@ -621,37 +621,47 @@ const rows = raw.map(r => {
     update();
   }
   
-  /* ---- contact form (Hotline) — kirim ke WhatsApp atau Email HR ---- */
+  /* ---- contact form (Hotline) — kirim diam-diam ke Google Apps Script ---- */
   const hotlineForm = document.getElementById('hotline-form');
   if (hotlineForm) {
-    const WA_NUMBER = '6281216697357';
-    const HR_EMAIL  = 'deridaachmad@gmail.com';
+    const HOTLINE_URL = 'https://script.google.com/macros/s/AKfycbzgpzkZmtJkDE_Q1IYR1cIyI5cdijHKQ1oYrFVV7jH3oF3sXkdSWg_H6YDjyplXv4_8pw/exec';
+    const sendBtn = hotlineForm.querySelector('button[type="submit"]');
+    const statusEl = document.getElementById('hotline-status');
+    const showStatus = (msg, ok) => {
+      if (!statusEl) return;
+      statusEl.textContent = msg;
+      statusEl.className = 'hotline-status ' + (ok ? 'ok' : 'err');
+    };
 
-    hotlineForm.addEventListener('submit', (e) => {
+    hotlineForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = new FormData(hotlineForm);
-      const via = (e.submitter && e.submitter.dataset.via) || 'wa';
+      const message = String(data.get('message') || '').trim();
+      if (!message) { showStatus('Pesan belum diisi.', false); return; }
+
       const anon = !!data.get('anon');
-      const topic = data.get('topic') || 'Masukan Karyawan';
+      const body = new URLSearchParams({
+        name: anon ? 'Anonim' : (String(data.get('name') || '').trim() || '-'),
+        unit: String(data.get('unit') || '').trim() || '-',
+        topic: String(data.get('topic') || 'Lainnya'),
+        message: message,
+        anon: anon ? 'Ya' : 'Tidak'
+      });
 
-      const lines = [
-        '*Hotline HRD — ' + topic + '*',
-        '',
-        'Nama: ' + (anon ? 'Anonim' : (data.get('name') || '-')),
-        'Bagian/Unit: ' + (data.get('unit') || '-'),
-        'Topik: ' + topic,
-        '',
-        'Pesan:',
-        data.get('message') || '-'
-      ];
-      const text = lines.join('\n');
-
-      if (via === 'wa') {
-        window.open('https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
-      } else {
-        window.location.href = 'mailto:' + HR_EMAIL +
-          '?subject=' + encodeURIComponent('Hotline HRD — ' + topic) +
-          '&body=' + encodeURIComponent(text.replace(/\*/g, ''));
+      const oldText = sendBtn.textContent;
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Mengirim...';
+      showStatus('', true);
+      try {
+        await fetch(HOTLINE_URL, { method: 'POST', mode: 'no-cors', body });
+        hotlineForm.reset();
+        showStatus('Terkirim. Terima kasih, pesan Anda sudah diterima HRD.', true);
+      } catch (err) {
+        console.error('Gagal mengirim hotline:', err);
+        showStatus('Gagal mengirim. Periksa koneksi internet lalu coba lagi.', false);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = oldText;
       }
     });
   }
