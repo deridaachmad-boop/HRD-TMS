@@ -629,10 +629,14 @@ const rows = raw.map(r => {
 
   /* ---- animasi muncul saat scroll (semua halaman) ---- */
   (function scrollReveal() {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (!('IntersectionObserver' in window)) return;
+    const root = document.documentElement;
+    const release = () => root.classList.remove('sr-js');   // lepas penyembunyi awal dari CSS
 
-    // jenis animasi -> elemen yang kena. Urutan penting: yang atas menang.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      release();
+      return;
+    }
+
     const RULES = [
       ['pop',   '.gallery-item, .video-wrap, .split-figure, .scene'],
       ['left',  '.split > :first-child'],
@@ -651,7 +655,6 @@ const rows = raw.map(r => {
       });
     });
 
-    // jeda bertingkat antar saudara (kartu 1, 2, 3 muncul beruntun)
     const count = new Map();
     items.forEach(el => {
       const n = count.get(el.parentElement) || 0;
@@ -659,6 +662,7 @@ const rows = raw.map(r => {
       el.style.setProperty('--sr-d', Math.min(n, 6) * 90 + 'ms');
       el.classList.add('sr');
     });
+    release();   // .sr sudah memegang kendali, jadi tidak ada kedipan
 
     const io = new IntersectionObserver(entries => {
       entries.forEach(entry => {
@@ -668,12 +672,24 @@ const rows = raw.map(r => {
         el.classList.add('sr-in');
         el.addEventListener('animationend', e => {
           if (e.target !== el) return;
-          el.classList.remove('sr', 'sr-in');       // bersihkan, agar efek hover tidak terganggu
+          el.classList.remove('sr', 'sr-in');
           el.style.removeProperty('--sr-d');
         });
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
 
-    items.forEach(el => io.observe(el));
+    // di Beranda, tunggu loading screen "Halo, HRD!" selesai dulu
+    const start = () => items.forEach(el => io.observe(el));
+    if (document.getElementById('preloader')) {
+      const t0 = performance.now();
+      const wait = setInterval(() => {
+        if (!document.getElementById('preloader') || performance.now() - t0 > 6000) {
+          clearInterval(wait);
+          start();
+        }
+      }, 100);
+    } else {
+      start();
+    }
   })();
 });
