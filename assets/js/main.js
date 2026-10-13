@@ -716,4 +716,3 @@ const rows = raw.map(r => {
       release();   // jangan biarkan halaman tersembunyi jika ada error
     }
   })();
-});
