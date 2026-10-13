@@ -415,21 +415,34 @@ document.addEventListener('DOMContentLoaded', () => {
       return bi >= 0 ? { d: 0, m: bi, y: year } : null;                             // tanggal kosong: pakai kolom Bulan
     }
 
+    const countAnim = {};   // menyimpan angka yang sedang tampil per kotak
     function setCount(id, target) {
       const el = document.getElementById(id);
       if (!el) return;
+      const prev = countAnim[id];
+      if (prev) { cancelAnimationFrame(prev.raf); if (prev.io) prev.io.disconnect(); }
+      const from = prev ? prev.shown : 0;
+      const state = countAnim[id] = { shown: from, raf: 0, io: null };
+      const run = () => {
+        const start = performance.now();
+        const dur = prev ? 600 : 1800;   // pertama kali pelan, saat ganti bulan lebih cepat
+        const tick = now => {
+          const p = Math.min(1, (now - start) / dur);
+          state.shown = from + (target - from) * (1 - Math.pow(1 - p, 3));
+          el.textContent = formatNumber(state.shown, 0, '');
+          if (p < 1) state.raf = requestAnimationFrame(tick);
+          else state.shown = target;
+        };
+        state.raf = requestAnimationFrame(tick);
+      };
+      if (prev) { run(); return; }       // sudah pernah tampil: langsung animasikan
       el.textContent = '0';
-      new IntersectionObserver((es, o) => {
+      state.io = new IntersectionObserver((es, o) => {
         if (!es[0].isIntersecting) return;
         o.disconnect();
-        const start = performance.now();
-        const tick = now => {
-          const p = Math.min(1, (now - start) / 1800);
-          el.textContent = formatNumber(target * (1 - Math.pow(1 - p, 3)), 0, '');
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      }, { threshold: 0.1 }).observe(el);
+        run();
+      }, { threshold: 0.1 });
+      state.io.observe(el);
     }
 
     try {
@@ -454,10 +467,6 @@ const rows = raw.map(r => {
 
       rows.forEach(r => { r.key = r.dt.y * 100 + r.dt.m; r.sort = Date.UTC(r.dt.y, r.dt.m, r.dt.d); });
       rows.sort((a, b) => b.sort - a.sort);                      // terbaru di atas
-
-      setCount('log-sesi', rows.length);
-      setCount('log-materi', new Set(rows.flatMap(r => r.mats.map(m => m.toUpperCase()))).size);
-      setCount('log-peserta', rows.reduce((s, r) => s + r.n, 0));
 
       const keys = [...new Set(rows.map(r => r.key))].sort((a, b) => a - b);
       const multiYear = new Set(rows.map(r => r.dt.y)).size > 1;
@@ -523,7 +532,12 @@ const rows = raw.map(r => {
           b.setAttribute('aria-pressed', on);
         });
         if (info) info.textContent = shown.length + ' dari ' + rows.length + ' sesi ditampilkan';
-             updatePop();
+        /* tiga kotak ringkasan mengikuti bulan yang dipilih */
+        const inMonth = rows.filter(r => !picked.size || picked.has(r.key));
+        setCount('log-sesi', inMonth.length);
+        setCount('log-materi', new Set(inMonth.flatMap(r => r.mats.map(m => m.toUpperCase()))).size);
+        setCount('log-peserta', inMonth.reduce((s, r) => s + r.n, 0));    
+        updatePop();
       };
 
       tabs.innerHTML = '<button type="button" class="log-tab" data-k="all">Semua</button>' +
