@@ -667,6 +667,117 @@ const rows = raw.map(r => {
     });
   }
 
+  /* ---- K3: stok APD & penerima APD dari Google Sheets ---- */
+  const APD_STOCK_CSV = 'GANTI_DENGAN_LINK_CSV_TAB_STOCK_APD';
+  const APD_LOG_CSV   = 'GANTI_DENGAN_LINK_CSV_TAB_FORM_RESPONSES_1';
+
+  (async function loadApdLive() {
+    const stockBox = document.getElementById('apd-stock-list');
+    const logBox = document.getElementById('apd-log-list');
+    if (!stockBox || !logBox) return;
+
+    const BLN = ['januari','februari','maret','april','mei','juni','juli','agustus','september','oktober','november','desember'];
+    const SHORT = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const esc2 = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const num = s => { const n = parseFloat(String(s || '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const qStock = document.getElementById('apd-q-stock');
+    const qLog = document.getElementById('apd-q-log');
+
+    // ambil baris judul (baris pertama yang berisi >= 2 sel), kembalikan {head, body}
+    function readTable(text) {
+      const all = parseCSV(text.trim());
+      const hi = all.findIndex(r => r.filter(c => c.trim()).length >= 2);
+      if (hi < 0) return { head: [], body: [] };
+      return { head: all[hi].map(norm), body: all.slice(hi + 1) };
+    }
+    const col = (head, key) => head.findIndex(h => h.startsWith(key));
+
+    function parseTgl(t, bulan) {
+      const m = String(t || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (!m) return null;
+      const a = +m[1], b = +m[2], y = +m[3];
+      const bi = BLN.findIndex(x => String(bulan || '').toLowerCase().includes(x));
+      let d, mo;
+      if (a > 12) { d = a; mo = b - 1; }
+      else if (b > 12) { mo = a - 1; d = b; }
+      else if (bi >= 0 && b - 1 === bi && a - 1 !== bi) { d = a; mo = b - 1; }
+      else { mo = a - 1; d = b; }
+      return { d, mo, y, sort: Date.UTC(y, mo, d) };
+    }
+
+    let stock = [], log = [];
+
+    function renderStock() {
+      const q = (qStock ? qStock.value : '').toLowerCase().trim();
+      const rows = stock.filter(r => !q || r.name.toLowerCase().includes(q));
+      stockBox.innerHTML = rows.length ? rows.map(r => {
+        const st = r.sisa <= 0 ? ['habis', 'Habis'] : r.sisa <= 2 ? ['tipis', 'Menipis'] : ['aman', 'Aman'];
+        return '<div class="apd-row"><div><strong>' + esc2(r.name) + '</strong>' +
+          '<span>Stok ' + r.stock + ' · Diambil ' + r.ambil + '</span></div>' +
+          '<div class="apd-right"><b>' + r.sisa + '</b><i class="apd-badge ' + st[0] + '">' + st[1] + '</i></div></div>';
+      }).join('') : '<p class="apd-empty">Tidak ada APD yang cocok.</p>';
+    }
+
+    function renderLog() {
+      const q = (qLog ? qLog.value : '').toLowerCase().split(/\s+/).filter(Boolean);
+      const rows = log.filter(r => q.every(t => (r.nama + ' ' + r.bagian + ' ' + r.apd).toLowerCase().includes(t)));
+      logBox.innerHTML = rows.length ? rows.map(r => {
+        const tgl = r.dt ? r.dt.d + ' ' + SHORT[r.dt.mo] + ' ' + r.dt.y : '-';
+        return '<div class="apd-row"><div><strong>' + esc2(r.nama) + '</strong>' +
+          '<span>' + esc2(r.bagian) + ' · ' + esc2(r.apd) + ' ×' + r.jml + (r.ket ? ' (' + esc2(r.ket) + ')' : '') + '</span></div>' +
+          '<div class="apd-right"><em>' + tgl + '</em></div></div>';
+      }).join('') : '<p class="apd-empty">Tidak ada data yang cocok.</p>';
+    }
+
+    async function load() {
+      try {
+        const [rs, rl] = await Promise.all([
+          fetch(APD_STOCK_CSV, { cache: 'no-store' }),
+          fetch(APD_LOG_CSV, { cache: 'no-store' })
+        ]);
+        if (!rs.ok || !rl.ok) throw new Error('HTTP ' + rs.status + '/' + rl.status);
+
+        const ts = readTable(await rs.text());
+        const iN = col(ts.head, 'jenisalat'), iS = col(ts.head, 'stock'), iA = col(ts.head, 'ambil'), iR = col(ts.head, 'sisa');
+        if (iN < 0 || iR < 0) throw new Error('Judul kolom Stock APD tidak cocok');
+        stock = ts.body.map(r => ({
+          name: (r[iN] || '').trim(), stock: num(r[iS]), ambil: num(r[iA]), sisa: num(r[iR])
+        })).filter(r => r.name);
+
+        const tl = readTable(await rl.text());
+        const h = tl.head;
+        const jN = col(h, 'namapenerima'), jB = col(h, 'bagian'), jT = col(h, 'tanggal'), jBl = col(h, 'bulan'),
+              jA = col(h, 'jenisapd'), jJ = col(h, 'jumlah'), jK = col(h, 'keterangan');
+        if (jN < 0) throw new Error('Judul kolom Form Responses tidak cocok');
+        log = tl.body.map((r, i) => ({
+          i, nama: (r[jN] || '').trim(), bagian: (r[jB] || '').trim(), apd: (r[jA] || '').trim(),
+          jml: num(r[jJ]), ket: (r[jK] || '').trim(), dt: parseTgl(r[jT], r[jBl])
+        })).filter(r => r.nama);
+        log.sort((a, b) => ((b.dt ? b.dt.sort : 0) - (a.dt ? a.dt.sort : 0)) || (b.i - a.i));   // terbaru di atas
+
+        setText('apd-m-jenis', stock.length);
+        setText('apd-m-sisa', stock.reduce((s, r) => s + Math.max(0, r.sisa), 0));
+        setText('apd-m-habis', stock.filter(r => r.sisa <= 0).length);
+        setText('apd-m-ambil', log.reduce((s, r) => s + r.jml, 0));
+        renderStock();
+        renderLog();
+      } catch (err) {
+        console.error('Gagal memuat data APD:', err);
+        if (!stock.length) {
+          stockBox.innerHTML = '<p class="apd-empty">Data stok belum tersedia.</p>';
+          logBox.innerHTML = '<p class="apd-empty">Data penerima belum tersedia.</p>';
+        }
+      }
+    }
+
+    if (qStock) qStock.addEventListener('input', renderStock);
+    if (qLog) qLog.addEventListener('input', renderLog);
+    await load();
+    setInterval(() => { if (!document.hidden) load(); }, 120000);   // segarkan tiap 2 menit
+  })();
+  
   /* ---- animasi muncul saat scroll (semua halaman) ---- */
   (function scrollReveal() {
     const root = document.documentElement;
