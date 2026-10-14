@@ -668,8 +668,8 @@ const rows = raw.map(r => {
   }
 
   /* ---- K3: stok APD & penerima APD dari Google Sheets ---- */
-  const APD_STOCK_CSV = 'GANTI_DENGAN_LINK_CSV_TAB_STOCK_APD';
-  const APD_LOG_CSV   = 'GANTI_DENGAN_LINK_CSV_TAB_FORM_RESPONSES_1';
+  const APD_STOCK_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbeOioWSTqID4BFvg_6eVs6g7rZ-EjVDGDaSJZD43VQ92-tmVcutzFLC_T_xm1TwMYatKIsrzUIwQO/pub?gid=458199160&single=true&output=csv';
+  const APD_LOG_CSV   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbeOioWSTqID4BFvg_6eVs6g7rZ-EjVDGDaSJZD43VQ92-tmVcutzFLC_T_xm1TwMYatKIsrzUIwQO/pub?gid=458199160&single=true&output=csv';
 
   (async function loadApdLive() {
     const stockBox = document.getElementById('apd-stock-list');
