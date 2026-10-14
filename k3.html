@@ -234,6 +234,42 @@
   </div>
 </section>
 
+<!-- ===== STOK & PENERIMA APD ===== -->
+<section>
+  <div class="wrap">
+    <div class="section-head center">
+      <div class="eyebrow"><span class="bolt"></span> STOK APD</div>
+      <h2>Stok &amp; Penerima APD</h2>
+      <p>Ketersediaan APD dan riwayat pengambilan, diperbarui otomatis dari data gudang.</p>
+    </div>
+
+    <div class="grid-4">
+      <div class="metric plate"><div class="m-label"><span class="bolt"></span> JENIS APD</div><div class="m-num" id="apd-m-jenis">0</div><div class="m-sub">Jenis APD terdata</div></div>
+      <div class="metric plate"><div class="m-label"><span class="bolt"></span> SISA STOK</div><div class="m-num" id="apd-m-sisa">0</div><div class="m-sub">Total unit tersedia</div></div>
+      <div class="metric plate"><div class="m-label"><span class="bolt"></span> STOK HABIS</div><div class="m-num" id="apd-m-habis">0</div><div class="m-sub">Jenis dengan sisa 0 atau minus</div></div>
+      <div class="metric plate"><div class="m-label"><span class="bolt"></span> PENGAMBILAN</div><div class="m-num" id="apd-m-ambil">0</div><div class="m-sub">Total unit diambil</div></div>
+    </div>
+
+    <div class="apd-live">
+      <div class="plate apd-panel">
+        <div class="apd-panel-head">
+          <h3>Stok APD</h3>
+          <label class="apd-search"><input type="search" id="apd-q-stock" placeholder="Cari APD..." aria-label="Cari APD"></label>
+        </div>
+        <div class="apd-list" id="apd-stock-list"><p class="apd-empty">Memuat data...</p></div>
+      </div>
+
+      <div class="plate apd-panel">
+        <div class="apd-panel-head">
+          <h3>Penerima APD</h3>
+          <label class="apd-search"><input type="search" id="apd-q-log" placeholder="Cari nama, bagian, APD..." aria-label="Cari penerima"></label>
+        </div>
+        <div class="apd-list" id="apd-log-list"><p class="apd-empty">Memuat data...</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+  
 <!-- ================= PENGGUNAAN APD ================= -->
 <section>
   <div class="wrap">
