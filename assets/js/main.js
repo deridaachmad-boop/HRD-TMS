@@ -668,7 +668,7 @@ const rows = raw.map(r => {
   }
 
   /* ---- K3: stok APD & penerima APD dari Google Sheets ---- */
-  const APD_STOCK_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbeOioWSTqID4BFvg_6eVs6g7rZ-EjVDGDaSJZD43VQ92-tmVcutzFLC_T_xm1TwMYatKIsrzUIwQO/pub?gid=458199160&single=true&output=csv';
+  const APD_STOCK_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbeOioWSTqID4BFvg_6eVs6g7rZ-EjVDGDaSJZD43VQ92-tmVcutzFLC_T_xm1TwMYatKIsrzUIwQO/pub?gid=167186990&single=true&output=csv';
   const APD_LOG_CSV   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQbeOioWSTqID4BFvg_6eVs6g7rZ-EjVDGDaSJZD43VQ92-tmVcutzFLC_T_xm1TwMYatKIsrzUIwQO/pub?gid=458199160&single=true&output=csv';
 
   (async function loadApdLive() {
