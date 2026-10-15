@@ -732,20 +732,30 @@ const rows = raw.map(r => {
     }
 
     async function load() {
+      /* --- stok --- */
       try {
-        const [rs, rl] = await Promise.all([
-          fetch(APD_STOCK_CSV, { cache: 'no-store' }),
-          fetch(APD_LOG_CSV, { cache: 'no-store' })
-        ]);
-        if (!rs.ok || !rl.ok) throw new Error('HTTP ' + rs.status + '/' + rl.status);
-
+        const rs = await fetch(APD_STOCK_CSV, { cache: 'no-store' });
+        if (!rs.ok) throw new Error('HTTP ' + rs.status);
         const ts = readTable(await rs.text());
-        const iN = col(ts.head, 'jenisalat'), iS = col(ts.head, 'stock'), iA = col(ts.head, 'ambil'), iR = col(ts.head, 'sisa');
+        const iN = col(ts.head, 'jenisalat'), iS = ts.head.indexOf('stock'),
+              iA = col(ts.head, 'ambil'), iR = col(ts.head, 'sisa');
         if (iN < 0 || iR < 0) throw new Error('Judul kolom Stock APD tidak cocok');
         stock = ts.body.map(r => ({
           name: (r[iN] || '').trim(), stock: num(r[iS]), ambil: num(r[iA]), sisa: num(r[iR])
         })).filter(r => r.name);
+        setText('apd-m-jenis', stock.length);
+        setText('apd-m-sisa', stock.reduce((s, r) => s + Math.max(0, r.sisa), 0));
+        setText('apd-m-habis', stock.filter(r => r.sisa <= 0).length);
+        renderStock();
+      } catch (err) {
+        console.error('Gagal memuat stok APD:', err);
+        if (!stock.length) stockBox.innerHTML = '<p class="apd-empty">Data stok belum tersedia.</p>';
+      }
 
+      /* --- penerima --- */
+      try {
+        const rl = await fetch(APD_LOG_CSV, { cache: 'no-store' });
+        if (!rl.ok) throw new Error('HTTP ' + rl.status);
         const tl = readTable(await rl.text());
         const h = tl.head;
         const jN = col(h, 'namapenerima'), jB = col(h, 'bagian'), jT = col(h, 'tanggal'), jBl = col(h, 'bulan'),
@@ -755,20 +765,12 @@ const rows = raw.map(r => {
           i, nama: (r[jN] || '').trim(), bagian: (r[jB] || '').trim(), apd: (r[jA] || '').trim(),
           jml: num(r[jJ]), ket: (r[jK] || '').trim(), dt: parseTgl(r[jT], r[jBl])
         })).filter(r => r.nama);
-        log.sort((a, b) => ((b.dt ? b.dt.sort : 0) - (a.dt ? a.dt.sort : 0)) || (b.i - a.i));   // terbaru di atas
-
-        setText('apd-m-jenis', stock.length);
-        setText('apd-m-sisa', stock.reduce((s, r) => s + Math.max(0, r.sisa), 0));
-        setText('apd-m-habis', stock.filter(r => r.sisa <= 0).length);
+        log.sort((a, b) => ((b.dt ? b.dt.sort : 0) - (a.dt ? a.dt.sort : 0)) || (b.i - a.i));
         setText('apd-m-ambil', log.reduce((s, r) => s + r.jml, 0));
-        renderStock();
         renderLog();
       } catch (err) {
-        console.error('Gagal memuat data APD:', err);
-        if (!stock.length) {
-          stockBox.innerHTML = '<p class="apd-empty">Data stok belum tersedia.</p>';
-          logBox.innerHTML = '<p class="apd-empty">Data penerima belum tersedia.</p>';
-        }
+        console.error('Gagal memuat penerima APD:', err);
+        if (!log.length) logBox.innerHTML = '<p class="apd-empty">Data penerima belum tersedia.</p>';
       }
     }
 
