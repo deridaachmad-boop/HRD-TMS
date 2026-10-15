@@ -2035,8 +2035,13 @@ html.sr-js [data-reveal]:not(.in){opacity:0;}
   .th-chip{animation:none;}
 }
 
+.th-photo{
+  background:linear-gradient(160deg,#16356f,#0b1d44);   /* latar biru di belakang orang */
+  overflow:visible;                                     /* kepala boleh sedikit keluar dari kotak */
+}
 .th-photo img{
-  width:100%;height:100%;
-  object-fit:cover;
-  object-position:50% 20%;   /* naikkan angka 20% jika kepala terpotong, turunkan jika terlalu kosong di atas */
+  object-fit:contain;
+  object-position:50% 100%;
+  transform:scale(1.12);
+  transform-origin:50% 100%;
 }
