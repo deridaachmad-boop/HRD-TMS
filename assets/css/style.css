@@ -1935,8 +1935,11 @@ html.sr-js [data-reveal]:not(.in){opacity:0;}
 /* pola lingkaran tipis di latar */
 .th-hero::before{
   content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:radial-gradient(circle at center, transparent 30px, rgba(255,255,255,.07) 31px, transparent 33px);
-  background-size:92px 92px;
+  background-image:
+    linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);
+  background-size:34px 34px;
+  background-position:center -1px;
 }
 .th-inner{
   position:relative;
