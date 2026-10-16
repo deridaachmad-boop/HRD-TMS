@@ -2048,3 +2048,32 @@ html.sr-js [data-reveal]:not(.in){opacity:0;}
   transform:scale(1.12);
   transform-origin:50% 100%;
 }
+
+/* orang keluar dari kotak (efek 3D) */
+.th-photo{
+  overflow:visible;
+  background:none;
+  box-shadow:none;
+}
+/* kotak biru dipindah ke lapisan belakang */
+.th-photo::before{
+  content:'';position:absolute;inset:0;z-index:0;
+  border-radius:28px;
+  background:linear-gradient(160deg,#16356f,#0b1d44);
+  box-shadow:0 30px 60px -24px rgba(0,0,0,.6);
+}
+/* foto lebih besar, dasar foto sejajar dasar kotak, kepala dan tangan keluar lewat atas dan samping */
+.th-photo img{
+  position:absolute;z-index:1;
+  left:50%;bottom:0;
+  width:128%;height:auto;max-width:none;
+  transform:translateX(-50%);
+  object-fit:contain;
+  filter:drop-shadow(0 18px 22px rgba(0,0,0,.35));
+}
+/* kartu melayang tetap di atas foto */
+.th-chip{z-index:3;}
+
+@media (max-width:560px){
+  .th-photo img{width:120%;}
+}
