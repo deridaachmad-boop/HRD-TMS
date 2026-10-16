@@ -2077,3 +2077,10 @@ html.sr-js [data-reveal]:not(.in){opacity:0;}
 @media (max-width:560px){
   .th-photo img{width:120%;}
 }
+
+/* turunkan foto sedikit + potong bagian bawah tepat di dasar kotak */
+.th-photo{--drop:50px;}   /* makin besar, foto makin turun dan makin banyak bagian bawah terpotong */
+.th-photo img{
+  bottom:calc(var(--drop) * -1);
+  clip-path:inset(0 0 var(--drop) 0);   /* potong sebanyak --drop dari bawah, tepat di dasar kotak */
+}
