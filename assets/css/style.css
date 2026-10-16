@@ -1960,7 +1960,7 @@ html.sr-js [data-reveal]:not(.in){opacity:0;}
   max-width:15ch;color:#fff;
 }
 .th-hero h1 em{
-  font-style:italic;padding-right:.08em;
+  font-style:normal;padding-right:.08em;
   background:linear-gradient(110deg,#fde047,#fbbf24 50%,#fb923c);
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
