@@ -22,6 +22,7 @@ button.primary{background:var(--accent);color:var(--at);border-color:var(--accen
 .nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
 .dots{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}.dot{width:30px;height:30px;padding:0;border-radius:8px;font-size:.8rem}
 .dot.done{background:var(--accent);color:var(--at);border-color:var(--accent)}.dot.cur{outline:2px solid var(--text);outline-offset:1px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}.ov .card{max-width:420px;text-align:center}#s2{user-select:none;-webkit-user-select:none}
 .score{font-size:2.6rem;font-weight:800;margin:6px 0}.err{color:var(--bad);margin-top:10px}
 </style></head><body><div class="wrap">
 
@@ -33,7 +34,7 @@ button.primary{background:var(--accent);color:var(--at);border-color:var(--accen
   <label for="bid">Pilih bidang tes</label>
   <select id="bid"><option value="">— Pilih bidang —</option></select>
   <p id="info" style="margin-top:12px"></p>
-  <p>Setiap soal pilihan ganda. Jawaban dikumpulkan otomatis saat waktu habis.</p>
+  <p>Setiap soal pilihan ganda. Jawaban dikumpulkan otomatis saat waktu habis. Selama tes berlangsung, berpindah tab atau keluar dari halaman akan diperingatkan dan dicatat.</p>
   <button class="primary" id="mulai">Mulai Tes</button>
   <div class="err" id="err"></div>
 </div>
@@ -51,9 +52,10 @@ button.primary{background:var(--accent);color:var(--at);border-color:var(--accen
   <button id="retry" hidden class="primary">Kirim Ulang</button>
 </div>
 </div>
+<div class="ov" id="ov" hidden><div class="card"><h2>⚠️ Peringatan</h2><p id="ovt"></p><button class="primary" id="ovb">Kembali ke Tes</button></div></div>
 <script>
 const $=id=>document.getElementById(id),H=["A","B","C","D"];
-let soal=[],ans=[],i=0,left=0,tm=null,nama="",bid="",dur=15,sent=false;
+let soal=[],ans=[],i=0,left=0,tm=null,nama="",bid="",dur=15,sent=false,viol=0,away=false,quiet=0;
 async function jget(u){const r=await fetch(u),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal");return d}
 (async()=>{try{const d=await jget("/api/quiz");dur=d.durasi;
   d.bidang.forEach(b=>{const o=document.createElement("option");o.value=b.id;o.textContent=b.nama+(b.jumlah?"":" (belum tersedia)");o.disabled=!b.jumlah;$("bid").append(o)});
@@ -75,14 +77,21 @@ function draw(){const q=soal[i];$("prog").textContent="Soal "+(i+1)+" dari "+soa
     b.onclick=()=>{ans[i]=k;draw()};$("opts").append(b)});
   $("prev").disabled=i===0;const last=i===soal.length-1;$("next").textContent=last?"Kumpulkan ✓":"Berikutnya →";
   $("next").onclick=last?()=>{const n=ans.filter(a=>a===null).length;
-    if(confirm(n?"Masih ada "+n+" soal belum dijawab. Kumpulkan sekarang?":"Kumpulkan jawaban sekarang?"))finish(false)}:()=>{i++;draw()};
+    quiet=Date.now()+60000;const ok=confirm(n?"Masih ada "+n+" soal belum dijawab. Kumpulkan sekarang?":"Kumpulkan jawaban sekarang?");quiet=Date.now()+800;if(ok)finish(false)}:()=>{i++;draw()};
   $("prev").onclick=()=>{i--;draw()};$("dots").replaceChildren();
   soal.forEach((_,k)=>{const d=document.createElement("button");d.className="dot"+(ans[k]!==null?" done":"")+(k===i?" cur":"");
     d.textContent=k+1;d.onclick=()=>{i=k;draw()};$("dots").append(d)})}
-function finish(auto){if(sent)return;sent=true;clearInterval(tm);$("s2").hidden=true;$("s3").hidden=false;kirim(auto)}
+function finish(auto){if(sent)return;sent=true;$("ov").hidden=true;clearInterval(tm);$("s2").hidden=true;$("s3").hidden=false;kirim(auto)}
 async function kirim(auto){$("retry").hidden=true;$("who").textContent="Peserta: "+nama;$("sc").textContent="…";$("sum").textContent="Mengirim jawaban, mohon tunggu.";
-  try{const r=await fetch("/api/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nama,b:bid,a:ans})}),d=await r.json();
+  try{const r=await fetch("/api/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nama,b:bid,a:ans,v:viol})}),d=await r.json();
     if(!r.ok)throw new Error(d.error);$("sc").textContent=d.nilai;
     $("sum").textContent=(auto?"Waktu habis. ":"")+"Benar "+d.benar+" dari "+d.total+" soal. Jawaban Anda telah diterima HRD. Terima kasih.";}
   catch(e){$("sc").textContent="!";$("sum").textContent="Jawaban belum terkirim ("+e.message+"). Jangan tutup halaman ini, lalu klik Kirim Ulang.";$("retry").hidden=false;$("retry").onclick=()=>kirim(auto)}}
+function flag(why){if(sent||$("s2").hidden||away||Date.now()<quiet)return;away=true;viol++;
+  $("ovt").textContent="Anda terdeteksi "+why+". Pelanggaran ke-"+viol+" telah dicatat dan akan dilihat oleh HRD. Tetaplah di halaman tes sampai selesai.";$("ov").hidden=false}
+$("ovb").onclick=()=>{$("ov").hidden=true;away=false};
+document.addEventListener("visibilitychange",()=>{if(document.hidden)flag("berpindah tab atau jendela")});
+window.addEventListener("blur",()=>flag("meninggalkan jendela tes"));
+document.documentElement.addEventListener("mouseleave",e=>{if(e.clientY<=0||e.clientX<=0||e.clientX>=innerWidth||e.clientY>=innerHeight)flag("mengarahkan kursor keluar halaman")});
+["copy","cut","paste","contextmenu"].forEach(t=>document.addEventListener(t,e=>{if(!$("s2").hidden)e.preventDefault()}));
 </script></body></html>
