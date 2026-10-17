@@ -53,7 +53,7 @@ const h=(t,p={},...c)=>{const e=document.createElement(t);Object.assign(e,p);e.a
 const msg=(t,bad)=>{$("msg").textContent=t;$("msg").style.color=bad?"var(--bad)":"var(--muted)"};
 async function api(act,data){const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json","x-admin-password":pw},body:JSON.stringify({act,...data})});
   const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal");return d}
-$("btnMasuk").onclick=masuk;$("pw").onkeydown=e=>e.key==="Enter"&&masuk();
+$("btnMasuk").onclick=masuk;$("pw").onkeydown=e=>{if(e.key==="Enter")masuk()};
 async function masuk(){pw=$("pw").value;$("lerr").textContent="";try{await api("ping");sessionStorage.setItem("pw",pw);mulai()}catch(e){$("lerr").textContent=e.message}}
 $("keluar").onclick=()=>{sessionStorage.clear();location.reload()};
 Object.entries(BID).forEach(([k,v])=>{$("bsel").append(h("option",{value:k,textContent:v}));$("fb").append(h("option",{value:v,textContent:v}))});
