@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
       return res.json({ durasi, soal: s.map((q) => ({ t: q.t, p: q.p })) }); // kunci jawaban tidak dikirim
     }
     if (req.method === "POST") {
-      const { nama, b, a } = req.body || {};
+      const { nama, b, a, v } = req.body || {};
       const n = String(nama || "").trim().slice(0, 80);
       if (!n || !BIDANG[b] || !Array.isArray(a)) return res.status(400).json({ error: "Data tidak lengkap" });
       const s = await redis.get("soal:" + b);
@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
       const nilai = Math.round((benar / s.length) * 100);
       await redis.lpush("hasil", {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-        nama: n, bidang: BIDANG[b], benar, total: s.length, nilai, waktu: new Date().toISOString(),
+        nama: n, bidang: BIDANG[b], benar, total: s.length, nilai, pelanggaran: Math.min(99, Math.max(0, parseInt(v) || 0)), waktu: new Date().toISOString(),
       });
       return res.json({ nilai, benar, total: s.length });
     }
