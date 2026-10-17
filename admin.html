@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin Tes Pelamar — PT TMS</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1b1f27;--muted:#5d6675;--line:#dde1e8;--accent:#2457d6;--at:#fff;--bad:#c0392b}
+@media(prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1d222a;--text:#eceff4;--muted:#9aa4b2;--line:#2d343f;--accent:#6e95ff;--at:#0e1320;--bad:#ff8a7a;color-scheme:dark}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+h1{font-size:1.3rem;margin:0 0 14px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font:inherit}
+button{font:inherit;cursor:pointer;border-radius:8px;padding:9px 14px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+button.p{background:var(--accent);color:var(--at);border-color:var(--accent);font-weight:600}button.x{color:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.row>*{width:auto}.grow{flex:1;min-width:150px}
+.tabs button.on{background:var(--accent);color:var(--at);border-color:var(--accent)}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}.qh{display:flex;justify-content:space-between;margin-bottom:8px}
+.opt{display:flex;gap:8px;align-items:center;margin-top:6px}.opt input[type=radio]{width:auto}.opt input[type=text]{flex:1}
+.muted{color:var(--muted);font-size:.9rem}.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}
+</style></head><body><div class="wrap">
+
+<div id="login" class="card" style="max-width:380px;margin:60px auto"><h1>Admin Tes Pelamar</h1>
+  <input id="pw" type="password" placeholder="Password admin" autocomplete="current-password">
+  <div class="row" style="margin-top:12px"><button class="p" id="btnMasuk">Masuk</button><span id="lerr" style="color:var(--bad)"></span></div></div>
+
+<div id="app" hidden>
+  <h1>Dashboard Admin — Tes Pelamar PT TMS</h1>
+  <div class="row tabs"><button id="t1" class="on">Kelola Soal</button><button id="t2">Hasil Peserta</button><button id="keluar" style="margin-left:auto">Keluar</button></div>
+  <div class="muted" id="msg" style="min-height:1.5em;margin-bottom:8px"></div>
+
+  <div id="p1">
+    <div class="card"><div class="row"><select id="bsel" class="grow"></select>
+      <label class="muted">Durasi (menit)</label><input id="dur" type="number" min="1" max="180" style="width:80px"></div>
+      <div class="row"><button id="tambah">+ Tambah soal</button>
+      <button id="btnImpor">Impor CSV</button><input id="file" type="file" accept=".csv,text/csv" hidden>
+      <button id="tpl">Unduh template CSV</button><span class="muted" id="cnt"></span>
+      <button class="p" id="simpan" style="margin-left:auto">Simpan</button></div>
+      <p class="muted" style="margin:0">Format CSV: pertanyaan, A, B, C, D, kunci (A–D). Dari Excel, pilih Simpan sebagai CSV.</p></div>
+    <div id="list"></div>
+  </div>
+
+  <div id="p2" hidden><div class="card"><div class="row"><select id="fb" class="grow"><option value="">Semua bidang</option></select>
+    <button id="muat">Muat ulang</button><button class="p" id="unduh">Unduh CSV</button></div>
+    <div class="tw"><table><thead><tr><th>#</th><th>Nama</th><th>Bidang</th><th>Nilai</th><th>Benar</th><th>Waktu</th></tr></thead><tbody id="tb"></tbody></table></div>
+    <p class="muted" id="hc"></p></div></div>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id),H=["A","B","C","D"];
+const BID={metalurgi:"T. Metalurgi",mesin:"T. Mesin",industri:"T. Industri",k3:"K3",lingkungan:"T. Lingkungan"};
+let pw=sessionStorage.getItem("pw")||"",S=[],R=[];
+const h=(t,p={},...c)=>{const e=document.createElement(t);Object.assign(e,p);e.append(...c);return e};
+const msg=(t,bad)=>{$("msg").textContent=t;$("msg").style.color=bad?"var(--bad)":"var(--muted)"};
+async function api(act,data){const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json","x-admin-password":pw},body:JSON.stringify({act,...data})});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal");return d}
+$("btnMasuk").onclick=masuk;$("pw").onkeydown=e=>e.key==="Enter"&&masuk();
+async function masuk(){pw=$("pw").value;$("lerr").textContent="";try{await api("ping");sessionStorage.setItem("pw",pw);mulai()}catch(e){$("lerr").textContent=e.message}}
+$("keluar").onclick=()=>{sessionStorage.clear();location.reload()};
+Object.entries(BID).forEach(([k,v])=>{$("bsel").append(h("option",{value:k,textContent:v}));$("fb").append(h("option",{value:v,textContent:v}))});
+async function mulai(){$("login").hidden=true;$("app").hidden=false;muatSoal()}
+if(pw)api("ping").then(mulai).catch(()=>{});
+$("t1").onclick=()=>tab(1);$("t2").onclick=()=>{tab(2);muatHasil()};
+function tab(n){$("p1").hidden=n!==1;$("p2").hidden=n!==2;$("t1").classList.toggle("on",n===1);$("t2").classList.toggle("on",n===2);msg("")}
+$("bsel").onchange=muatSoal;
+async function muatSoal(){try{const d=await api("get",{b:$("bsel").value});
+  S=d.soal.map(q=>({t:q.t,p:[0,1,2,3].map(i=>q.p[i]||""),j:q.j}));$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
+function draw(){const L=$("list");L.replaceChildren();$("cnt").textContent=S.length+" soal";
+  S.forEach((q,k)=>{const ta=h("textarea",{value:q.t,rows:2,placeholder:"Tulis pertanyaan",oninput:()=>q.t=ta.value});
+    const ops=q.p.map((o,x)=>h("div",{className:"opt"},h("input",{type:"radio",name:"j"+k,checked:q.j===x,onchange:()=>q.j=x}),
+      h("b",{textContent:H[x]+"."}),h("input",{type:"text",value:o,placeholder:"Pilihan "+H[x],oninput:e=>q.p[x]=e.target.value})));
+    L.append(h("div",{className:"q"},h("div",{className:"qh"},h("b",{textContent:"Soal "+(k+1)}),
+      h("button",{className:"x",textContent:"Hapus",onclick:()=>{S.splice(k,1);draw()}})),ta,...ops,
+      h("div",{className:"muted",textContent:"Kunci jawaban: pilih lingkaran di sebelah jawaban yang benar."})))})}
+$("tambah").onclick=()=>{S.push({t:"",p:["","","",""],j:0});draw();window.scrollTo(0,document.body.scrollHeight)};
+$("simpan").onclick=async()=>{msg("Menyimpan…");try{const d=await api("simpan",{b:$("bsel").value,soal:S,durasi:+$("dur").value});msg("Tersimpan: "+d.jumlah+" soal untuk "+BID[$("bsel").value]+".")}catch(e){msg(e.message,1)}};
+function unduhFile(n,t){const a=h("a",{href:URL.createObjectURL(new Blob(["\uFEFF"+t],{type:"text/csv"})),download:n});a.click()}
+$("tpl").onclick=()=>unduhFile("template-soal.csv","pertanyaan,A,B,C,D,kunci\nBerapa hasil 15% dari 240?,32,36,40,48,B\n");
+$("btnImpor").onclick=()=>$("file").click();
+function parseCSV(t){t=t.replace(/^\uFEFF/,"");const f=t.split("\n")[0],d=(f.match(/;/g)||[]).length>(f.match(/,/g)||[]).length?";":",";
+  const rows=[];let r=[],c="",q=false;
+  for(let i=0;i<t.length;i++){const ch=t[i];
+    if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}
+    else if(ch=='"')q=true;else if(ch===d){r.push(c);c=""}
+    else if(ch=="\n"||ch=="\r"){if(ch=="\r"&&t[i+1]=="\n")i++;r.push(c);c="";if(r.some(x=>x.trim()))rows.push(r);r=[]}else c+=ch}
+  r.push(c);if(r.some(x=>x.trim()))rows.push(r);return rows}
+$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();
+  fr.onload=()=>{let ok=0,skip=0;parseCSV(fr.result).forEach(r=>{if(/^pertanyaan$/i.test(r[0].trim()))return;
+    const k=(r[5]||"").trim().toUpperCase();let j="ABCD".indexOf(k);if(k.length!==1)j=-1;if(j<0&&/^[1-4]$/.test(k))j=+k-1;
+    if(r.length<6||!r[0].trim()||r.slice(1,5).some(x=>!x.trim())||j<0){skip++;return}
+    S.push({t:r[0].trim(),p:r.slice(1,5).map(x=>x.trim()),j});ok++});
+    draw();msg(ok+" soal diimpor, "+skip+" baris dilewati. Periksa lalu klik Simpan.",!ok);e.target.value=""};fr.readAsText(f)};
+async function muatHasil(){try{R=(await api("hasil")).hasil;tabel()}catch(e){msg(e.message,1)}}
+$("muat").onclick=muatHasil;$("fb").onchange=tabel;
+const rows=()=>R.filter(x=>!$("fb").value||x.bidang===$("fb").value);
+function tabel(){const L=rows();$("tb").replaceChildren(...L.map((x,i)=>h("tr",{},h("td",{textContent:i+1}),h("td",{textContent:x.nama}),h("td",{textContent:x.bidang}),
+  h("td",{textContent:x.nilai}),h("td",{textContent:x.benar+"/"+x.total}),h("td",{textContent:new Date(x.waktu).toLocaleString("id-ID")}))));
+  $("hc").textContent=L.length+" hasil"+(L.length?" · rata-rata nilai "+Math.round(L.reduce((a,x)=>a+x.nilai,0)/L.length):"")}
+const cell=v=>{v=String(v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
+$("unduh").onclick=()=>unduhFile("hasil-tes-"+new Date().toISOString().slice(0,10)+".csv",
+  ["No,Nama,Bidang,Nilai,Benar,Total,Waktu"].concat(rows().map((x,i)=>[i+1,x.nama,x.bidang,x.nilai,x.benar,x.total,x.waktu].map(cell).join(","))).join("\n"));
+</script></body></html>

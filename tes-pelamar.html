@@ -1,172 +1,88 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="utf-8">
+<html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tes Seleksi Pelamar</title>
+<title>Tes Seleksi Pelamar — PT TMS</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--text:#1b1f27;--muted:#5d6675;--line:#dde1e8;--accent:#2457d6;--accent-t:#fff;--ok:#1a7f45;--bad:#c0392b;--okbg:#e6f5ec;--badbg:#fbeaea;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171c;--card:#1d222a;--text:#eceff4;--muted:#9aa4b2;--line:#2d343f;--accent:#6e95ff;--accent-t:#0e1320;--ok:#5fd08b;--bad:#ff8a7a;--okbg:#17301f;--badbg:#3a1d1d;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#14171c;--card:#1d222a;--text:#eceff4;--muted:#9aa4b2;--line:#2d343f;--accent:#6e95ff;--accent-t:#0e1320;--ok:#5fd08b;--bad:#ff8a7a;--okbg:#17301f;--badbg:#3a1d1d;color-scheme:dark}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+:root{--bg:#f6f7f9;--card:#fff;--text:#1b1f27;--muted:#5d6675;--line:#dde1e8;--accent:#2457d6;--at:#fff;--bad:#c0392b}
+@media(prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1d222a;--text:#eceff4;--muted:#9aa4b2;--line:#2d343f;--accent:#6e95ff;--at:#0e1320;--bad:#ff8a7a;color-scheme:dark}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
 .wrap{max-width:680px;margin:0 auto;padding:20px 16px 40px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
-h1{font-size:1.4rem;margin:0 0 6px}h2{font-size:1.1rem;margin:0 0 14px;line-height:1.45}
-p{margin:0 0 12px;color:var(--muted)}
-label{display:block;font-weight:600;margin-bottom:6px}
-input[type=text]{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit}
+h1{font-size:1.4rem;margin:0 0 6px}h2{font-size:1.1rem;margin:0 0 14px;line-height:1.45}p{margin:0 0 12px;color:var(--muted)}
+label{display:block;font-weight:600;margin:14px 0 6px}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit}
 button{font:inherit;cursor:pointer;border-radius:10px;padding:11px 18px;border:1px solid var(--line);background:var(--card);color:var(--text)}
-button.primary{background:var(--accent);color:var(--accent-t);border-color:var(--accent);font-weight:600}
-button:disabled{opacity:.4;cursor:not-allowed}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:.95rem;color:var(--muted)}
+button.primary{background:var(--accent);color:var(--at);border-color:var(--accent);font-weight:600}button:disabled{opacity:.4;cursor:not-allowed}
+.top{display:flex;justify-content:space-between;margin-bottom:12px;font-size:.95rem;color:var(--muted)}
 .timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text)}.timer.low{color:var(--bad)}
-.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:16px}
-.bar>div{height:100%;background:var(--accent);transition:width .2s}
-.opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;margin-bottom:10px;padding:12px 14px}
-.opt .k{font-weight:700;min-width:1.4em}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:16px}.bar>div{height:100%;background:var(--accent)}
+.opt{display:flex;gap:10px;width:100%;text-align:left;margin-bottom:10px;padding:12px 14px}.opt b{min-width:1.4em}
 .opt.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
-.dots{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
-.dot{width:30px;height:30px;padding:0;border-radius:8px;font-size:.8rem}
-.dot.done{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
-.dot.cur{outline:2px solid var(--text);outline-offset:1px}
-.score{font-size:2.6rem;font-weight:800;margin:6px 0}
-.rev{border-top:1px solid var(--line);padding:14px 0}
-.tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.8rem;font-weight:600}
-.tag.ok{background:var(--okbg);color:var(--ok)}.tag.bad{background:var(--badbg);color:var(--bad)}
-.hide{display:none}
-</style>
-</head>
-<body>
-<div class="wrap">
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}.dot{width:30px;height:30px;padding:0;border-radius:8px;font-size:.8rem}
+.dot.done{background:var(--accent);color:var(--at);border-color:var(--accent)}.dot.cur{outline:2px solid var(--text);outline-offset:1px}
+.score{font-size:2.6rem;font-weight:800;margin:6px 0}.err{color:var(--bad);margin-top:10px}
+</style></head><body><div class="wrap">
 
-<div id="s-start" class="card">
-  <h1 id="ttl">Tes Seleksi Pelamar</h1>
-  <p id="meta"></p>
-  <p>Pilih satu jawaban untuk setiap soal. Anda bisa berpindah soal dan mengubah jawaban sebelum waktu habis. Tes akan dikumpulkan otomatis saat waktu berakhir.</p>
+<div id="s1" class="card">
+  <h1>Tes Seleksi Pelamar</h1>
+  <p>PT Timur Megah Steel — Human Resource Development</p>
   <label for="nama">Nama lengkap</label>
-  <input type="text" id="nama" placeholder="Masukkan nama Anda" autocomplete="name">
-  <p id="err" class="hide" style="color:var(--bad);margin-top:8px">Mohon isi nama terlebih dahulu.</p>
-  <div style="margin-top:16px"><button class="primary" id="mulai">Mulai Tes</button></div>
+  <input id="nama" type="text" maxlength="80" placeholder="Masukkan nama lengkap Anda" autocomplete="name">
+  <label for="bid">Pilih bidang tes</label>
+  <select id="bid"><option value="">— Pilih bidang —</option></select>
+  <p id="info" style="margin-top:12px"></p>
+  <p>Setiap soal pilihan ganda. Jawaban dikumpulkan otomatis saat waktu habis.</p>
+  <button class="primary" id="mulai">Mulai Tes</button>
+  <div class="err" id="err"></div>
 </div>
 
-<div id="s-quiz" class="hide">
+<div id="s2" hidden>
   <div class="top"><span id="prog"></span><span>Sisa waktu: <span class="timer" id="tmr"></span></span></div>
   <div class="bar"><div id="bar"></div></div>
-  <div class="card">
-    <h2 id="q"></h2>
-    <div id="opts"></div>
-    <div class="nav">
-      <button id="prev">← Sebelumnya</button>
-      <button id="next" class="primary">Berikutnya →</button>
-    </div>
-  </div>
+  <div class="card"><h2 id="q"></h2><div id="opts"></div>
+    <div class="nav"><button id="prev">← Sebelumnya</button><button id="next" class="primary">Berikutnya →</button></div></div>
   <div class="dots" id="dots"></div>
 </div>
 
-<div id="s-res" class="hide">
-  <div class="card">
-    <p id="who" style="margin-bottom:0"></p>
-    <div class="score" id="sc"></div>
-    <p id="sum"></p>
-    <button onclick="location.reload()">Ulangi Tes</button>
-  </div>
-  <div class="card" style="margin-top:14px">
-    <h2>Pembahasan</h2>
-    <div id="review"></div>
-  </div>
+<div id="s3" class="card" hidden>
+  <p id="who" style="margin:0"></p><div class="score" id="sc"></div><p id="sum"></p>
+  <button id="retry" hidden class="primary">Kirim Ulang</button>
 </div>
-
 </div>
 <script>
-// ====== PENGATURAN (ubah sesuai kebutuhan) ======
-const JUDUL = "Tes Seleksi Pelamar";
-const DURASI_MENIT = 10;
-// jawaban = indeks pilihan benar (0 = A, 1 = B, dst.)
-const SOAL = [
- {t:"Berapa hasil dari 15% dari 240?", p:["32","36","40","48"], j:1},
- {t:"Lanjutkan pola: 2, 6, 12, 20, 30, ...", p:["38","40","42","44"], j:2},
- {t:"Jika semua staf wajib hadir rapat dan Budi adalah staf, maka…", p:["Budi boleh tidak hadir","Budi wajib hadir rapat","Budi bukan staf","Rapat dibatalkan"], j:1},
- {t:"Sinonim kata \"efisien\" adalah…", p:["Boros","Tepat guna","Lambat","Rumit"], j:1},
- {t:"Sebuah pekerjaan selesai dalam 6 hari oleh 4 orang. Berapa hari jika dikerjakan 8 orang (kecepatan sama)?", p:["2","3","4","12"], j:1},
- {t:"Manakah kalimat yang baku?", p:["Dia mengerjakan tugas dengan baik.","Dia ngerjain tugas dengan baik.","Dia mengerjain tugas dengan baik.","Dia kerjain tugas dengan baik."], j:0},
- {t:"Rata-rata dari 70, 80, 90, dan 100 adalah…", p:["80","85","90","95"], j:1},
- {t:"Atasan memberi dua tugas penting dengan tenggat sama. Sikap terbaik Anda adalah…", p:["Mengerjakan yang mudah saja","Mendiamkan keduanya","Mengonfirmasi prioritas ke atasan lalu mengatur jadwal","Meminta rekan mengerjakan semuanya"], j:2}
-];
-// ================================================
-
-const $=id=>document.getElementById(id);
-const H=["A","B","C","D","E"];
-let i=0,ans=Array(SOAL.length).fill(null),left=DURASI_MENIT*60,tm=null,nama="";
-document.title=JUDUL;$("ttl").textContent=JUDUL;
-$("meta").textContent=SOAL.length+" soal pilihan ganda · "+DURASI_MENIT+" menit";
-
-$("mulai").onclick=()=>{
-  nama=$("nama").value.trim();
-  if(!nama){$("err").classList.remove("hide");return}
-  $("s-start").classList.add("hide");$("s-quiz").classList.remove("hide");
-  render();tick();tm=setInterval(tick,1000);
-};
-function tick(){
-  const m=Math.floor(left/60),s=left%60;
-  $("tmr").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
-  $("tmr").classList.toggle("low",left<=60);
-  if(left--<=0){finish(true)}
-}
-function render(){
-  const q=SOAL[i];
-  $("prog").textContent="Soal "+(i+1)+" dari "+SOAL.length;
-  $("bar").style.width=((ans.filter(a=>a!==null).length)/SOAL.length*100)+"%";
-  $("q").textContent=q.t;
-  $("opts").innerHTML="";
-  q.p.forEach((o,k)=>{
-    const b=document.createElement("button");
-    b.className="opt"+(ans[i]===k?" sel":"");
-    b.innerHTML='<span class="k">'+H[k]+'.</span><span></span>';
-    b.lastChild.textContent=o;
-    b.onclick=()=>{ans[i]=k;render()};
-    $("opts").appendChild(b);
-  });
-  $("prev").disabled=i===0;
-  const last=i===SOAL.length-1;
-  $("next").textContent=last?"Kumpulkan ✓":"Berikutnya →";
-  $("next").onclick=last?()=>submit():()=>{i++;render()};
-  $("prev").onclick=()=>{i--;render()};
-  $("dots").innerHTML="";
-  SOAL.forEach((_,k)=>{
-    const d=document.createElement("button");
-    d.className="dot"+(ans[k]!==null?" done":"")+(k===i?" cur":"");
-    d.textContent=k+1;d.onclick=()=>{i=k;render()};
-    $("dots").appendChild(d);
-  });
-}
-function submit(){
-  const kosong=ans.filter(a=>a===null).length;
-  const msg=kosong?"Masih ada "+kosong+" soal belum dijawab. Kumpulkan sekarang?":"Kumpulkan jawaban Anda sekarang?";
-  if(confirm(msg))finish(false);
-}
-function finish(auto){
-  clearInterval(tm);
-  $("s-quiz").classList.add("hide");$("s-res").classList.remove("hide");
-  const benar=SOAL.filter((q,k)=>ans[k]===q.j).length;
-  const nilai=Math.round(benar/SOAL.length*100);
-  $("who").textContent="Peserta: "+nama;
-  $("sc").textContent=nilai;
-  $("sum").textContent=(auto?"Waktu habis. ":"")+"Benar "+benar+" dari "+SOAL.length+" soal.";
-  const r=$("review");r.innerHTML="";
-  SOAL.forEach((q,k)=>{
-    const ok=ans[k]===q.j;
-    const d=document.createElement("div");d.className="rev";
-    const tag=document.createElement("span");tag.className="tag "+(ok?"ok":"bad");tag.textContent=ok?"Benar":(ans[k]===null?"Tidak dijawab":"Salah");
-    const t=document.createElement("div");t.style.margin="8px 0 4px";t.textContent=(k+1)+". "+q.t;
-    const a=document.createElement("div");a.style.color="var(--muted)";
-    a.textContent="Jawaban Anda: "+(ans[k]===null?"-":H[ans[k]]+". "+q.p[ans[k]])+(ok?"":"  |  Kunci: "+H[q.j]+". "+q.p[q.j]);
-    d.append(tag,t,a);r.appendChild(d);
-  });
-  window.scrollTo(0,0);
-}
-</script>
-</body>
-</html>
+const $=id=>document.getElementById(id),H=["A","B","C","D"];
+let soal=[],ans=[],i=0,left=0,tm=null,nama="",bid="",dur=15,sent=false;
+async function jget(u){const r=await fetch(u),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal");return d}
+(async()=>{try{const d=await jget("/api/quiz");dur=d.durasi;
+  d.bidang.forEach(b=>{const o=document.createElement("option");o.value=b.id;o.textContent=b.nama+(b.jumlah?"":" (belum tersedia)");o.disabled=!b.jumlah;$("bid").append(o)});
+  $("info").textContent="Durasi tes: "+dur+" menit."}catch(e){$("err").textContent="Gagal memuat data. Muat ulang halaman."}})();
+$("mulai").onclick=async()=>{
+  nama=$("nama").value.trim();bid=$("bid").value;$("err").textContent="";
+  if(!nama)return $("err").textContent="Mohon isi nama lengkap.";
+  if(!bid)return $("err").textContent="Mohon pilih bidang tes.";
+  $("mulai").disabled=true;
+  try{const d=await jget("/api/quiz?b="+encodeURIComponent(bid));soal=d.soal;ans=Array(soal.length).fill(null);left=d.durasi*60;
+    $("s1").hidden=true;$("s2").hidden=false;draw();tick();tm=setInterval(tick,1000)}
+  catch(e){$("err").textContent=e.message;$("mulai").disabled=false}};
+function tick(){const m=Math.floor(left/60),s=left%60;$("tmr").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  $("tmr").classList.toggle("low",left<=60);if(left--<=0)finish(true)}
+function draw(){const q=soal[i];$("prog").textContent="Soal "+(i+1)+" dari "+soal.length;
+  $("bar").style.width=ans.filter(a=>a!==null).length/soal.length*100+"%";$("q").textContent=q.t;$("opts").replaceChildren();
+  q.p.forEach((o,k)=>{const b=document.createElement("button");b.className="opt"+(ans[i]===k?" sel":"");
+    const l=document.createElement("b");l.textContent=H[k]+".";const t=document.createElement("span");t.textContent=o;b.append(l,t);
+    b.onclick=()=>{ans[i]=k;draw()};$("opts").append(b)});
+  $("prev").disabled=i===0;const last=i===soal.length-1;$("next").textContent=last?"Kumpulkan ✓":"Berikutnya →";
+  $("next").onclick=last?()=>{const n=ans.filter(a=>a===null).length;
+    if(confirm(n?"Masih ada "+n+" soal belum dijawab. Kumpulkan sekarang?":"Kumpulkan jawaban sekarang?"))finish(false)}:()=>{i++;draw()};
+  $("prev").onclick=()=>{i--;draw()};$("dots").replaceChildren();
+  soal.forEach((_,k)=>{const d=document.createElement("button");d.className="dot"+(ans[k]!==null?" done":"")+(k===i?" cur":"");
+    d.textContent=k+1;d.onclick=()=>{i=k;draw()};$("dots").append(d)})}
+function finish(auto){if(sent)return;sent=true;clearInterval(tm);$("s2").hidden=true;$("s3").hidden=false;kirim(auto)}
+async function kirim(auto){$("retry").hidden=true;$("who").textContent="Peserta: "+nama;$("sc").textContent="…";$("sum").textContent="Mengirim jawaban, mohon tunggu.";
+  try{const r=await fetch("/api/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nama,b:bid,a:ans})}),d=await r.json();
+    if(!r.ok)throw new Error(d.error);$("sc").textContent=d.nilai;
+    $("sum").textContent=(auto?"Waktu habis. ":"")+"Benar "+d.benar+" dari "+d.total+" soal. Jawaban Anda telah diterima HRD. Terima kasih.";}
+  catch(e){$("sc").textContent="!";$("sum").textContent="Jawaban belum terkirim ("+e.message+"). Jangan tutup halaman ini, lalu klik Kirim Ulang.";$("retry").hidden=false;$("retry").onclick=()=>kirim(auto)}}
+</script></body></html>
