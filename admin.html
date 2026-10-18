@@ -40,11 +40,12 @@ th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}th{co
   </div>
 
   <div id="p2" hidden><div class="card"><div class="row"><select id="fb" class="grow"><option value="">Semua bidang</option></select>
-    <button id="muat">Muat ulang</button><button class="p" id="unduh">Unduh CSV</button></div>
+    <button id="muat">Muat ulang</button><button class="p" id="unduh">Unduh Excel</button></div>
     <div class="tw"><table><thead><tr><th>#</th><th>Nama</th><th>Bidang</th><th>Nilai</th><th>Benar</th><th>Pelanggaran</th><th>Waktu</th></tr></thead><tbody id="tb"></tbody></table></div>
     <p class="muted" id="hc"></p></div></div>
 </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const $=id=>document.getElementById(id),H=["A","B","C","D"];
 const BID={metalurgi:"T. Metalurgi",mesin:"T. Mesin",industri:"T. Industri",k3:"K3",lingkungan:"T. Lingkungan"};
@@ -95,7 +96,14 @@ const rows=()=>R.filter(x=>!$("fb").value||x.bidang===$("fb").value);
 function tabel(){const L=rows();$("tb").replaceChildren(...L.map((x,i)=>h("tr",{},h("td",{textContent:i+1}),h("td",{textContent:x.nama}),h("td",{textContent:x.bidang}),
   h("td",{textContent:x.nilai}),h("td",{textContent:x.benar+"/"+x.total}),h("td",{textContent:x.pelanggaran||0}),h("td",{textContent:new Date(x.waktu).toLocaleString("id-ID")}))));
   $("hc").textContent=L.length+" hasil"+(L.length?" · rata-rata nilai "+Math.round(L.reduce((a,x)=>a+x.nilai,0)/L.length):"")}
-const cell=v=>{v=String(v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
-$("unduh").onclick=()=>unduhFile("hasil-tes-"+new Date().toISOString().slice(0,10)+".csv",
-  ["No,Nama,Bidang,Nilai,Benar,Total,Pelanggaran,Waktu"].concat(rows().map((x,i)=>[i+1,x.nama,x.bidang,x.nilai,x.benar,x.total,x.pelanggaran||0,x.waktu].map(cell).join(","))).join("\n"));
+const fmtWaktu=w=>new Date(w).toLocaleString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).replace(",","");
+$("unduh").onclick=()=>{
+  if(typeof XLSX==="undefined")return msg("Pustaka Excel belum termuat. Muat ulang halaman lalu coba lagi.",1);
+  const L=rows();if(!L.length)return msg("Belum ada hasil untuk diunduh.",1);
+  const aoa=[["No","Nama","Bidang","Nilai","Benar","Total Soal","Pelanggaran","Waktu Pengerjaan"]]
+    .concat(L.map((x,i)=>[i+1,x.nama,x.bidang,x.nilai,x.benar,x.total,x.pelanggaran||0,fmtWaktu(x.waktu)]));
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"]=[{wch:5},{wch:28},{wch:16},{wch:8},{wch:8},{wch:11},{wch:12},{wch:18}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Hasil Tes");
+  XLSX.writeFile(wb,"hasil-tes-"+new Date().toISOString().slice(0,10)+".xlsx")};
 </script></body></html>
