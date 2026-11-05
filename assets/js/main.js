@@ -715,7 +715,7 @@ const rows = raw.map(r => {
       stockBox.innerHTML = rows.length ? rows.map(r => {
         const st = r.sisa <= 0 ? ['habis', 'Habis'] : r.sisa <= 2 ? ['tipis', 'Menipis'] : ['aman', 'Aman'];
         return '<div class="apd-row"><div><strong>' + esc2(r.name) + '</strong>' +
-          '<span>Stok ' + r.stock + ' · Diambil ' + r.ambil + '</span></div>' +
+          '<span>Pengadaan ' + r.stock + ' · Diambil ' + r.ambil + '</span></div>' +
           '<div class="apd-right"><b>' + r.sisa + '</b><i class="apd-badge ' + st[0] + '">' + st[1] + '</i></div></div>';
       }).join('') : '<p class="apd-empty">Tidak ada APD yang cocok.</p>';
     }
@@ -737,11 +737,14 @@ const rows = raw.map(r => {
         const rs = await fetch(APD_STOCK_CSV, { cache: 'no-store' });
         if (!rs.ok) throw new Error('HTTP ' + rs.status);
         const ts = readTable(await rs.text());
-        const iN = col(ts.head, 'jenisalat'), iS = ts.head.indexOf('stock'),
-              iA = col(ts.head, 'ambil'), iR = col(ts.head, 'sisa');
-        if (iN < 0 || iR < 0) throw new Error('Judul kolom Stock APD tidak cocok');
+        const iN = col(ts.head, 'jenisalat');
+        const iP = ts.head.indexOf('pengadaan');
+        const iA = col(ts.head, 'ambil');
+        // kolom sisa: cari "sisa", kalau tidak ada pakai "stok" / "stock"
+        const iR = ['sisa', 'sisastok', 'stok', 'stock'].map(k => ts.head.indexOf(k)).find(i => i >= 0);
+        if (iN < 0 || iR === undefined) throw new Error('Judul kolom Stock APD tidak cocok: ' + ts.head.join(' | '));
         stock = ts.body.map(r => ({
-          name: (r[iN] || '').trim(), stock: num(r[iS]), ambil: num(r[iA]), sisa: num(r[iR])
+          name: (r[iN] || '').trim(), stock: num(r[iP]), ambil: num(r[iA]), sisa: num(r[iR])
         })).filter(r => r.name);
         setText('apd-m-jenis', stock.length);
         setText('apd-m-sisa', stock.reduce((s, r) => s + Math.max(0, r.sisa), 0));
