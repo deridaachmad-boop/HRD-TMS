@@ -52,11 +52,12 @@
     </div>
 
     <div id="dc-app" hidden>
-      <div class="dc-top">
-        <div class="dc-tabs" id="dc-tabs"></div>
+      <div class="dc-bar">
+        <nav class="dc-crumbs" id="dc-crumbs" aria-label="Lokasi folder"></nav>
         <div class="dc-tools">
-          <label class="dc-search"><input type="search" id="dc-q" placeholder="Cari dokumen..." aria-label="Cari dokumen"></label>
-          <button type="button" class="btn btn-primary" id="dc-add" hidden>+ Tambah dokumen</button>
+          <label class="dc-search"><input type="search" id="dc-q" placeholder="Cari di semua folder..." aria-label="Cari dokumen"></label>
+          <button type="button" class="btn btn-outline" id="dc-addf">+ Folder</button>
+          <button type="button" class="btn btn-primary" id="dc-addd">+ Dokumen</button>
           <button type="button" class="btn btn-outline" id="dc-out">Keluar</button>
         </div>
       </div>
@@ -67,26 +68,55 @@
   </div>
 </section>
 
-<!-- FORMULIR TAMBAH / EDIT (hanya admin) -->
-<div class="dc-modal" id="dc-modal" hidden>
-  <div class="dc-box" role="dialog" aria-modal="true" aria-labelledby="dc-mt">
-    <h3 id="dc-mt">Tambah dokumen</h3>
-    <form id="dc-edit" autocomplete="off">
-      <div class="field"><label for="m-cat">KATEGORI</label><select id="m-cat"></select></div>
-      <div class="field" id="m-newwrap" hidden><label for="m-new">NAMA KATEGORI BARU</label><input type="text" id="m-new" maxlength="80" placeholder="Contoh: Dokumen Mutu Produk"></div>
-      <div class="field"><label for="m-code">NOMOR DOKUMEN</label><input type="text" id="m-code" maxlength="40" placeholder="Contoh: ISO-003"></div>
-      <div class="field"><label for="m-name">NAMA DOKUMEN</label><input type="text" id="m-name" maxlength="200" required></div>
-      <div class="dc-two">
-        <div class="field"><label for="m-rev">REVISI</label><input type="text" id="m-rev" maxlength="30" placeholder="Rev 01"></div>
-        <div class="field"><label for="m-date">TANGGAL</label><input type="text" id="m-date" maxlength="40" placeholder="10 Jan 2026"></div>
-      </div>
-      <div class="field"><label for="m-url">LINK DOKUMEN</label><input type="url" id="m-url" maxlength="1000" required placeholder="https://drive.google.com/..."></div>
-      <p class="dc-err" id="m-err" role="alert"></p>
+<!-- FORM FOLDER -->
+<div class="dc-modal" id="fm" hidden>
+  <div class="dc-box dc-sm" role="dialog" aria-modal="true" aria-labelledby="fm-t">
+    <h3 id="fm-t">Folder baru</h3>
+    <form id="fm-form" autocomplete="off">
+      <div class="field"><label for="fm-name">NAMA FOLDER</label><input type="text" id="fm-name" maxlength="200" required></div>
+      <p class="dc-err" id="fm-err" role="alert"></p>
       <div class="dc-mbtn">
-        <button type="button" class="btn btn-outline" id="m-cancel">Batal</button>
-        <button type="submit" class="btn btn-primary" id="m-save">Simpan</button>
+        <button type="button" class="btn btn-outline" data-close="fm">Batal</button>
+        <button type="submit" class="btn btn-primary" id="fm-save">Simpan</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- FORM DOKUMEN -->
+<div class="dc-modal" id="dm" hidden>
+  <div class="dc-box" role="dialog" aria-modal="true" aria-labelledby="dm-t">
+    <h3 id="dm-t">Tambah dokumen</h3>
+    <form id="dm-form" autocomplete="off">
+      <div class="field"><label for="dm-code">NOMOR DOKUMEN</label><input type="text" id="dm-code" maxlength="40" placeholder="Contoh: ISO-003"></div>
+      <div class="field"><label for="dm-name">NAMA DOKUMEN</label><input type="text" id="dm-name" maxlength="200" required></div>
+      <div class="dc-two">
+        <div class="field"><label for="dm-rev">REVISI</label><input type="text" id="dm-rev" maxlength="30" placeholder="Rev 01"></div>
+        <div class="field"><label for="dm-date">TANGGAL</label><input type="text" id="dm-date" maxlength="40" placeholder="10 Jan 2026"></div>
+      </div>
+      <div class="field"><label for="dm-url">LINK DOKUMEN</label><input type="url" id="dm-url" maxlength="1000" required placeholder="https://drive.google.com/..."></div>
+      <p class="dc-err" id="dm-err" role="alert"></p>
+      <div class="dc-mbtn">
+        <button type="button" class="btn btn-outline" data-close="dm">Batal</button>
+        <button type="submit" class="btn btn-primary" id="dm-save">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- PREVIEW (pop-up, latar gelap) -->
+<div class="dc-pv" id="pv" hidden>
+  <div class="dc-pvbox" role="dialog" aria-modal="true" aria-label="Preview dokumen">
+    <div class="dc-pvbar">
+      <strong id="pv-title"></strong>
+      <span class="dc-pvhint">Tidak tampil? Pakai “Buka di tab baru”.</span>
+      <a class="btn btn-outline" id="pv-open" href="#" target="_blank" rel="noopener">Buka di tab baru ↗</a>
+      <button type="button" class="btn btn-primary" id="pv-close">Tutup ✕</button>
+    </div>
+    <div class="dc-pvbody">
+      <p class="dc-pvload" id="pv-load">Memuat dokumen…</p>
+      <iframe id="pv-frame" title="Preview dokumen" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms" referrerpolicy="no-referrer"></iframe>
+    </div>
   </div>
 </div>
 
@@ -102,172 +132,305 @@
 <script src="assets/js/main.js"></script>
 <script>
 (function () {
-  const KEY = 'dcToken';
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let memToken = '';                 // token hanya hidup di memori halaman ini
-  const token = () => memToken;
-  try { sessionStorage.removeItem(KEY); } catch (e) {}   // bersihkan sisa token versi lama
-  const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'baru';
-  let docs = [], cat = 'all', admin = false, editing = null;
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const nid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-  function show(list, isAdmin) {
-    docs = list; admin = !!isAdmin;
+  let memToken = '';            // token hanya hidup di memori halaman ini
+  let docs = [], path = [];     // pohon dokumen, dan jalur folder yang sedang dibuka
+  let editFile = null, editFolder = null;
+  try { sessionStorage.removeItem('dcToken'); } catch (e) {}
+
+  const IC_FOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+  const IC_FILE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>';
+
+  /* ---------- helper pohon ---------- */
+  const countAll = arr => arr.reduce((s, n) => s + (n.type === 'folder' ? countAll(n.children) : 1), 0);
+  function locate(arr, id) {
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i].id === id) return { list: arr, i };
+      if (arr[i].type === 'folder') { const r = locate(arr[i].children, id); if (r) return r; }
+    }
+    return null;
+  }
+  function pathTo(arr, id, trail) {
+    trail = trail || [];
+    for (const n of arr) {
+      if (n.type !== 'folder') continue;
+      if (n.id === id) return trail.concat(n.id);
+      const r = pathTo(n.children, id, trail.concat(n.id));
+      if (r) return r;
+    }
+    return null;
+  }
+  function listAt(tree, p) {
+    let l = tree;
+    for (const id of p) { const f = l.find(n => n.id === id && n.type === 'folder'); if (!f) return null; l = f.children; }
+    return l;
+  }
+  function fixPath() {
+    let l = docs; const ok = [];
+    for (const id of path) {
+      const f = l.find(n => n.id === id && n.type === 'folder');
+      if (!f) break;
+      ok.push(id); l = f.children;
+    }
+    path = ok;
+    return l;
+  }
+
+  /* ---------- link untuk preview ---------- */
+  function previewUrl(u) {
+    try {
+      const x = new URL(u), h = x.hostname;
+      if (h === 'drive.google.com') {
+        let m = x.pathname.match(/\/file\/d\/([^/]+)/);
+        if (m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+        const id = x.searchParams.get('id');
+        if (id) return 'https://drive.google.com/file/d/' + id + '/preview';
+        m = x.pathname.match(/\/drive\/folders\/([^/?]+)/);
+        if (m) return 'https://drive.google.com/embeddedfolderview?id=' + m[1] + '#list';
+      }
+      if (h === 'docs.google.com' && !x.pathname.includes('/d/e/')) {
+        const m = x.pathname.match(/^\/(document|spreadsheets|presentation)\/d\/([^/]+)/);
+        if (m) return 'https://docs.google.com/' + m[1] + '/d/' + m[2] + '/preview';
+      }
+    } catch (e) {}
+    return u;
+  }
+
+  /* ---------- tampilan ---------- */
+  function show(list) {
+    docs = list; path = [];
     $('dc-login').hidden = true;
     $('dc-app').hidden = false;
-    $('dc-add').hidden = !admin;
-    renderTabs();
-    renderList();
+    $('dc-q').value = '';
+    render();
   }
   function lock() {
     memToken = '';
-    docs = []; admin = false; cat = 'all';
-    $('dc-modal').hidden = true;
+    docs = []; path = [];
+    ['fm', 'dm', 'pv'].forEach(id => { $(id).hidden = true; });
+    $('pv-frame').src = 'about:blank';
+    syncLock();
     $('dc-app').hidden = true;
     $('dc-login').hidden = false;
     $('dc-pw').value = '';
   }
 
-  function renderTabs() {
-    const total = docs.reduce((n, c) => n + c.items.length, 0);
-    $('dc-tabs').innerHTML =
-      '<button type="button" class="dc-tab" data-k="all">Semua (' + total + ')</button>' +
-      docs.map(c => '<button type="button" class="dc-tab" data-k="' + esc(c.key) + '">' + esc(c.title) + ' (' + c.items.length + ')</button>').join('');
-  }
-
-  function renderList() {
+  function render() {
+    const cur = fixPath();
     const terms = $('dc-q').value.toLowerCase().split(/\s+/).filter(Boolean);
-    const rows = [];
-    docs.forEach((c, ci) => {
-      if (cat !== 'all' && c.key !== cat) return;
-      c.items.forEach((d, di) => {
-        const hay = (d.code + ' ' + d.name + ' ' + c.title).toLowerCase();
-        if (terms.every(t => hay.includes(t))) rows.push({ c, d, ci, di });
-      });
+
+    // jejak folder
+    let crumbs = '<button type="button" class="dc-crumb" data-i="-1">Dokumen</button>';
+    let l = docs;
+    path.forEach((id, i) => {
+      const f = l.find(n => n.id === id);
+      crumbs += '<span class="dc-sep">›</span><button type="button" class="dc-crumb" data-i="' + i + '">' + esc(f.name) + '</button>';
+      l = f.children;
     });
-    document.querySelectorAll('.dc-tab').forEach(b => b.classList.toggle('active', b.dataset.k === cat));
-    $('dc-info').textContent = rows.length + ' dokumen ditampilkan';
-    $('dc-list').innerHTML = rows.length ? rows.map(({ c, d, ci, di }) => {
-      const href = /^https?:\/\//i.test(d.url) ? d.url : '#';
+    $('dc-crumbs').innerHTML = crumbs;
+
+    let rows = [];
+    if (terms.length) {
+      (function walk(arr, trail) {
+        arr.forEach(n => {
+          const hay = (n.name + ' ' + (n.code || '')).toLowerCase();
+          if (terms.every(t => hay.includes(t))) rows.push({ n, trail });
+          if (n.type === 'folder') walk(n.children, trail.concat(n.name));
+        });
+      })(docs, []);
+      $('dc-info').textContent = rows.length + ' hasil pencarian di semua folder';
+    } else {
+      rows = cur.filter(n => n.type === 'folder').concat(cur.filter(n => n.type !== 'folder')).map(n => ({ n, trail: null }));
+      const nf = cur.filter(n => n.type === 'folder').length;
+      $('dc-info').textContent = nf + ' folder · ' + (cur.length - nf) + ' dokumen di folder ini';
+    }
+
+    $('dc-list').innerHTML = rows.length ? rows.map(({ n, trail }) => {
+      const where = trail ? '<span class="dc-where">Lokasi: ' + (trail.length ? esc(trail.join(' › ')) : 'Dokumen') + '</span>' : '';
+      if (n.type === 'folder') {
+        const nf = n.children.filter(x => x.type === 'folder').length;
+        const meta = (nf ? nf + ' folder · ' : '') + countAll(n.children) + ' dokumen';
+        return '<div class="dc-row">' +
+          '<button type="button" class="dc-item" data-act="open" data-id="' + esc(n.id) + '">' +
+            '<span class="dc-ico fold">' + IC_FOLDER + '</span>' +
+            '<span class="dc-main"><strong>' + esc(n.name) + '</strong><span>' + meta + '</span>' + where + '</span>' +
+            '<span class="dc-go">›</span></button>' +
+          '<div class="dc-act">' +
+            '<button type="button" class="dc-btn" data-act="rename" data-id="' + esc(n.id) + '">Ubah nama</button>' +
+            '<button type="button" class="dc-btn del" data-act="del" data-id="' + esc(n.id) + '">Hapus</button>' +
+          '</div></div>';
+      }
+      const href = /^https?:\/\//i.test(n.url) ? n.url : '#';
+      const meta = [n.rev, n.date].filter(Boolean).join(' · ');
       return '<div class="dc-row">' +
-        '<a class="dc-link" href="' + esc(href) + '" target="_blank" rel="noopener">' +
-          '<span class="dc-code">' + esc(d.code || '—') + '</span>' +
-          '<span class="dc-main"><strong>' + esc(d.name) + '</strong>' +
-            '<span>' + esc(c.title) + (d.rev ? ' · ' + esc(d.rev) : '') + (d.date ? ' · ' + esc(d.date) : '') + '</span></span>' +
-          '<span class="dc-open">BUKA ↗</span></a>' +
-        (admin ? '<div class="dc-act">' +
-          '<button type="button" class="dc-btn" data-act="edit" data-c="' + ci + '" data-d="' + di + '">Edit</button>' +
-          '<button type="button" class="dc-btn del" data-act="del" data-c="' + ci + '" data-d="' + di + '">Hapus</button>' +
-        '</div>' : '') +
-      '</div>';
-    }).join('') : '<p class="dc-empty">Tidak ada dokumen yang cocok.</p>';
+        '<button type="button" class="dc-item" data-act="preview" data-id="' + esc(n.id) + '">' +
+          '<span class="dc-ico">' + IC_FILE + '</span>' +
+          '<span class="dc-main"><strong>' + esc(n.name) + '</strong>' +
+            '<span>' + (n.code ? '<b class="dc-code">' + esc(n.code) + '</b> ' : '') + esc(meta) + '</span>' + where + '</span></button>' +
+        '<div class="dc-act">' +
+          '<button type="button" class="dc-btn pri" data-act="preview" data-id="' + esc(n.id) + '">Preview</button>' +
+          '<a class="dc-btn" href="' + esc(href) + '" target="_blank" rel="noopener">Buka ↗</a>' +
+          '<button type="button" class="dc-btn" data-act="edit" data-id="' + esc(n.id) + '">Edit</button>' +
+          '<button type="button" class="dc-btn del" data-act="del" data-id="' + esc(n.id) + '">Hapus</button>' +
+        '</div></div>';
+    }).join('') : '<p class="dc-empty">' + (terms.length ? 'Tidak ada yang cocok.' : 'Folder ini masih kosong. Tambahkan folder atau dokumen.') + '</p>';
   }
 
-  /* ---- simpan ke server ---- */
+  /* ---------- simpan ke server ---------- */
   async function persist(next) {
     const r = await fetch('/api/docs', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token() },
-      body: JSON.stringify({ docs: next.filter(c => c.items.length) })
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + memToken },
+      body: JSON.stringify({ docs: next })
     });
     const j = await r.json().catch(() => ({}));
     if (r.status === 401) { lock(); throw new Error('Sesi berakhir, silakan masuk kembali.'); }
     if (!r.ok) throw new Error(j.error || 'Gagal menyimpan.');
     docs = j.docs;
-    if (cat !== 'all' && !docs.some(c => c.key === cat)) cat = 'all';
-    renderTabs();
-    renderList();
+    render();
   }
-
-  /* ---- formulir tambah / edit ---- */
-  function openModal(ci, di) {
-    editing = (ci == null) ? null : { ci, di };
-    const d = editing ? docs[ci].items[di] : {};
-    $('dc-mt').textContent = editing ? 'Edit dokumen' : 'Tambah dokumen';
-    const defCat = editing ? ci : Math.max(0, docs.findIndex(c => c.key === cat));
-    $('m-cat').innerHTML = docs.map((c, i) => '<option value="' + i + '">' + esc(c.title) + '</option>').join('') +
-      '<option value="__new">+ Kategori baru…</option>';
-    $('m-cat').value = docs.length ? String(defCat) : '__new';
-    $('m-newwrap').hidden = $('m-cat').value !== '__new';
-    $('m-new').value = '';
-    $('m-code').value = d.code || '';
-    $('m-name').value = d.name || '';
-    $('m-rev').value = d.rev || '';
-    $('m-date').value = d.date || '';
-    $('m-url').value = d.url || '';
-    $('m-err').textContent = '';
-    $('dc-modal').hidden = false;
-    $('m-name').focus();
-  }
-  const closeModal = () => { $('dc-modal').hidden = true; };
-
-  $('m-cat').addEventListener('change', () => { $('m-newwrap').hidden = $('m-cat').value !== '__new'; });
-  $('m-cancel').addEventListener('click', closeModal);
-  $('dc-modal').addEventListener('click', e => { if (e.target.id === 'dc-modal') closeModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('dc-modal').hidden) closeModal(); });
-  $('dc-add').addEventListener('click', () => openModal());
-
-  $('dc-edit').addEventListener('submit', async e => {
-    e.preventDefault();
-    const err = $('m-err'), btn = $('m-save');
-    err.textContent = '';
-    const url = $('m-url').value.trim();
-    const name = $('m-name').value.trim();
-    if (!name) { err.textContent = 'Nama dokumen wajib diisi.'; return; }
-    if (!/^https?:\/\//i.test(url)) { err.textContent = 'Link harus diawali http:// atau https://'; return; }
-
-    const next = JSON.parse(JSON.stringify(docs));
-    let ci;
-    if ($('m-cat').value === '__new') {
-      const t = $('m-new').value.trim();
-      if (!t) { err.textContent = 'Nama kategori baru wajib diisi.'; return; }
-      next.push({ key: slug(t), title: t, items: [] });
-      ci = next.length - 1;
-    } else {
-      ci = Number($('m-cat').value);
-    }
-    const item = { code: $('m-code').value.trim(), name, rev: $('m-rev').value.trim(), date: $('m-date').value.trim(), url };
-    if (editing) {
-      if (editing.ci === ci) next[ci].items[editing.di] = item;
-      else { next[editing.ci].items.splice(editing.di, 1); next[ci].items.push(item); }
-    } else {
-      next[ci].items.push(item);
-    }
-
+  async function save(next, errEl, btn, modalId) {
+    errEl.textContent = '';
+    const old = btn.textContent;
     btn.disabled = true; btn.textContent = 'Menyimpan...';
-    try {
-      await persist(next);
-      closeModal();
-    } catch (ex) {
-      err.textContent = ex.message;
-    } finally {
-      btn.disabled = false; btn.textContent = 'Simpan';
+    try { await persist(next); closeModal(modalId); }
+    catch (ex) { errEl.textContent = ex.message; }
+    finally { btn.disabled = false; btn.textContent = old; }
+  }
+
+  /* ---------- modal ---------- */
+  function syncLock() {
+    const open = ['fm', 'dm', 'pv'].some(id => !$(id).hidden);
+    document.documentElement.classList.toggle('dc-lock', open);
+  }
+  function openModal(id) { $(id).hidden = false; syncLock(); }
+  function closeModal(id) { $(id).hidden = true; syncLock(); }
+
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
+  ['fm', 'dm'].forEach(id => $(id).addEventListener('click', e => { if (e.target.id === id) closeModal(id); }));
+
+  function openFolderForm(node) {
+    editFolder = node ? node.id : null;
+    $('fm-t').textContent = node ? 'Ubah nama folder' : 'Folder baru';
+    $('fm-name').value = node ? node.name : '';
+    $('fm-err').textContent = '';
+    openModal('fm');
+    $('fm-name').focus();
+  }
+  function openFileForm(node) {
+    editFile = node ? node.id : null;
+    $('dm-t').textContent = node ? 'Edit dokumen' : 'Tambah dokumen';
+    $('dm-code').value = node ? node.code : '';
+    $('dm-name').value = node ? node.name : '';
+    $('dm-rev').value = node ? node.rev : '';
+    $('dm-date').value = node ? node.date : '';
+    $('dm-url').value = node ? node.url : '';
+    $('dm-err').textContent = '';
+    openModal('dm');
+    $('dm-name').focus();
+  }
+
+  $('dc-addf').addEventListener('click', () => openFolderForm(null));
+  $('dc-addd').addEventListener('click', () => openFileForm(null));
+
+  $('fm-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('fm-name').value.trim();
+    if (!name) { $('fm-err').textContent = 'Nama folder wajib diisi.'; return; }
+    const next = clone(docs);
+    if (editFolder) {
+      const r = locate(next, editFolder);
+      if (r) r.list[r.i].name = name;
+    } else {
+      const l = listAt(next, path);
+      if (l) l.push({ id: nid(), type: 'folder', name, children: [] });
+    }
+    save(next, $('fm-err'), $('fm-save'), 'fm');
+  });
+
+  $('dm-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('dm-name').value.trim();
+    const url = $('dm-url').value.trim();
+    if (!name) { $('dm-err').textContent = 'Nama dokumen wajib diisi.'; return; }
+    if (!/^https?:\/\//i.test(url)) { $('dm-err').textContent = 'Link harus diawali http:// atau https://'; return; }
+    const fields = { code: $('dm-code').value.trim(), name, rev: $('dm-rev').value.trim(), date: $('dm-date').value.trim(), url };
+    const next = clone(docs);
+    if (editFile) {
+      const r = locate(next, editFile);
+      if (r) Object.assign(r.list[r.i], fields);
+    } else {
+      const l = listAt(next, path);
+      if (l) l.push(Object.assign({ id: nid(), type: 'file' }, fields));
+    }
+    save(next, $('dm-err'), $('dm-save'), 'dm');
+  });
+
+  /* ---------- preview ---------- */
+  function openPreview(node) {
+    $('pv-title').textContent = (node.code ? node.code + ' · ' : '') + node.name;
+    $('pv-open').href = node.url;
+    $('pv-load').hidden = false;
+    $('pv-frame').src = previewUrl(node.url);
+    $('pv').hidden = false;
+    syncLock();
+    $('pv-close').focus();
+  }
+  function closePreview() {
+    $('pv-frame').src = 'about:blank';
+    $('pv').hidden = true;
+    syncLock();
+  }
+  $('pv-frame').addEventListener('load', () => { $('pv-load').hidden = true; });
+  $('pv-close').addEventListener('click', closePreview);
+  $('pv').addEventListener('click', e => { if (e.target.id === 'pv') closePreview(); });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (!$('pv').hidden) closePreview();
+    else if (!$('dm').hidden) closeModal('dm');
+    else if (!$('fm').hidden) closeModal('fm');
+  });
+
+  /* ---------- klik pada daftar ---------- */
+  $('dc-list').addEventListener('click', async e => {
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const act = b.dataset.act, id = b.dataset.id;
+    const r = locate(docs, id);
+    if (!r) return;
+    const node = r.list[r.i];
+
+    if (act === 'open') { path = pathTo(docs, id) || path; $('dc-q').value = ''; render(); return; }
+    if (act === 'preview') { openPreview(node); return; }
+    if (act === 'edit') { openFileForm(node); return; }
+    if (act === 'rename') { openFolderForm(node); return; }
+    if (act === 'del') {
+      const msg = node.type === 'folder'
+        ? 'Hapus folder "' + node.name + '" beserta seluruh isinya (' + countAll(node.children) + ' dokumen)?'
+        : 'Hapus dokumen "' + node.name + '"?';
+      if (!confirm(msg)) return;
+      const next = clone(docs);
+      const rr = locate(next, id);
+      if (rr) rr.list.splice(rr.i, 1);
+      try { await persist(next); } catch (ex) { alert(ex.message); }
     }
   });
 
-  /* ---- klik pada daftar ---- */
-  $('dc-list').addEventListener('click', async e => {
-    const b = e.target.closest('.dc-btn');
+  $('dc-crumbs').addEventListener('click', e => {
+    const b = e.target.closest('.dc-crumb');
     if (!b) return;
-    const ci = Number(b.dataset.c), di = Number(b.dataset.d);
-    if (b.dataset.act === 'edit') { openModal(ci, di); return; }
-    const d = docs[ci].items[di];
-    if (!confirm('Hapus dokumen "' + d.name + '"?')) return;
-    const next = JSON.parse(JSON.stringify(docs));
-    next[ci].items.splice(di, 1);
-    try { await persist(next); } catch (ex) { alert(ex.message); }
+    path = path.slice(0, Number(b.dataset.i) + 1);
+    $('dc-q').value = '';
+    render();
   });
-
-  $('dc-tabs').addEventListener('click', e => {
-    const b = e.target.closest('.dc-tab');
-    if (!b) return;
-    cat = b.dataset.k;
-    renderList();
-  });
-  $('dc-q').addEventListener('input', renderList);
+  $('dc-q').addEventListener('input', render);
   $('dc-out').addEventListener('click', lock);
 
-  /* ---- login ---- */
+  /* ---------- login ---------- */
   $('dc-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn = e.submitter, err = $('dc-err');
@@ -282,7 +445,7 @@
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'Gagal masuk.');
       memToken = j.token;
-      show(j.docs, j.admin);
+      show(j.docs);
     } catch (ex) {
       err.textContent = ex.message;
     } finally {
@@ -290,9 +453,8 @@
     }
   });
 
-  // tombol Back/Forward: kunci ulang jika halaman dipulihkan dari cache browser
+  // tombol Back/Forward atau meninggalkan halaman: kunci ulang
   window.addEventListener('pageshow', e => { if (e.persisted) lock(); });
-  // saat meninggalkan halaman, bersihkan semuanya
   window.addEventListener('pagehide', () => { memToken = ''; });
 })();
 </script>
