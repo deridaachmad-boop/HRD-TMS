@@ -5,7 +5,9 @@ const SECRET = process.env.DOC_SECRET || '';
 const TTL = 8 * 3600 * 1000;
 const R_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const R_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-const KEY = 'tms:docs:v1';
+const KEY = 'tms:docs:v2';       // format pohon folder
+const OLD_KEY = 'tms:docs:v1';   // format lama (kategori), dibaca sekali untuk migrasi
+const MAX_DEPTH = 8, MAX_NODES = 3000;
 
 const sign = p => crypto.createHmac('sha256', SECRET).update(p).digest('base64url');
 const same = (a, b) => {
@@ -14,7 +16,7 @@ const same = (a, b) => {
 };
 const list = v => (v || '').split(',').map(s => s.trim()).filter(Boolean);
 const users = () => list(process.env.DOC_USERS).map(s => { const i = s.indexOf(':'); return [s.slice(0, i), s.slice(i + 1)]; });
-const admins = () => list(process.env.DOC_ADMINS);
+const uid = () => crypto.randomBytes(5).toString('hex');
 
 const makeToken = id => {
   const p = Buffer.from(JSON.stringify({ id, exp: Date.now() + TTL })).toString('base64url');
@@ -40,35 +42,49 @@ async function redis(cmd) {
   if (!r.ok || j.error) throw new Error(j.error || 'Redis ' + r.status);
   return j.result;
 }
+
+// format lama (kategori berisi items) -> pohon folder
+function migrate(data) {
+  if (!Array.isArray(data)) return [];
+  return data.map(c => {
+    if (c && Array.isArray(c.items)) {
+      return {
+        id: uid(), type: 'folder', name: c.title || 'Folder',
+        children: c.items.map(d => ({ id: uid(), type: 'file', code: d.code || '', name: d.name || '', rev: d.rev || '', date: d.date || '', url: d.url || '' }))
+      };
+    }
+    return c;
+  });
+}
 async function loadDocs() {
-  if (!R_URL || !R_TOKEN) return SEED;
-  const v = await redis(['GET', KEY]);
-  return v ? JSON.parse(v) : SEED;
+  if (!R_URL || !R_TOKEN) return migrate(SEED);
+  let v = await redis(['GET', KEY]);
+  if (v) return JSON.parse(v);
+  v = await redis(['GET', OLD_KEY]);
+  return migrate(v ? JSON.parse(v) : SEED);
 }
 
 const S = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
-function clean(docs) {
-  if (!Array.isArray(docs) || docs.length > 30) throw new Error('Format data tidak valid.');
-  const keys = new Set();
-  return docs.map(c => {
-    const title = S(c && c.title, 80);
-    if (!title) throw new Error('Nama kategori kosong.');
-    let key = S(c.key, 40).toLowerCase().replace(/[^a-z0-9-]/g, '') || 'k' + crypto.randomBytes(3).toString('hex');
-    while (keys.has(key)) key += 'x';
-    keys.add(key);
-    const items = Array.isArray(c.items) ? c.items : [];
-    if (items.length > 500) throw new Error('Terlalu banyak dokumen dalam satu kategori.');
-    return {
-      key, title,
-      items: items.map(d => {
-        const name = S(d && d.name, 200);
-        const url = S(d && d.url, 1000);
-        if (!name) throw new Error('Nama dokumen wajib diisi.');
-        if (!/^https?:\/\//i.test(url)) throw new Error('Link wajib diawali http:// atau https://');
-        return { code: S(d.code, 40), name, rev: S(d.rev, 30), date: S(d.date, 40), url };
-      })
-    };
-  });
+function clean(nodes) {
+  let count = 0;
+  const seen = new Set();
+  const walk = (arr, depth) => {
+    if (!Array.isArray(arr)) throw new Error('Format data tidak valid.');
+    if (depth > MAX_DEPTH) throw new Error('Folder terlalu dalam (maksimal ' + MAX_DEPTH + ' tingkat).');
+    return arr.map(n => {
+      if (++count > MAX_NODES) throw new Error('Terlalu banyak item.');
+      const name = S(n && n.name, 200);
+      if (!name) throw new Error('Nama wajib diisi.');
+      let id = S(n.id, 40).replace(/[^a-zA-Z0-9]/g, '');
+      if (!id || seen.has(id)) id = uid();
+      seen.add(id);
+      if (n.type === 'folder') return { id, type: 'folder', name, children: walk(n.children || [], depth + 1) };
+      const url = S(n.url, 1000);
+      if (!/^https?:\/\//i.test(url)) throw new Error('Link wajib diawali http:// atau https://');
+      return { id, type: 'file', code: S(n.code, 40), name, rev: S(n.rev, 30), date: S(n.date, 40), url };
+    });
+  };
+  return walk(nodes, 1);
 }
 
 module.exports = async (req, res) => {
@@ -88,13 +104,10 @@ module.exports = async (req, res) => {
 
     const me = readToken((req.headers.authorization || '').replace(/^Bearer\s+/, ''));
     if (!me) return res.status(401).json({ error: 'Sesi berakhir.' });
-    const isAdmin = true;   // semua pengguna yang sudah login boleh mengedit
 
-    if (req.method === 'GET') {
-      return res.status(200).json({ admin: isAdmin, docs: await loadDocs() });
-    }
+    if (req.method === 'GET') return res.status(200).json({ admin: true, docs: await loadDocs() });
+
     if (req.method === 'PUT') {
-      if (!isAdmin) return res.status(403).json({ error: 'Anda tidak memiliki izin mengedit.' });
       if (!R_URL || !R_TOKEN) return res.status(500).json({ error: 'Penyimpanan belum tersambung.' });
       const docs = clean((req.body || {}).docs);
       await redis(['SET', KEY, JSON.stringify(docs)]);
@@ -103,7 +116,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Metode tidak diizinkan.' });
   } catch (e) {
     const msg = String(e.message || '');
-    const user = /wajib|kosong|valid|Terlalu/.test(msg);
+    const user = /wajib|kosong|valid|Terlalu|dalam/.test(msg);
     return res.status(user ? 400 : 500).json({ error: user ? msg : 'Terjadi gangguan di server.' });
   }
 };
