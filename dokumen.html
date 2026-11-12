@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Document Control — HRD PT Timur Megah Steel</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a href="index.html" class="brand">
+      <img class="brand-logo" src="assets/img/logo_tms_NO.png" alt="PT Timur Megah Steel" height="32" style="height:32px;width:auto;max-width:none;">
+      <span class="brand-text"><span>Human Resource Development</span></span>
+    </a>
+    <nav class="nav" id="nav">
+      <a href="index.html">Beranda</a>
+      <a href="5r-dashboard.html">5R Dashboard</a>
+      <a href="training-center.html">Training Center</a>
+      <a href="k3.html">K3</a>
+      <a href="hotline.html" class="nav-cta">Hotline</a>
+    </nav>
+    <button class="menu-toggle" aria-label="Buka menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </div>
+</header>
+
+<section class="pagehero">
+  <div class="wrap">
+    <div class="kicker"><span class="bolt"></span> DOCUMENT CONTROL</div>
+    <h1>Dokumen Terkendali</h1>
+    <p class="lede">Dokumen ISO, HRD, lingkungan, dan K3 PT Timur Megah Steel. Akses terbatas untuk pengguna yang berwenang.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+
+    <!-- FORM LOGIN -->
+    <div class="dc-login" id="dc-login">
+      <h3>Masuk</h3>
+      <p>Masukkan ID dan password untuk membuka dokumen.</p>
+      <form id="dc-form" autocomplete="on">
+        <div class="field"><label for="dc-id">ID</label><input type="text" id="dc-id" name="username" autocomplete="username" required></div>
+        <div class="field"><label for="dc-pw">PASSWORD</label><input type="password" id="dc-pw" name="password" autocomplete="current-password" required></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Masuk</button>
+        <p class="dc-err" id="dc-err" role="alert"></p>
+      </form>
+    </div>
+
+    <!-- ISI DOKUMEN (tersembunyi sampai login berhasil) -->
+    <div id="dc-app" hidden>
+      <div class="dc-top">
+        <div class="dc-tabs" id="dc-tabs"></div>
+        <div class="dc-tools">
+          <label class="dc-search"><input type="search" id="dc-q" placeholder="Cari dokumen..." aria-label="Cari dokumen"></label>
+          <button type="button" class="btn btn-outline" id="dc-out">Keluar</button>
+        </div>
+      </div>
+      <p class="dc-info" id="dc-info"></p>
+      <div class="dc-list" id="dc-list"></div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-bottom">
+      <span>© 2026 PT Timur Megah Steel — Human Resource Development.</span>
+      <span>Dokumen ini bersifat terkendali.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+<script>
+(function () {
+  const KEY = 'dcToken';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let docs = [], cat = 'all';
+
+  function show(list) {
+    docs = list;
+    $('dc-login').hidden = true;
+    $('dc-app').hidden = false;
+    renderTabs();
+    renderList();
+  }
+  function lock() {
+    sessionStorage.removeItem(KEY);
+    docs = [];
+    $('dc-app').hidden = true;
+    $('dc-login').hidden = false;
+    $('dc-pw').value = '';
+  }
+
+  function renderTabs() {
+    const total = docs.reduce((n, c) => n + c.items.length, 0);
+    $('dc-tabs').innerHTML =
+      '<button type="button" class="dc-tab" data-k="all">Semua (' + total + ')</button>' +
+      docs.map(c => '<button type="button" class="dc-tab" data-k="' + esc(c.key) + '">' + esc(c.title) + ' (' + c.items.length + ')</button>').join('');
+  }
+
+  function renderList() {
+    const terms = $('dc-q').value.toLowerCase().split(/\s+/).filter(Boolean);
+    const rows = [];
+    docs.forEach(c => {
+      if (cat !== 'all' && c.key !== cat) return;
+      c.items.forEach(d => {
+        const hay = (d.code + ' ' + d.name + ' ' + c.title).toLowerCase();
+        if (terms.every(t => hay.includes(t))) rows.push({ c, d });
+      });
+    });
+    document.querySelectorAll('.dc-tab').forEach(b => b.classList.toggle('active', b.dataset.k === cat));
+    $('dc-info').textContent = rows.length + ' dokumen ditampilkan';
+    $('dc-list').innerHTML = rows.length ? rows.map(({ c, d }) =>
+      '<a class="dc-row" href="' + esc(d.url) + '" target="_blank" rel="noopener">' +
+        '<span class="dc-code">' + esc(d.code) + '</span>' +
+        '<span class="dc-main"><strong>' + esc(d.name) + '</strong>' +
+          '<span>' + esc(c.title) + ' · ' + esc(d.rev) + ' · ' + esc(d.date) + '</span></span>' +
+        '<span class="dc-open">BUKA ↗</span></a>'
+    ).join('') : '<p class="dc-empty">Tidak ada dokumen yang cocok.</p>';
+  }
+
+  $('dc-tabs').addEventListener('click', e => {
+    const b = e.target.closest('.dc-tab');
+    if (!b) return;
+    cat = b.dataset.k;
+    renderList();
+  });
+  $('dc-q').addEventListener('input', renderList);
+  $('dc-out').addEventListener('click', lock);
+
+  $('dc-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.submitter, err = $('dc-err');
+    err.textContent = '';
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/docs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: $('dc-id').value.trim(), password: $('dc-pw').value })
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || 'Gagal masuk.');
+      sessionStorage.setItem(KEY, j.token);
+      show(j.docs);
+    } catch (ex) {
+      err.textContent = ex.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // buka kembali otomatis jika sesi masih berlaku (tab yang sama)
+  (async function restore() {
+    const t = sessionStorage.getItem(KEY);
+    if (!t) return;
+    try {
+      const r = await fetch('/api/docs', { headers: { Authorization: 'Bearer ' + t } });
+      if (r.ok) show((await r.json()).docs); else sessionStorage.removeItem(KEY);
+    } catch (e) {}
+  })();
+})();
+</script>
+</body>
+</html>
