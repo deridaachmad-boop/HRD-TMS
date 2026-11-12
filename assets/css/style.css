@@ -2138,3 +2138,45 @@ html.sr-js [data-reveal]:not(.in){opacity:0;}
   .dc-row{grid-template-columns:1fr auto;}
   .dc-code{grid-column:1 / -1;}
 }
+
+/* Document Control: baris dengan tombol admin + formulir */
+.dc-row{display:flex;align-items:stretch;gap:0;padding:0;}
+.dc-link{
+  flex:1;min-width:0;
+  display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:18px;
+  padding:16px 20px;color:var(--ink-900);
+}
+.dc-link:hover .dc-open{color:var(--forge-500);}
+.dc-act{flex:none;display:flex;align-items:center;gap:8px;padding:0 16px 0 0;}
+.dc-btn{
+  font-family:var(--f-mono);font-size:11.5px;cursor:pointer;
+  padding:7px 14px;border-radius:999px;background:#fff;
+  border:1px solid var(--steel-200);color:var(--ink-900);
+  transition:border-color .2s ease,color .2s ease,background .2s ease;
+}
+.dc-btn:hover{border-color:var(--forge-500);color:var(--forge-500);}
+.dc-btn.del{color:#b91c1c;}
+.dc-btn.del:hover{border-color:#b91c1c;background:#fee2e2;color:#b91c1c;}
+
+.dc-modal{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(13,27,61,.55);
+}
+.dc-modal[hidden]{display:none;}
+.dc-box{
+  width:100%;max-width:520px;max-height:92vh;overflow-y:auto;
+  padding:30px;background:#fff;border-radius:var(--radius-card);
+  box-shadow:0 30px 60px -20px rgba(13,27,61,.5);
+}
+.dc-box h3{font-size:22px;margin-bottom:18px;}
+.dc-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.dc-mbtn{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+
+@media (max-width:640px){
+  .dc-row{flex-wrap:wrap;}
+  .dc-link{grid-template-columns:1fr auto;}
+  .dc-link .dc-code{grid-column:1 / -1;}
+  .dc-act{width:100%;padding:0 20px 14px;}
+  .dc-two{grid-template-columns:1fr;gap:0;}
+}
