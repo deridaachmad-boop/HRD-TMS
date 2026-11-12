@@ -40,7 +40,6 @@
 <section>
   <div class="wrap">
 
-    <!-- FORM LOGIN -->
     <div class="dc-login" id="dc-login">
       <h3>Masuk</h3>
       <p>Masukkan ID dan password untuk membuka dokumen.</p>
@@ -52,12 +51,12 @@
       </form>
     </div>
 
-    <!-- ISI DOKUMEN (tersembunyi sampai login berhasil) -->
     <div id="dc-app" hidden>
       <div class="dc-top">
         <div class="dc-tabs" id="dc-tabs"></div>
         <div class="dc-tools">
           <label class="dc-search"><input type="search" id="dc-q" placeholder="Cari dokumen..." aria-label="Cari dokumen"></label>
+          <button type="button" class="btn btn-primary" id="dc-add" hidden>+ Tambah dokumen</button>
           <button type="button" class="btn btn-outline" id="dc-out">Keluar</button>
         </div>
       </div>
@@ -67,6 +66,29 @@
 
   </div>
 </section>
+
+<!-- FORMULIR TAMBAH / EDIT (hanya admin) -->
+<div class="dc-modal" id="dc-modal" hidden>
+  <div class="dc-box" role="dialog" aria-modal="true" aria-labelledby="dc-mt">
+    <h3 id="dc-mt">Tambah dokumen</h3>
+    <form id="dc-edit" autocomplete="off">
+      <div class="field"><label for="m-cat">KATEGORI</label><select id="m-cat"></select></div>
+      <div class="field" id="m-newwrap" hidden><label for="m-new">NAMA KATEGORI BARU</label><input type="text" id="m-new" maxlength="80" placeholder="Contoh: Dokumen Mutu Produk"></div>
+      <div class="field"><label for="m-code">NOMOR DOKUMEN</label><input type="text" id="m-code" maxlength="40" placeholder="Contoh: ISO-003"></div>
+      <div class="field"><label for="m-name">NAMA DOKUMEN</label><input type="text" id="m-name" maxlength="200" required></div>
+      <div class="dc-two">
+        <div class="field"><label for="m-rev">REVISI</label><input type="text" id="m-rev" maxlength="30" placeholder="Rev 01"></div>
+        <div class="field"><label for="m-date">TANGGAL</label><input type="text" id="m-date" maxlength="40" placeholder="10 Jan 2026"></div>
+      </div>
+      <div class="field"><label for="m-url">LINK DOKUMEN</label><input type="url" id="m-url" maxlength="1000" required placeholder="https://drive.google.com/..."></div>
+      <p class="dc-err" id="m-err" role="alert"></p>
+      <div class="dc-mbtn">
+        <button type="button" class="btn btn-outline" id="m-cancel">Batal</button>
+        <button type="submit" class="btn btn-primary" id="m-save">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <footer>
   <div class="wrap">
@@ -83,18 +105,22 @@
   const KEY = 'dcToken';
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let docs = [], cat = 'all';
+  const token = () => sessionStorage.getItem(KEY);
+  const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'baru';
+  let docs = [], cat = 'all', admin = false, editing = null;
 
-  function show(list) {
-    docs = list;
+  function show(list, isAdmin) {
+    docs = list; admin = !!isAdmin;
     $('dc-login').hidden = true;
     $('dc-app').hidden = false;
+    $('dc-add').hidden = !admin;
     renderTabs();
     renderList();
   }
   function lock() {
     sessionStorage.removeItem(KEY);
-    docs = [];
+    docs = []; admin = false; cat = 'all';
+    $('dc-modal').hidden = true;
     $('dc-app').hidden = true;
     $('dc-login').hidden = false;
     $('dc-pw').value = '';
@@ -110,23 +136,125 @@
   function renderList() {
     const terms = $('dc-q').value.toLowerCase().split(/\s+/).filter(Boolean);
     const rows = [];
-    docs.forEach(c => {
+    docs.forEach((c, ci) => {
       if (cat !== 'all' && c.key !== cat) return;
-      c.items.forEach(d => {
+      c.items.forEach((d, di) => {
         const hay = (d.code + ' ' + d.name + ' ' + c.title).toLowerCase();
-        if (terms.every(t => hay.includes(t))) rows.push({ c, d });
+        if (terms.every(t => hay.includes(t))) rows.push({ c, d, ci, di });
       });
     });
     document.querySelectorAll('.dc-tab').forEach(b => b.classList.toggle('active', b.dataset.k === cat));
     $('dc-info').textContent = rows.length + ' dokumen ditampilkan';
-    $('dc-list').innerHTML = rows.length ? rows.map(({ c, d }) =>
-      '<a class="dc-row" href="' + esc(d.url) + '" target="_blank" rel="noopener">' +
-        '<span class="dc-code">' + esc(d.code) + '</span>' +
-        '<span class="dc-main"><strong>' + esc(d.name) + '</strong>' +
-          '<span>' + esc(c.title) + ' · ' + esc(d.rev) + ' · ' + esc(d.date) + '</span></span>' +
-        '<span class="dc-open">BUKA ↗</span></a>'
-    ).join('') : '<p class="dc-empty">Tidak ada dokumen yang cocok.</p>';
+    $('dc-list').innerHTML = rows.length ? rows.map(({ c, d, ci, di }) => {
+      const href = /^https?:\/\//i.test(d.url) ? d.url : '#';
+      return '<div class="dc-row">' +
+        '<a class="dc-link" href="' + esc(href) + '" target="_blank" rel="noopener">' +
+          '<span class="dc-code">' + esc(d.code || '—') + '</span>' +
+          '<span class="dc-main"><strong>' + esc(d.name) + '</strong>' +
+            '<span>' + esc(c.title) + (d.rev ? ' · ' + esc(d.rev) : '') + (d.date ? ' · ' + esc(d.date) : '') + '</span></span>' +
+          '<span class="dc-open">BUKA ↗</span></a>' +
+        (admin ? '<div class="dc-act">' +
+          '<button type="button" class="dc-btn" data-act="edit" data-c="' + ci + '" data-d="' + di + '">Edit</button>' +
+          '<button type="button" class="dc-btn del" data-act="del" data-c="' + ci + '" data-d="' + di + '">Hapus</button>' +
+        '</div>' : '') +
+      '</div>';
+    }).join('') : '<p class="dc-empty">Tidak ada dokumen yang cocok.</p>';
   }
+
+  /* ---- simpan ke server ---- */
+  async function persist(next) {
+    const r = await fetch('/api/docs', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token() },
+      body: JSON.stringify({ docs: next.filter(c => c.items.length) })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) { lock(); throw new Error('Sesi berakhir, silakan masuk kembali.'); }
+    if (!r.ok) throw new Error(j.error || 'Gagal menyimpan.');
+    docs = j.docs;
+    if (cat !== 'all' && !docs.some(c => c.key === cat)) cat = 'all';
+    renderTabs();
+    renderList();
+  }
+
+  /* ---- formulir tambah / edit ---- */
+  function openModal(ci, di) {
+    editing = (ci == null) ? null : { ci, di };
+    const d = editing ? docs[ci].items[di] : {};
+    $('dc-mt').textContent = editing ? 'Edit dokumen' : 'Tambah dokumen';
+    const defCat = editing ? ci : Math.max(0, docs.findIndex(c => c.key === cat));
+    $('m-cat').innerHTML = docs.map((c, i) => '<option value="' + i + '">' + esc(c.title) + '</option>').join('') +
+      '<option value="__new">+ Kategori baru…</option>';
+    $('m-cat').value = docs.length ? String(defCat) : '__new';
+    $('m-newwrap').hidden = $('m-cat').value !== '__new';
+    $('m-new').value = '';
+    $('m-code').value = d.code || '';
+    $('m-name').value = d.name || '';
+    $('m-rev').value = d.rev || '';
+    $('m-date').value = d.date || '';
+    $('m-url').value = d.url || '';
+    $('m-err').textContent = '';
+    $('dc-modal').hidden = false;
+    $('m-name').focus();
+  }
+  const closeModal = () => { $('dc-modal').hidden = true; };
+
+  $('m-cat').addEventListener('change', () => { $('m-newwrap').hidden = $('m-cat').value !== '__new'; });
+  $('m-cancel').addEventListener('click', closeModal);
+  $('dc-modal').addEventListener('click', e => { if (e.target.id === 'dc-modal') closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('dc-modal').hidden) closeModal(); });
+  $('dc-add').addEventListener('click', () => openModal());
+
+  $('dc-edit').addEventListener('submit', async e => {
+    e.preventDefault();
+    const err = $('m-err'), btn = $('m-save');
+    err.textContent = '';
+    const url = $('m-url').value.trim();
+    const name = $('m-name').value.trim();
+    if (!name) { err.textContent = 'Nama dokumen wajib diisi.'; return; }
+    if (!/^https?:\/\//i.test(url)) { err.textContent = 'Link harus diawali http:// atau https://'; return; }
+
+    const next = JSON.parse(JSON.stringify(docs));
+    let ci;
+    if ($('m-cat').value === '__new') {
+      const t = $('m-new').value.trim();
+      if (!t) { err.textContent = 'Nama kategori baru wajib diisi.'; return; }
+      next.push({ key: slug(t), title: t, items: [] });
+      ci = next.length - 1;
+    } else {
+      ci = Number($('m-cat').value);
+    }
+    const item = { code: $('m-code').value.trim(), name, rev: $('m-rev').value.trim(), date: $('m-date').value.trim(), url };
+    if (editing) {
+      if (editing.ci === ci) next[ci].items[editing.di] = item;
+      else { next[editing.ci].items.splice(editing.di, 1); next[ci].items.push(item); }
+    } else {
+      next[ci].items.push(item);
+    }
+
+    btn.disabled = true; btn.textContent = 'Menyimpan...';
+    try {
+      await persist(next);
+      closeModal();
+    } catch (ex) {
+      err.textContent = ex.message;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Simpan';
+    }
+  });
+
+  /* ---- klik pada daftar ---- */
+  $('dc-list').addEventListener('click', async e => {
+    const b = e.target.closest('.dc-btn');
+    if (!b) return;
+    const ci = Number(b.dataset.c), di = Number(b.dataset.d);
+    if (b.dataset.act === 'edit') { openModal(ci, di); return; }
+    const d = docs[ci].items[di];
+    if (!confirm('Hapus dokumen "' + d.name + '"?')) return;
+    const next = JSON.parse(JSON.stringify(docs));
+    next[ci].items.splice(di, 1);
+    try { await persist(next); } catch (ex) { alert(ex.message); }
+  });
 
   $('dc-tabs').addEventListener('click', e => {
     const b = e.target.closest('.dc-tab');
@@ -137,6 +265,7 @@
   $('dc-q').addEventListener('input', renderList);
   $('dc-out').addEventListener('click', lock);
 
+  /* ---- login ---- */
   $('dc-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn = e.submitter, err = $('dc-err');
@@ -151,7 +280,7 @@
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'Gagal masuk.');
       sessionStorage.setItem(KEY, j.token);
-      show(j.docs);
+      show(j.docs, j.admin);
     } catch (ex) {
       err.textContent = ex.message;
     } finally {
@@ -159,13 +288,12 @@
     }
   });
 
-  // buka kembali otomatis jika sesi masih berlaku (tab yang sama)
   (async function restore() {
-    const t = sessionStorage.getItem(KEY);
+    const t = token();
     if (!t) return;
     try {
       const r = await fetch('/api/docs', { headers: { Authorization: 'Bearer ' + t } });
-      if (r.ok) show((await r.json()).docs); else sessionStorage.removeItem(KEY);
+      if (r.ok) { const j = await r.json(); show(j.docs, j.admin); } else sessionStorage.removeItem(KEY);
     } catch (e) {}
   })();
 })();
