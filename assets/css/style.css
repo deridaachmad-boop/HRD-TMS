@@ -2086,8 +2086,11 @@ html.sr-js [data-reveal]:not(.in){opacity:0;}
 }
 
 /* =========================================================
-   DOCUMENT CONTROL
+   DOCUMENT CONTROL — folder, dokumen, preview
    ========================================================= */
+html.dc-lock{overflow:hidden;}
+
+/* login */
 .dc-login{
   max-width:420px;margin:0 auto;padding:34px;
   background:#fff;border:1px solid var(--paper-100);
@@ -2097,67 +2100,68 @@ html.sr-js [data-reveal]:not(.in){opacity:0;}
 .dc-login > p{font-size:14px;color:var(--steel-400);margin-bottom:22px;}
 .dc-err{margin-top:14px;min-height:1.3em;font-size:13.5px;font-weight:600;color:var(--warn-500);}
 
-.dc-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
-.dc-tabs{display:flex;flex-wrap:wrap;gap:8px;}
-.dc-tab{
-  font-family:var(--f-mono);font-size:12.5px;cursor:pointer;
-  border:1px solid var(--steel-200);border-radius:999px;padding:9px 16px;color:var(--steel-400);
-  background-color:#fff;background-image:var(--grad-blue);
-  background-repeat:no-repeat;background-origin:border-box;
-  background-position:center bottom;background-size:100% 0%;
-  transition:background-size .4s ease,color .4s ease,border-color .4s ease;
+/* bilah atas: jejak folder + alat */
+.dc-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+.dc-crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0;}
+.dc-crumb{
+  font-family:var(--f-display);font-weight:600;font-size:15px;color:var(--steel-400);
+  background:none;border:none;cursor:pointer;padding:6px 8px;border-radius:8px;
 }
-.dc-tab:hover,.dc-tab.active{background-size:100% 100%;color:#fff;border-color:transparent;}
+.dc-crumb:hover{background:var(--paper-100);color:var(--ink-900);}
+.dc-crumb:last-child{color:var(--ink-900);}
+.dc-sep{color:var(--steel-300);}
 .dc-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .dc-search input{
-  width:240px;max-width:100%;padding:10px 16px;
+  width:250px;max-width:100%;padding:10px 16px;
   border:1px solid var(--steel-200);border-radius:999px;
   font-family:var(--f-body);font-size:14px;color:var(--ink-900);background:#fff;
 }
 .dc-search input:focus{outline:none;border-color:var(--forge-500);box-shadow:0 0 0 3px var(--forge-glow);}
 .dc-info{margin-bottom:12px;font-family:var(--f-mono);font-size:12px;color:var(--steel-400);}
 
+/* daftar */
 .dc-list{background:#fff;border:var(--border-dark);border-radius:12px;overflow:hidden;}
-.dc-row{
-  display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:18px;
-  padding:16px 20px;border-bottom:1px solid var(--paper-100);color:var(--ink-900);
-}
+.dc-row{display:flex;align-items:center;border-bottom:1px solid var(--paper-100);}
 .dc-row:last-child{border-bottom:none;}
 .dc-row:hover{background:var(--paper-50);}
-.dc-code{
-  justify-self:start;padding:5px 11px;border-radius:999px;
-  font-family:var(--f-mono);font-size:11.5px;font-weight:600;color:#fff;background:var(--grad-blue);
+.dc-item{
+  flex:1;min-width:0;display:flex;align-items:center;gap:16px;
+  padding:14px 20px;background:none;border:none;cursor:pointer;
+  text-align:left;font:inherit;color:var(--ink-900);
 }
+.dc-ico{
+  flex:none;width:42px;height:42px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--forge-500);background:var(--paper-100);
+}
+.dc-ico svg{width:22px;height:22px;}
+.dc-ico.fold{color:#fff;background:var(--grad-blue);}
+.dc-main{flex:1;min-width:0;}
 .dc-main strong{display:block;font-family:var(--f-display);font-size:16px;}
-.dc-main span{display:block;margin-top:2px;font-size:13px;color:var(--steel-400);}
-.dc-open{font-family:var(--f-mono);font-size:11.5px;color:var(--steel-400);white-space:nowrap;}
-.dc-row:hover .dc-open{color:var(--forge-500);}
-.dc-empty{padding:28px 20px;font-size:13.5px;font-style:italic;color:var(--steel-400);}
-
-@media (max-width:640px){
-  .dc-row{grid-template-columns:1fr auto;}
-  .dc-code{grid-column:1 / -1;}
+.dc-main > span{display:block;margin-top:2px;font-size:13px;color:var(--steel-400);}
+.dc-where{font-family:var(--f-mono);font-size:11.5px !important;color:var(--forge-500) !important;}
+.dc-code{
+  display:inline-block;padding:2px 9px;border-radius:999px;margin-right:4px;
+  font-family:var(--f-mono);font-size:11px;font-weight:600;color:#fff;background:var(--grad-blue);
 }
+.dc-go{flex:none;font-size:22px;color:var(--steel-300);}
+.dc-item:hover .dc-go{color:var(--forge-500);}
 
-/* Document Control: baris dengan tombol admin + formulir */
-.dc-row{display:flex;align-items:stretch;gap:0;padding:0;}
-.dc-link{
-  flex:1;min-width:0;
-  display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:18px;
-  padding:16px 20px;color:var(--ink-900);
-}
-.dc-link:hover .dc-open{color:var(--forge-500);}
 .dc-act{flex:none;display:flex;align-items:center;gap:8px;padding:0 16px 0 0;}
 .dc-btn{
-  font-family:var(--f-mono);font-size:11.5px;cursor:pointer;
+  display:inline-block;font-family:var(--f-mono);font-size:11.5px;cursor:pointer;
   padding:7px 14px;border-radius:999px;background:#fff;
   border:1px solid var(--steel-200);color:var(--ink-900);
   transition:border-color .2s ease,color .2s ease,background .2s ease;
 }
 .dc-btn:hover{border-color:var(--forge-500);color:var(--forge-500);}
+.dc-btn.pri{background:var(--forge-500);border-color:var(--forge-500);color:#fff;}
+.dc-btn.pri:hover{background:var(--forge-400);color:#fff;}
 .dc-btn.del{color:#b91c1c;}
 .dc-btn.del:hover{border-color:#b91c1c;background:#fee2e2;color:#b91c1c;}
+.dc-empty{padding:28px 20px;font-size:13.5px;font-style:italic;color:var(--steel-400);}
 
+/* modal formulir */
 .dc-modal{
   position:fixed;inset:0;z-index:100;
   display:flex;align-items:center;justify-content:center;padding:20px;
@@ -2169,14 +2173,42 @@ html.sr-js [data-reveal]:not(.in){opacity:0;}
   padding:30px;background:#fff;border-radius:var(--radius-card);
   box-shadow:0 30px 60px -20px rgba(13,27,61,.5);
 }
+.dc-box.dc-sm{max-width:420px;}
 .dc-box h3{font-size:22px;margin-bottom:18px;}
 .dc-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .dc-mbtn{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
 
-@media (max-width:640px){
+/* preview: layar utama digelapkan, fokus ke dokumen */
+.dc-pv{
+  position:fixed;inset:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:3vh 3vw;
+  background:rgba(4,9,24,.82);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+}
+.dc-pv[hidden]{display:none;}
+.dc-pvbox{
+  width:min(1200px,100%);height:100%;
+  display:flex;flex-direction:column;overflow:hidden;
+  background:#fff;border-radius:16px;
+  box-shadow:0 40px 90px -20px rgba(0,0,0,.7);
+}
+.dc-pvbar{
+  flex:none;display:flex;align-items:center;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--paper-100);
+}
+.dc-pvbar strong{flex:1;min-width:0;font-family:var(--f-display);font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dc-pvhint{font-size:12px;color:var(--steel-400);white-space:nowrap;}
+.dc-pvbar .btn{padding:9px 16px;font-size:13px;}
+.dc-pvbody{position:relative;flex:1;background:var(--paper-100);}
+.dc-pvbody iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;}
+.dc-pvload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--steel-400);}
+
+@media (max-width:800px){
   .dc-row{flex-wrap:wrap;}
-  .dc-link{grid-template-columns:1fr auto;}
-  .dc-link .dc-code{grid-column:1 / -1;}
-  .dc-act{width:100%;padding:0 20px 14px;}
+  .dc-act{width:100%;padding:0 20px 14px;flex-wrap:wrap;}
   .dc-two{grid-template-columns:1fr;gap:0;}
+  .dc-pv{padding:0;}
+  .dc-pvbox{border-radius:0;}
+  .dc-pvhint{display:none;}
+  .dc-pvbar{flex-wrap:wrap;}
 }
