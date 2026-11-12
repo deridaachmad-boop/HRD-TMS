@@ -105,7 +105,9 @@
   const KEY = 'dcToken';
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const token = () => sessionStorage.getItem(KEY);
+  let memToken = '';                 // token hanya hidup di memori halaman ini
+  const token = () => memToken;
+  try { sessionStorage.removeItem(KEY); } catch (e) {}   // bersihkan sisa token versi lama
   const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'baru';
   let docs = [], cat = 'all', admin = false, editing = null;
 
@@ -118,7 +120,7 @@
     renderList();
   }
   function lock() {
-    sessionStorage.removeItem(KEY);
+    memToken = '';
     docs = []; admin = false; cat = 'all';
     $('dc-modal').hidden = true;
     $('dc-app').hidden = true;
@@ -279,7 +281,7 @@
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'Gagal masuk.');
-      sessionStorage.setItem(KEY, j.token);
+      memToken = j.token;
       show(j.docs, j.admin);
     } catch (ex) {
       err.textContent = ex.message;
@@ -288,14 +290,10 @@
     }
   });
 
-  (async function restore() {
-    const t = token();
-    if (!t) return;
-    try {
-      const r = await fetch('/api/docs', { headers: { Authorization: 'Bearer ' + t } });
-      if (r.ok) { const j = await r.json(); show(j.docs, j.admin); } else sessionStorage.removeItem(KEY);
-    } catch (e) {}
-  })();
+  // tombol Back/Forward: kunci ulang jika halaman dipulihkan dari cache browser
+  window.addEventListener('pageshow', e => { if (e.persisted) lock(); });
+  // saat meninggalkan halaman, bersihkan semuanya
+  window.addEventListener('pagehide', () => { memToken = ''; });
 })();
 </script>
 </body>
