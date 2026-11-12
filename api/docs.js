@@ -83,12 +83,12 @@ module.exports = async (req, res) => {
         await new Promise(r => setTimeout(r, 900));
         return res.status(401).json({ error: 'ID atau password salah.' });
       }
-      return res.status(200).json({ token: makeToken(id), admin: admins().includes(id), docs: await loadDocs() });
+      return res.status(200).json({ token: makeToken(id), admin: true, docs: await loadDocs() });
     }
 
     const me = readToken((req.headers.authorization || '').replace(/^Bearer\s+/, ''));
     if (!me) return res.status(401).json({ error: 'Sesi berakhir.' });
-    const isAdmin = admins().includes(me.id);
+    const isAdmin = true;   // semua pengguna yang sudah login boleh mengedit
 
     if (req.method === 'GET') {
       return res.status(200).json({ admin: isAdmin, docs: await loadDocs() });
