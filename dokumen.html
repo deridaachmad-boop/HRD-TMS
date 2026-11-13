@@ -7,7 +7,6 @@
 <title>Document Control — HRD PT Timur Megah Steel</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap">
 </head>
 <body>
 
@@ -129,51 +128,18 @@
 
 <!-- QUOTE (muncul setelah login) -->
 <section class="dc-quote" id="dc-quote" hidden>
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-    <defs>
-      <linearGradient id="dcSteel" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#e2e8f0"/><stop offset=".5" stop-color="#94a3b8"/><stop offset="1" stop-color="#475569"/>
-      </linearGradient>
-      <linearGradient id="dcSteelV" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#64748b"/><stop offset=".35" stop-color="#e2e8f0"/><stop offset="1" stop-color="#475569"/>
-      </linearGradient>
-      <pattern id="dcThread" width="20" height="9" patternUnits="userSpaceOnUse">
-        <path d="M0 9 L20 1" stroke="#1e293b" stroke-opacity=".6" stroke-width="2"/>
-        <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="0 9" dur="1.1s" repeatCount="indefinite"/>
-      </pattern>
-      <symbol id="dcNut" viewBox="0 0 64 64">
-        <polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="url(#dcSteel)" stroke="#334155" stroke-width="2"/>
-        <circle cx="32" cy="32" r="21" fill="none" stroke="#f8fafc" stroke-opacity=".55" stroke-width="1.5"/>
-        <circle cx="32" cy="32" r="11" fill="#0f172a" stroke="#475569" stroke-width="2"/>
-      </symbol>
-      <symbol id="dcBolt" viewBox="0 0 40 110">
-        <rect x="4" y="2" width="32" height="22" rx="4" fill="url(#dcSteelV)" stroke="#334155" stroke-width="2"/>
-        <rect x="11" y="24" width="18" height="82" fill="url(#dcSteelV)" stroke="#334155" stroke-width="2"/>
-        <rect x="11" y="24" width="18" height="82" fill="url(#dcThread)"/>
-        <path d="M11 106 L15 110 H25 L29 106Z" fill="#64748b" stroke="#334155" stroke-width="2"/>
-      </symbol>
-    </defs>
-  </svg>
+  <div class="dc-qwrap" id="dc-qwrap">
+    <blockquote class="dc-q">The quality of a leader is reflected in the standards they <strong>set for themselves</strong></blockquote>
 
-  <svg class="dc-nb n1" viewBox="0 0 64 64" aria-hidden="true"><use href="#dcNut" width="64" height="64"/></svg>
-  <svg class="dc-nb n2" viewBox="0 0 64 64" aria-hidden="true"><use href="#dcNut" width="64" height="64"/></svg>
-  <svg class="dc-nb n3" viewBox="0 0 64 64" aria-hidden="true"><use href="#dcNut" width="64" height="64"/></svg>
-  <svg class="dc-nb b1" viewBox="0 0 40 110" aria-hidden="true"><use href="#dcBolt" width="40" height="110"/></svg>
-  <svg class="dc-nb b2" viewBox="0 0 40 110" aria-hidden="true"><use href="#dcBolt" width="40" height="110"/></svg>
-
-  <div class="dc-plate">
-    <i class="dc-screw tl"></i><i class="dc-screw tr"></i><i class="dc-screw bl"></i><i class="dc-screw br"></i>
-    <p class="dc-qtag">QUALITY · STANDARD · LEADERSHIP</p>
-    <div class="dc-qbox">
-      <blockquote class="dc-q" id="dc-q-text"></blockquote>
-      <div class="dc-drips" aria-hidden="true">
-        <span class="dc-drip" style="left:10%;--h:26px"></span>
-        <span class="dc-drip" style="left:31%;--h:40px"></span>
-        <span class="dc-drip" style="left:52%;--h:22px"></span>
-        <span class="dc-drip" style="left:73%;--h:34px;background:#fbbf24"></span>
-        <span class="dc-drip" style="left:90%;--h:18px"></span>
-      </div>
-    </div>
+    <!-- helm proyek yang digantung -->
+    <svg class="dc-helm" viewBox="0 0 64 92" aria-hidden="true">
+      <circle cx="32" cy="6" r="4.5" fill="#1e3a8a"/>
+      <path d="M32 10v15" stroke="#1e3a8a" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M8 63C8 41 18 27 32 27s24 14 24 36z" fill="#2456d9"/>
+      <rect x="28" y="27" width="8" height="35" rx="3" fill="#60a5fa"/>
+      <path d="M15 56C16 44 22 36 30 33" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="3" stroke-linecap="round"/>
+      <rect x="3" y="61" width="58" height="9" rx="4.5" fill="#1e3a8a"/>
+    </svg>
   </div>
 </section>
 
@@ -565,42 +531,34 @@
   window.addEventListener('pageshow', e => { if (e.persisted) lock(); });
   window.addEventListener('pagehide', () => { memToken = ''; });
 
-  /* ---------- quote graffiti: muncul, bertahan, hilang, berulang ---------- */
+  /* ---------- quote: berkedip masuk, bertahan, berkedip keluar, berulang ---------- */
   (function quote() {
-    const box = $('dc-q-text'), sec = $('dc-quote');
-    if (!box || !sec) return;
-    const TEXT = 'The quality of a leader is reflected in the standards they set for themselves';
-    const HL = ['leader', 'standards'];
-    let i = 0;
-    box.setAttribute('aria-label', TEXT);
-    box.innerHTML = TEXT.split(' ').map((w, wi) => {
-      const letters = [...w].map(ch => {
-        const r = (Math.random() * 8 - 4).toFixed(1);
-        return '<span class="dc-c" style="--i:' + (i++) + ';--r:' + r + 'deg">' + ch + '</span>';
-      }).join('');
-      i++;   // jeda untuk spasi
-      return '<span class="dc-w' + (HL.includes(w.toLowerCase()) ? ' hl' : '') + '" style="--w:' + wi + '" aria-hidden="true">' + letters + '</span>';
-    }).join(' ');
+    const sec = $('dc-quote'), wrap = $('dc-qwrap');
+    if (!sec || !wrap) return;
+    if (RM || !('IntersectionObserver' in window)) { wrap.classList.add('is-static'); return; }
 
-    if (RM || !('IntersectionObserver' in window)) { sec.classList.add('is-on'); return; }
-
-    const paintMs = i * 38 + 700;
+    const BLINK_IN = 1400, SHOW = 6000, BLINK_OUT = 1000, GAP = 1200;   // milidetik
     let timer = 0, running = false;
+    const setState = s => {
+      wrap.classList.remove('in', 'out');
+      if (s) { void wrap.offsetWidth; wrap.classList.add(s); }
+    };
     const cycle = () => {
       if (!running) return;
-      sec.classList.add('is-on');                                   // dicat
+      setState('in');
       timer = setTimeout(() => {
-        sec.classList.remove('is-on');                              // dihapus
-        timer = setTimeout(cycle, paintMs + 1800);                  // jeda lalu ulang
-      }, paintMs + 7500);                                           // tampil penuh 7,5 detik
+        if (!running) return;
+        setState('out');
+        timer = setTimeout(() => { setState(null); timer = setTimeout(cycle, GAP); }, BLINK_OUT);
+      }, BLINK_IN + SHOW);
     };
     new IntersectionObserver(es => {
       if (es[0].isIntersecting) {
-        if (!running) { running = true; timer = setTimeout(cycle, 400); }
+        if (!running) { running = true; timer = setTimeout(cycle, 300); }
       } else {
-        running = false; clearTimeout(timer); sec.classList.remove('is-on');
+        running = false; clearTimeout(timer); setState(null);
       }
-    }, { threshold: 0.35 }).observe(sec);
+    }, { threshold: 0.4 }).observe(sec);
   })();
 })();
 </script>
