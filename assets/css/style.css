@@ -2252,124 +2252,79 @@ html.dc-lock{overflow:hidden;}
   padding:2px 8px;border-radius:999px;margin-right:4px;background:#fef3c7;color:#b45309;
 }
 
-/* quote graffiti industri */
-.dc-quote{
-  position:relative;overflow:hidden;color:#fff;
-  padding:96px 20px 100px;
-  background-color:#0c1220;
-  background-image:
-    radial-gradient(ellipse 60% 70% at 50% 45%,rgba(251,191,36,.10),transparent 70%),
-    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
-  background-size:auto,38px 38px,38px 38px;
-}
-.dc-quote[hidden]{display:none;}
-.dc-quote::before,.dc-quote::after{
-  content:'';position:absolute;left:0;right:0;height:14px;z-index:3;
-  background:repeating-linear-gradient(-45deg,#fbbf24 0 14px,#111827 14px 28px);
-}
-.dc-quote::before{top:0;}
-.dc-quote::after{bottom:0;}
+/* ---------- font lencana ADMIN dan penghitung folder kosong: sama seperti tombol lain ---------- */
+.dc-role,.dc-chip,.dc-chip b,.dc-kosong{font-family:var(--f-body);}
+.dc-role{font-size:12px;font-weight:700;letter-spacing:.4px;}
+.dc-chip{font-size:13.5px;font-weight:600;}
+.dc-chip b{font-size:16px;font-weight:700;}
+.dc-kosong{font-size:11px;font-weight:600;}
 
-.dc-plate{
-  position:relative;z-index:2;max-width:980px;margin:0 auto;
-  padding:54px 46px 70px;text-align:center;border-radius:14px;
-  background:linear-gradient(160deg,rgba(30,41,59,.88),rgba(15,23,42,.92));
-  border:2px solid #334155;
-  box-shadow:inset 0 0 0 6px rgba(15,23,42,.6),inset 0 0 0 7px rgba(148,163,184,.18),0 30px 60px -28px rgba(0,0,0,.8);
-}
-.dc-screw{
-  position:absolute;width:18px;height:18px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#e2e8f0,#64748b 60%,#334155);
-  box-shadow:0 1px 2px rgba(0,0,0,.6);
-  animation:dc-turn 16s linear infinite;
-}
-.dc-screw::before{
-  content:'';position:absolute;left:3px;right:3px;top:50%;height:2px;margin-top:-1px;
-  background:#1e293b;border-radius:1px;
-}
-.dc-screw.tl{top:14px;left:14px;}
-.dc-screw.tr{top:14px;right:14px;animation-direction:reverse;}
-.dc-screw.bl{bottom:14px;left:14px;animation-direction:reverse;}
-.dc-screw.br{bottom:14px;right:14px;}
-@keyframes dc-turn{to{transform:rotate(360deg);}}
+/* ---------- quote: gradasi biru, helm digantung, berkedip ---------- */
+.dc-quote{padding:100px 20px 112px;text-align:center;}
+.dc-qwrap{position:relative;width:fit-content;max-width:min(920px,100%);margin:0 auto;}
 
-.dc-qtag{
-  margin:0 0 26px;font-family:var(--f-mono);font-size:12px;letter-spacing:3px;color:#fbbf24;
-}
-.dc-qbox{position:relative;}
 .dc-q{
-  margin:0;
-  font-family:'Permanent Marker','Rubik Spray Paint','Segoe Print','Comic Sans MS',cursive;
-  font-size:clamp(28px,5.2vw,58px);line-height:1.22;color:#f8fafc;
-  text-shadow:0 0 2px rgba(255,255,255,.85),0 0 16px rgba(248,250,252,.28),4px 5px 0 rgba(0,0,0,.55);
-  animation:dc-glow 4.5s ease-in-out infinite;
+  margin:0;padding-bottom:.12em;
+  font-family:var(--f-display);font-weight:500;
+  font-size:clamp(26px,4.2vw,46px);line-height:1.25;letter-spacing:0;text-align:center;
+  background:linear-gradient(135deg,#1e3a8a 0%,#2456d9 50%,#60a5fa 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  opacity:0;
 }
-@keyframes dc-glow{
-  0%,100%{filter:drop-shadow(0 0 0 rgba(251,191,36,0));}
-  50%{filter:drop-shadow(0 0 10px rgba(251,191,36,.35));}
-}
-/* kata bergoyang pelan seperti hidup */
-.dc-w{
-  display:inline-block;
-  animation:dc-wob 3.4s ease-in-out infinite;
-  animation-delay:calc(var(--w) * -.45s);
-}
-.dc-w.hl{
-  color:#fbbf24;
-  text-shadow:0 0 2px rgba(255,237,160,.9),0 0 18px rgba(249,115,22,.55),4px 5px 0 rgba(0,0,0,.55);
-}
-@keyframes dc-wob{
-  0%,100%{transform:translateY(0) rotate(-.7deg);}
-  50%{transform:translateY(-4px) rotate(.9deg);}
-}
-/* huruf "disemprot" satu per satu */
-.dc-c{
-  display:inline-block;opacity:0;filter:blur(8px);
-  transform:translateY(16px) scale(1.3) rotate(var(--r));
-  transition:opacity .45s ease,filter .5s ease,transform .6s cubic-bezier(.2,.9,.3,1.25);
-  transition-delay:calc(var(--i) * 38ms);
-}
-.dc-quote.is-on .dc-c{opacity:1;filter:blur(0);transform:rotate(var(--r));}
+.dc-q strong{font-weight:800;}
 
-/* tetesan cat */
-.dc-drips{position:absolute;left:4%;right:4%;bottom:-26px;height:0;}
-.dc-drip{
-  position:absolute;top:0;width:5px;height:0;border-radius:0 0 4px 4px;
-  background:#f8fafc;opacity:.85;transition:height .4s ease;
+.dc-helm{
+  position:absolute;right:-64px;top:-34px;
+  width:54px;height:auto;overflow:visible;
+  transform-origin:50% 7%;          /* berayun dari paku di atas */
+  opacity:0;
+  filter:drop-shadow(0 6px 8px rgba(30,58,138,.25));
 }
-.dc-drip::after{
-  content:'';position:absolute;left:-1px;bottom:-4px;width:7px;height:7px;
-  border-radius:50%;background:inherit;
-}
-.dc-quote.is-on .dc-drip{height:var(--h);transition:height 2.6s cubic-bezier(.4,0,.2,1) 2.2s;}
 
-/* mur dan baut bergerak */
-.dc-nb{position:absolute;z-index:1;pointer-events:none;filter:drop-shadow(0 8px 10px rgba(0,0,0,.55));}
-.dc-nb.n1{width:64px;height:64px;left:5%;top:16%;animation:dc-turn 12s linear infinite;}
-.dc-nb.n2{width:44px;height:44px;right:7%;top:12%;animation:dc-turn 9s linear infinite reverse;}
-.dc-nb.n3{width:54px;height:54px;right:4%;bottom:15%;animation:dc-wrench 3.6s ease-in-out infinite;}
-.dc-nb.b1{width:36px;height:99px;left:9%;bottom:11%;animation:dc-bolt 3.2s ease-in-out infinite;}
-.dc-nb.b2{width:30px;height:82px;right:12%;top:36%;animation:dc-bolt 2.7s ease-in-out infinite reverse;}
-@keyframes dc-bolt{
-  0%,100%{transform:translateY(0) rotate(-10deg);}
-  50%{transform:translateY(-22px) rotate(10deg);}
+/* masuk: berkedip */
+.dc-qwrap.in .dc-q{animation:dc-blink-in 1.4s step-end forwards;}
+.dc-qwrap.in .dc-helm{animation:dc-helm-in 1.4s ease-out forwards, dc-helm-idle 3.6s ease-in-out 1.4s infinite;}
+/* keluar: berkedip */
+.dc-qwrap.out .dc-q{animation:dc-blink-out 1s step-end forwards;}
+.dc-qwrap.out .dc-helm{animation:dc-helm-out 1s ease-in forwards;}
+
+@keyframes dc-blink-in{
+  0%{opacity:0;} 8%{opacity:1;} 14%{opacity:0;} 24%{opacity:1;} 30%{opacity:.15;}
+  42%{opacity:1;} 48%{opacity:0;} 58%{opacity:1;} 66%{opacity:.4;} 76%{opacity:1;} 100%{opacity:1;}
 }
-@keyframes dc-wrench{
-  0%,100%{transform:rotate(-35deg);}
-  50%{transform:rotate(35deg);}
+@keyframes dc-blink-out{
+  0%{opacity:1;} 10%{opacity:.2;} 18%{opacity:1;} 30%{opacity:0;} 40%{opacity:1;}
+  52%{opacity:.3;} 62%{opacity:0;} 72%{opacity:.7;} 82%{opacity:0;} 100%{opacity:0;}
+}
+/* helm jatuh lalu berayun saat masuk, terangkat saat keluar */
+@keyframes dc-helm-in{
+  0%{opacity:0;transform:translateY(-60px) rotate(0);}
+  10%{opacity:1;}
+  26%{transform:translateY(0) rotate(22deg);}
+  44%{transform:rotate(-16deg);}
+  62%{transform:rotate(10deg);}
+  80%{transform:rotate(-5deg);}
+  100%{opacity:1;transform:rotate(0);}
+}
+@keyframes dc-helm-idle{
+  0%,100%{transform:rotate(-2.5deg);}
+  50%{transform:rotate(2.5deg);}
+}
+@keyframes dc-helm-out{
+  0%{opacity:1;transform:rotate(0);}
+  22%{transform:rotate(14deg);}
+  55%{opacity:1;transform:translateY(-10px) rotate(-8deg);}
+  100%{opacity:0;transform:translateY(-76px) rotate(0);}
 }
 
 @media (max-width:900px){
-  .dc-quote{padding:84px 14px 88px;}
-  .dc-plate{padding:44px 22px 64px;}
-  .dc-nb.n2,.dc-nb.b2{display:none;}
-  .dc-nb.n1{width:44px;height:44px;left:2%;top:7%;}
-  .dc-nb.n3{width:40px;height:40px;right:2%;bottom:6%;}
-  .dc-nb.b1{width:26px;height:72px;left:3%;bottom:4%;}
+  .dc-quote{padding:112px 20px 100px;}
+  .dc-helm{right:0;top:-66px;width:44px;}
 }
+
+/* tanpa animasi: tampil statis */
+.dc-qwrap.is-static .dc-q,.dc-qwrap.is-static .dc-helm{opacity:1;animation:none;}
 @media (prefers-reduced-motion: reduce){
-  .dc-c{opacity:1;filter:none;transform:rotate(var(--r));transition:none;}
-  .dc-w,.dc-q,.dc-nb,.dc-screw,.dc-chip.warn b{animation:none !important;}
-  .dc-drip{height:var(--h);transition:none;}
+  .dc-q,.dc-helm{opacity:1;animation:none !important;}
 }
