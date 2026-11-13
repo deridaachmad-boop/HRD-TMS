@@ -7,6 +7,7 @@
 <title>Document Control — HRD PT Timur Megah Steel</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap">
 </head>
 <body>
 
@@ -53,8 +54,14 @@
 
     <div id="dc-app" hidden>
       <div class="dc-bar">
-        <nav class="dc-crumbs" id="dc-crumbs" aria-label="Lokasi folder"></nav>
+        <div class="dc-left">
+          <nav class="dc-crumbs" id="dc-crumbs" aria-label="Lokasi folder"></nav>
+          <button type="button" class="dc-chip ok" id="dc-empty" hidden aria-pressed="false" title="Lihat folder yang masih kosong">
+            <b id="dc-empty-n">0</b><span id="dc-empty-t"></span>
+          </button>
+        </div>
         <div class="dc-tools">
+          <span class="dc-role" id="dc-role" hidden>ADMIN</span>
           <label class="dc-search"><input type="search" id="dc-q" placeholder="Cari di semua folder..." aria-label="Cari dokumen"></label>
           <button type="button" class="btn btn-outline" id="dc-addf">+ Folder</button>
           <button type="button" class="btn btn-primary" id="dc-addd">+ Dokumen</button>
@@ -120,6 +127,56 @@
   </div>
 </div>
 
+<!-- QUOTE (muncul setelah login) -->
+<section class="dc-quote" id="dc-quote" hidden>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="dcSteel" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#e2e8f0"/><stop offset=".5" stop-color="#94a3b8"/><stop offset="1" stop-color="#475569"/>
+      </linearGradient>
+      <linearGradient id="dcSteelV" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#64748b"/><stop offset=".35" stop-color="#e2e8f0"/><stop offset="1" stop-color="#475569"/>
+      </linearGradient>
+      <pattern id="dcThread" width="20" height="9" patternUnits="userSpaceOnUse">
+        <path d="M0 9 L20 1" stroke="#1e293b" stroke-opacity=".6" stroke-width="2"/>
+        <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="0 9" dur="1.1s" repeatCount="indefinite"/>
+      </pattern>
+      <symbol id="dcNut" viewBox="0 0 64 64">
+        <polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="url(#dcSteel)" stroke="#334155" stroke-width="2"/>
+        <circle cx="32" cy="32" r="21" fill="none" stroke="#f8fafc" stroke-opacity=".55" stroke-width="1.5"/>
+        <circle cx="32" cy="32" r="11" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+      </symbol>
+      <symbol id="dcBolt" viewBox="0 0 40 110">
+        <rect x="4" y="2" width="32" height="22" rx="4" fill="url(#dcSteelV)" stroke="#334155" stroke-width="2"/>
+        <rect x="11" y="24" width="18" height="82" fill="url(#dcSteelV)" stroke="#334155" stroke-width="2"/>
+        <rect x="11" y="24" width="18" height="82" fill="url(#dcThread)"/>
+        <path d="M11 106 L15 110 H25 L29 106Z" fill="#64748b" stroke="#334155" stroke-width="2"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <svg class="dc-nb n1" viewBox="0 0 64 64" aria-hidden="true"><use href="#dcNut" width="64" height="64"/></svg>
+  <svg class="dc-nb n2" viewBox="0 0 64 64" aria-hidden="true"><use href="#dcNut" width="64" height="64"/></svg>
+  <svg class="dc-nb n3" viewBox="0 0 64 64" aria-hidden="true"><use href="#dcNut" width="64" height="64"/></svg>
+  <svg class="dc-nb b1" viewBox="0 0 40 110" aria-hidden="true"><use href="#dcBolt" width="40" height="110"/></svg>
+  <svg class="dc-nb b2" viewBox="0 0 40 110" aria-hidden="true"><use href="#dcBolt" width="40" height="110"/></svg>
+
+  <div class="dc-plate">
+    <i class="dc-screw tl"></i><i class="dc-screw tr"></i><i class="dc-screw bl"></i><i class="dc-screw br"></i>
+    <p class="dc-qtag">QUALITY · STANDARD · LEADERSHIP</p>
+    <div class="dc-qbox">
+      <blockquote class="dc-q" id="dc-q-text"></blockquote>
+      <div class="dc-drips" aria-hidden="true">
+        <span class="dc-drip" style="left:10%;--h:26px"></span>
+        <span class="dc-drip" style="left:31%;--h:40px"></span>
+        <span class="dc-drip" style="left:52%;--h:22px"></span>
+        <span class="dc-drip" style="left:73%;--h:34px;background:#fbbf24"></span>
+        <span class="dc-drip" style="left:90%;--h:18px"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <div class="foot-bottom">
@@ -136,9 +193,11 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const clone = o => JSON.parse(JSON.stringify(o));
   const nid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  let memToken = '';            // token hanya hidup di memori halaman ini
-  let docs = [], path = [];     // pohon dokumen, dan jalur folder yang sedang dibuka
+  let memToken = '';                  // token hanya hidup di memori halaman ini
+  let docs = [], path = [];           // pohon dokumen, dan jalur folder yang sedang dibuka
+  let admin = false, showEmpty = false;
   let editFile = null, editFolder = null;
   try { sessionStorage.removeItem('dcToken'); } catch (e) {}
 
@@ -179,6 +238,30 @@
     path = ok;
     return l;
   }
+  // folder yang benar-benar tidak berisi apa pun (belum ada folder maupun dokumen)
+  function emptyFolders(arr, trail, out) {
+    arr.forEach(n => {
+      if (n.type !== 'folder') return;
+      if (!n.children.length) out.push({ n, trail });
+      emptyFolders(n.children, trail.concat(n.name), out);
+    });
+    return out;
+  }
+
+  /* ---------- angka berhitung ---------- */
+  let shownN = 0, rafN = 0;
+  function countTo(el, target) {
+    cancelAnimationFrame(rafN);
+    if (RM || shownN === target) { shownN = target; el.textContent = target; return; }
+    const from = shownN, t0 = performance.now();
+    const tick = now => {
+      const p = Math.min(1, (now - t0) / 600);
+      shownN = Math.round(from + (target - from) * (1 - Math.pow(1 - p, 3)));
+      el.textContent = shownN;
+      if (p < 1) rafN = requestAnimationFrame(tick);
+    };
+    rafN = requestAnimationFrame(tick);
+  }
 
   /* ---------- link untuk preview ---------- */
   function previewUrl(u) {
@@ -201,27 +284,44 @@
   }
 
   /* ---------- tampilan ---------- */
-  function show(list) {
-    docs = list; path = [];
+  function show(list, isAdmin) {
+    docs = list; admin = !!isAdmin; path = []; showEmpty = false;
     $('dc-login').hidden = true;
     $('dc-app').hidden = false;
+    $('dc-quote').hidden = false;
+    $('dc-role').hidden = !admin;
     $('dc-q').value = '';
     render();
   }
   function lock() {
     memToken = '';
-    docs = []; path = [];
+    docs = []; path = []; admin = false; showEmpty = false;
     ['fm', 'dm', 'pv'].forEach(id => { $(id).hidden = true; });
     $('pv-frame').src = 'about:blank';
     syncLock();
     $('dc-app').hidden = true;
+    $('dc-quote').hidden = true;
     $('dc-login').hidden = false;
     $('dc-pw').value = '';
   }
 
+  const delBtn = id => admin ? '<button type="button" class="dc-btn del" data-act="del" data-id="' + esc(id) + '">Hapus</button>' : '';
+
   function render() {
     const cur = fixPath();
     const terms = $('dc-q').value.toLowerCase().split(/\s+/).filter(Boolean);
+    const emp = emptyFolders(docs, [], []);
+    if (!emp.length) showEmpty = false;
+
+    // penghitung folder kosong
+    const chip = $('dc-empty');
+    chip.hidden = false;
+    chip.className = 'dc-chip ' + (emp.length ? 'warn' : 'ok') + (showEmpty ? ' on' : '');
+    chip.disabled = !emp.length;
+    chip.setAttribute('aria-pressed', showEmpty ? 'true' : 'false');
+    $('dc-empty-n').hidden = !emp.length;
+    $('dc-empty-t').textContent = !emp.length ? 'Semua folder terisi ✓' : (showEmpty ? 'folder kosong · tutup ✕' : 'folder kosong · lihat');
+    countTo($('dc-empty-n'), emp.length);
 
     // jejak folder
     let crumbs = '<button type="button" class="dc-crumb" data-i="-1">Dokumen</button>';
@@ -243,6 +343,9 @@
         });
       })(docs, []);
       $('dc-info').textContent = rows.length + ' hasil pencarian di semua folder';
+    } else if (showEmpty) {
+      rows = emp.map(e => ({ n: e.n, trail: e.trail }));
+      $('dc-info').textContent = emp.length + ' folder kosong — lengkapi isinya sebelum audit';
     } else {
       rows = cur.filter(n => n.type === 'folder').concat(cur.filter(n => n.type !== 'folder')).map(n => ({ n, trail: null }));
       const nf = cur.filter(n => n.type === 'folder').length;
@@ -253,7 +356,9 @@
       const where = trail ? '<span class="dc-where">Lokasi: ' + (trail.length ? esc(trail.join(' › ')) : 'Dokumen') + '</span>' : '';
       if (n.type === 'folder') {
         const nf = n.children.filter(x => x.type === 'folder').length;
-        const meta = (nf ? nf + ' folder · ' : '') + countAll(n.children) + ' dokumen';
+        const meta = !n.children.length
+          ? '<i class="dc-kosong">KOSONG</i> belum ada isi'
+          : (nf ? nf + ' folder · ' : '') + countAll(n.children) + ' dokumen';
         return '<div class="dc-row">' +
           '<button type="button" class="dc-item" data-act="open" data-id="' + esc(n.id) + '">' +
             '<span class="dc-ico fold">' + IC_FOLDER + '</span>' +
@@ -261,7 +366,7 @@
             '<span class="dc-go">›</span></button>' +
           '<div class="dc-act">' +
             '<button type="button" class="dc-btn" data-act="rename" data-id="' + esc(n.id) + '">Ubah nama</button>' +
-            '<button type="button" class="dc-btn del" data-act="del" data-id="' + esc(n.id) + '">Hapus</button>' +
+            delBtn(n.id) +
           '</div></div>';
       }
       const href = /^https?:\/\//i.test(n.url) ? n.url : '#';
@@ -275,7 +380,7 @@
           '<button type="button" class="dc-btn pri" data-act="preview" data-id="' + esc(n.id) + '">Preview</button>' +
           '<a class="dc-btn" href="' + esc(href) + '" target="_blank" rel="noopener">Buka ↗</a>' +
           '<button type="button" class="dc-btn" data-act="edit" data-id="' + esc(n.id) + '">Edit</button>' +
-          '<button type="button" class="dc-btn del" data-act="del" data-id="' + esc(n.id) + '">Hapus</button>' +
+          delBtn(n.id) +
         '</div></div>';
     }).join('') : '<p class="dc-empty">' + (terms.length ? 'Tidak ada yang cocok.' : 'Folder ini masih kosong. Tambahkan folder atau dokumen.') + '</p>';
   }
@@ -404,11 +509,12 @@
     if (!r) return;
     const node = r.list[r.i];
 
-    if (act === 'open') { path = pathTo(docs, id) || path; $('dc-q').value = ''; render(); return; }
+    if (act === 'open') { path = pathTo(docs, id) || path; showEmpty = false; $('dc-q').value = ''; render(); return; }
     if (act === 'preview') { openPreview(node); return; }
     if (act === 'edit') { openFileForm(node); return; }
     if (act === 'rename') { openFolderForm(node); return; }
     if (act === 'del') {
+      if (!admin) return;
       const msg = node.type === 'folder'
         ? 'Hapus folder "' + node.name + '" beserta seluruh isinya (' + countAll(node.children) + ' dokumen)?'
         : 'Hapus dokumen "' + node.name + '"?';
@@ -424,10 +530,12 @@
     const b = e.target.closest('.dc-crumb');
     if (!b) return;
     path = path.slice(0, Number(b.dataset.i) + 1);
+    showEmpty = false;
     $('dc-q').value = '';
     render();
   });
-  $('dc-q').addEventListener('input', render);
+  $('dc-empty').addEventListener('click', () => { showEmpty = !showEmpty; $('dc-q').value = ''; render(); });
+  $('dc-q').addEventListener('input', () => { if ($('dc-q').value) showEmpty = false; render(); });
   $('dc-out').addEventListener('click', lock);
 
   /* ---------- login ---------- */
@@ -445,7 +553,7 @@
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'Gagal masuk.');
       memToken = j.token;
-      show(j.docs);
+      show(j.docs, j.admin);
     } catch (ex) {
       err.textContent = ex.message;
     } finally {
@@ -456,6 +564,44 @@
   // tombol Back/Forward atau meninggalkan halaman: kunci ulang
   window.addEventListener('pageshow', e => { if (e.persisted) lock(); });
   window.addEventListener('pagehide', () => { memToken = ''; });
+
+  /* ---------- quote graffiti: muncul, bertahan, hilang, berulang ---------- */
+  (function quote() {
+    const box = $('dc-q-text'), sec = $('dc-quote');
+    if (!box || !sec) return;
+    const TEXT = 'The quality of a leader is reflected in the standards they set for themselves';
+    const HL = ['leader', 'standards'];
+    let i = 0;
+    box.setAttribute('aria-label', TEXT);
+    box.innerHTML = TEXT.split(' ').map((w, wi) => {
+      const letters = [...w].map(ch => {
+        const r = (Math.random() * 8 - 4).toFixed(1);
+        return '<span class="dc-c" style="--i:' + (i++) + ';--r:' + r + 'deg">' + ch + '</span>';
+      }).join('');
+      i++;   // jeda untuk spasi
+      return '<span class="dc-w' + (HL.includes(w.toLowerCase()) ? ' hl' : '') + '" style="--w:' + wi + '" aria-hidden="true">' + letters + '</span>';
+    }).join(' ');
+
+    if (RM || !('IntersectionObserver' in window)) { sec.classList.add('is-on'); return; }
+
+    const paintMs = i * 38 + 700;
+    let timer = 0, running = false;
+    const cycle = () => {
+      if (!running) return;
+      sec.classList.add('is-on');                                   // dicat
+      timer = setTimeout(() => {
+        sec.classList.remove('is-on');                              // dihapus
+        timer = setTimeout(cycle, paintMs + 1800);                  // jeda lalu ulang
+      }, paintMs + 7500);                                           // tampil penuh 7,5 detik
+    };
+    new IntersectionObserver(es => {
+      if (es[0].isIntersecting) {
+        if (!running) { running = true; timer = setTimeout(cycle, 400); }
+      } else {
+        running = false; clearTimeout(timer); sec.classList.remove('is-on');
+      }
+    }, { threshold: 0.35 }).observe(sec);
+  })();
 })();
 </script>
 </body>
