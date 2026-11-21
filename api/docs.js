@@ -46,7 +46,6 @@ async function redis(cmd) {
   return j.result;
 }
 
-// format lama (kategori berisi items) -> pohon folder, dengan id yang selalu sama
 function migrate(data) {
   if (!Array.isArray(data)) return [];
   return data.map((c, ci) => {
@@ -72,6 +71,17 @@ async function loadDocs() {
 }
 
 const S = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+
+function cleanOwners(v) {
+  const out = [];
+  (Array.isArray(v) ? v : []).forEach(x => {
+    const s = S(x, 40);
+    if (s && !out.includes(s)) out.push(s);
+  });
+  if (out.length > 10) throw fail(400, 'Terlalu banyak pengelola (maksimal 10).');
+  return out;
+}
+
 function clean(nodes) {
   let count = 0;
   const seen = new Set();
@@ -85,7 +95,11 @@ function clean(nodes) {
       let id = S(n.id, 40).replace(/[^a-zA-Z0-9]/g, '');
       if (!id || seen.has(id)) id = uid();
       seen.add(id);
-      if (n.type === 'folder') return { id, type: 'folder', name, children: walk(n.children || [], depth + 1) };
+      if (n.type === 'folder') {
+        const out = { id, type: 'folder', name, children: walk(n.children || [], depth + 1) };
+        if (depth === 1) out.owners = cleanOwners(n.owners);   // pengelola hanya di folder utama
+        return out;
+      }
       const url = S(n.url, 1000);
       if (!/^https?:\/\//i.test(url)) throw fail(400, 'Link wajib diawali http:// atau https://');
       return { id, type: 'file', code: S(n.code, 40), name, rev: S(n.rev, 30), date: S(n.date, 40), url };
@@ -93,15 +107,40 @@ function clean(nodes) {
   };
   return walk(nodes, 1);
 }
-function idsOf(nodes) {
-  const s = new Set();
-  (function walk(a) { (a || []).forEach(n => { s.add(n.id); if (n.type === 'folder') walk(n.children); }); })(nodes);
-  return s;
-}
-function parents(nodes) {
+
+function parentsOf(children, parent) {
   const m = new Map();
-  (function walk(a, p) { (a || []).forEach(n => { m.set(n.id, p); if (n.type === 'folder') walk(n.children, n.id); }); })(nodes, '');
+  (function walk(a, p) { (a || []).forEach(n => { m.set(n.id, p); if (n.type === 'folder') walk(n.children, n.id); }); })(children, parent);
   return m;
+}
+
+// akun bagian: hanya boleh menambah/mengedit di dalam folder utama yang ditugaskan
+function checkScoped(oldTree, newTree, userId) {
+  let before;
+  try { before = clean(oldTree); }
+  catch (e) { throw fail(500, 'Data lama tidak dapat diverifikasi. Minta admin menyimpan perubahan sekali.'); }
+
+  const nb = new Map(newTree.map(n => [n.id, n]));
+  if (nb.size !== before.length || newTree.length !== before.length) {
+    throw fail(403, 'Hanya admin yang boleh menambah atau menghapus di tingkat utama.');
+  }
+  for (const o of before) {
+    const n = nb.get(o.id);
+    if (!n) throw fail(403, 'Hanya admin yang boleh menambah atau menghapus di tingkat utama.');
+    const mine = o.type === 'folder' && (o.owners || []).includes(userId);
+    if (!mine) {
+      if (JSON.stringify(o) !== JSON.stringify(n)) throw fail(403, 'Anda tidak memiliki izin mengubah "' + o.name + '". Muat ulang halaman lalu coba lagi.');
+      continue;
+    }
+    if (n.type !== 'folder' || n.name !== o.name || JSON.stringify(n.owners) !== JSON.stringify(o.owners)) {
+      throw fail(403, 'Hanya admin yang boleh mengubah nama atau pengelola folder utama.');
+    }
+    const pb = parentsOf(o.children, o.id), pa = parentsOf(n.children, n.id);
+    for (const [id, p] of pb) {
+      if (!pa.has(id)) throw fail(403, 'Hanya admin yang boleh menghapus. Jika Anda tidak menghapus apa pun, muat ulang halaman lalu coba lagi.');
+      if (pa.get(id) !== p) throw fail(403, 'Hanya admin yang boleh memindahkan dokumen atau folder.');
+    }
+  }
 }
 
 module.exports = async (req, res) => {
@@ -116,25 +155,30 @@ module.exports = async (req, res) => {
         await new Promise(r => setTimeout(r, 900));
         return res.status(401).json({ error: 'ID atau password salah.' });
       }
-      return res.status(200).json({ token: makeToken(id), admin: admins().includes(id), docs: await loadDocs() });
+      const isAdmin = admins().includes(id);
+      return res.status(200).json({
+        token: makeToken(id), me: id, admin: isAdmin,
+        users: isAdmin ? users().map(u => u[0]) : undefined,
+        docs: await loadDocs()
+      });
     }
 
     const me = readToken((req.headers.authorization || '').replace(/^Bearer\s+/, ''));
     if (!me) return res.status(401).json({ error: 'Sesi berakhir.' });
     const isAdmin = admins().includes(me.id);
 
-    if (req.method === 'GET') return res.status(200).json({ admin: isAdmin, docs: await loadDocs() });
+    if (req.method === 'GET') {
+      return res.status(200).json({
+        me: me.id, admin: isAdmin,
+        users: isAdmin ? users().map(u => u[0]) : undefined,
+        docs: await loadDocs()
+      });
+    }
 
     if (req.method === 'PUT') {
       if (!R_URL || !R_TOKEN) throw fail(500, 'Penyimpanan belum tersambung.');
       const docs = clean((req.body || {}).docs);
-      if (!isAdmin) {
-        const before = parents(await loadDocs()), after = parents(docs);
-        for (const [id, p] of before) {
-          if (!after.has(id)) throw fail(403, 'Hanya admin yang boleh menghapus. Jika Anda tidak menghapus apa pun, muat ulang halaman (ada perubahan dari pengguna lain) lalu coba lagi.');
-          if (after.get(id) !== p) throw fail(403, 'Hanya admin yang boleh memindahkan dokumen atau folder.');
-        }
-      }
+      if (!isAdmin) checkScoped(await loadDocs(), docs, me.id);
       await redis(['SET', KEY, JSON.stringify(docs)]);
       return res.status(200).json({ docs });
     }
