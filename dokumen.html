@@ -60,10 +60,10 @@
           </button>
         </div>
         <div class="dc-tools">
-          <span class="dc-role" id="dc-role" hidden>ADMIN</span>
+          <span class="dc-role" id="dc-role"></span>
           <label class="dc-search"><input type="search" id="dc-q" placeholder="Cari di semua folder..." aria-label="Cari dokumen"></label>
-          <button type="button" class="btn btn-outline" id="dc-addf">+ Folder</button>
-          <button type="button" class="btn btn-primary" id="dc-addd">+ Dokumen</button>
+          <button type="button" class="btn btn-outline" id="dc-addf" hidden>+ Folder</button>
+          <button type="button" class="btn btn-primary" id="dc-addd" hidden>+ Dokumen</button>
           <button type="button" class="btn btn-outline" id="dc-out">Keluar</button>
         </div>
       </div>
@@ -115,6 +115,23 @@
   </div>
 </div>
 
+<!-- ATUR AKSES FOLDER (admin) -->
+<div class="dc-modal" id="am" hidden>
+  <div class="dc-box dc-sm" role="dialog" aria-modal="true" aria-labelledby="am-t">
+    <h3 id="am-t">Atur akses folder</h3>
+    <p class="dc-amhint">Akun di bawah ini boleh menambah dan mengedit dokumen di folder ini. Semua akun tetap bisa melihat seluruh dokumen.</p>
+    <form id="am-form" autocomplete="off">
+      <div class="field"><label for="am-ids">ID PENGELOLA (pisahkan dengan koma)</label><input type="text" id="am-ids" maxlength="300" placeholder="Contoh: iso"></div>
+      <p class="dc-amusers" id="am-users"></p>
+      <p class="dc-err" id="am-err" role="alert"></p>
+      <div class="dc-mbtn">
+        <button type="button" class="btn btn-outline" data-close="am">Batal</button>
+        <button type="submit" class="btn btn-primary" id="am-save">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- PREVIEW (pop-up, latar gelap) -->
 <div class="dc-pv" id="pv" hidden>
   <div class="dc-pvbox" role="dialog" aria-modal="true" aria-label="Preview dokumen">
@@ -135,8 +152,6 @@
 <section class="dc-quote" id="dc-quote" hidden>
   <div class="dc-qwrap" id="dc-qwrap">
     <blockquote class="dc-q">The quality of a leader is reflected in the standards they <strong>set for themselves</strong></blockquote>
-
-    <!-- helm proyek yang digantung -->
     <svg class="dc-helm" viewBox="0 0 64 92" aria-hidden="true">
       <circle cx="32" cy="6" r="4.5" fill="#1e3a8a"/>
       <path d="M32 10v15" stroke="#1e3a8a" stroke-width="2.2" stroke-linecap="round"/>
@@ -152,7 +167,7 @@
   <div class="wrap">
     <div class="foot-bottom">
       <span>© 2026 PT Timur Megah Steel — Human Resource Development.</span>
-      <span>Dokumen ini bersifat rahasia dan tidak boleh didokumentasikan, digandakan, dan disebarkan tanpa izin resmi dari HRD.</span>
+      <span>Dokumen ini bersifat terkendali.</span>
     </div>
   </div>
 </footer>
@@ -166,11 +181,12 @@
   const nid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  let memToken = '';                  // token hanya hidup di memori halaman ini
-  let docs = [], path = [];           // pohon dokumen, dan jalur folder yang sedang dibuka
-  let admin = false, showEmpty = false;
-  let clip = null;                    // isi clipboard admin: { mode:'copy'|'cut', id, name, type }
-  let editFile = null, editFolder = null;
+  let memToken = '';                   // token hanya hidup di memori halaman ini
+  let docs = [], path = [];
+  let admin = false, me = '', userIds = [], showEmpty = false;
+  let clip = null;                     // clipboard admin: { mode, id, name, type }
+  let editFile = null, editFolder = null, accessId = null;
+  let TOP = new Map();                 // id item -> folder utama yang menaunginya
   try { sessionStorage.removeItem('dcToken'); } catch (e) {}
 
   const IC_FOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
@@ -210,7 +226,6 @@
     path = ok;
     return l;
   }
-  // folder yang benar-benar tidak berisi apa pun (belum ada folder maupun dokumen)
   function emptyFolders(arr, trail, out) {
     arr.forEach(n => {
       if (n.type !== 'folder') return;
@@ -219,11 +234,21 @@
     });
     return out;
   }
-    // nama-nama folder pada jalur yang sedang dibuka
   function pathNames() {
     const out = []; let l = docs;
     path.forEach(id => { const f = l.find(n => n.id === id); if (f) { out.push(f.name); l = f.children; } });
     return out;
+  }
+
+  /* ---------- hak akses ---------- */
+  const owners = n => (n && n.owners) || [];
+  const isTop = id => docs.some(t => t.id === id);
+  const mine = id => { const t = TOP.get(id); return !!t && t.type === 'folder' && owners(t).includes(me); };
+  const canEditNode = id => admin || (!isTop(id) && mine(id));          // edit dokumen / ubah nama subfolder
+  const canAddHere = () => admin || (path.length > 0 && mine(path[0])); // tambah folder / dokumen di lokasi ini
+  function buildTop() {
+    TOP = new Map();
+    docs.forEach(t => { (function w(n) { TOP.set(n.id, t); if (n.type === 'folder') n.children.forEach(w); })(t); });
   }
 
   /* ---------- angka berhitung ---------- */
@@ -262,21 +287,19 @@
   }
 
   /* ---------- tampilan ---------- */
-  function show(list, isAdmin) {
-    docs = list; admin = !!isAdmin; path = []; showEmpty = false;
-    clip = null;
+  function show(list, isAdmin, meId, users) {
+    docs = list; admin = !!isAdmin; me = meId || ''; userIds = users || [];
+    path = []; showEmpty = false; clip = null;
     $('dc-login').hidden = true;
     $('dc-app').hidden = false;
     $('dc-quote').hidden = false;
-    $('dc-role').hidden = !admin;
     $('dc-q').value = '';
     render();
   }
   function lock() {
     memToken = '';
-    docs = []; path = []; admin = false; showEmpty = false;
-    clip = null;
-    ['fm', 'dm', 'pv'].forEach(id => { $(id).hidden = true; });
+    docs = []; path = []; admin = false; me = ''; userIds = []; showEmpty = false; clip = null;
+    ['fm', 'dm', 'am', 'pv'].forEach(id => { $(id).hidden = true; });
     $('pv-frame').src = 'about:blank';
     syncLock();
     $('dc-app').hidden = true;
@@ -285,7 +308,7 @@
     $('dc-pw').value = '';
   }
 
-    const delBtn = id => {
+  const delBtn = id => {
     if (!admin) return '';
     const cut = clip && clip.mode === 'cut' && clip.id === id;
     const cp = clip && clip.mode === 'copy' && clip.id === id;
@@ -296,13 +319,23 @@
   };
 
   function render() {
+    buildTop();
     const cur = fixPath();
-        renderClip();
+    renderClip();
     const terms = $('dc-q').value.toLowerCase().split(/\s+/).filter(Boolean);
-    const emp = emptyFolders(cur, pathNames(), []);   // hanya isi folder yang sedang dibuka
+    const emp = emptyFolders(cur, pathNames(), []);
     if (!emp.length) showEmpty = false;
 
-    // penghitung folder kosong
+    // lencana peran + tombol tambah sesuai hak akses
+    const ownsAny = docs.some(t => t.type === 'folder' && owners(t).includes(me));
+    const role = $('dc-role');
+    role.className = 'dc-role ' + (admin ? 'adm' : ownsAny ? 'own' : 'view');
+    role.textContent = admin ? 'ADMIN' : ownsAny ? 'PENGELOLA' : 'HANYA LIHAT';
+    const canAdd = canAddHere();
+    $('dc-addf').hidden = !canAdd;
+    $('dc-addd').hidden = !canAdd;
+
+    // penghitung folder kosong (mengikuti folder yang sedang dibuka)
     const chip = $('dc-empty');
     chip.hidden = false;
     chip.className = 'dc-chip ' + (emp.length ? 'warn' : 'ok') + (showEmpty ? ' on' : '');
@@ -337,7 +370,7 @@
       $('dc-info').textContent = rows.length + ' hasil pencarian di semua folder';
     } else if (showEmpty) {
       rows = emp.map(e => ({ n: e.n, trail: e.trail }));
-      $('dc-info').textContent = emp.length + ' folder kosong' + (path.length ? ' di dalam folder ini' : '') + ' — lengkapi isinya sebelum audit';
+      $('dc-info').textContent = emp.length + ' folder kosong' + (here ? ' di dalam folder ini' : '') + ' — lengkapi isinya sebelum audit';
     } else {
       rows = cur.filter(n => n.type === 'folder').concat(cur.filter(n => n.type !== 'folder')).map(n => ({ n, trail: null }));
       const nf = cur.filter(n => n.type === 'folder').length;
@@ -346,35 +379,41 @@
 
     $('dc-list').innerHTML = rows.length ? rows.map(({ n, trail }) => {
       const where = trail ? '<span class="dc-where">Lokasi: ' + (trail.length ? esc(trail.join(' › ')) : 'Dokumen') + '</span>' : '';
+      const id = esc(n.id);
       if (n.type === 'folder') {
         const nf = n.children.filter(x => x.type === 'folder').length;
-        const meta = !n.children.length
+        const base = !n.children.length
           ? '<i class="dc-kosong">KOSONG</i> belum ada isi'
           : (nf ? nf + ' folder · ' : '') + countAll(n.children) + ' dokumen';
+        const top = isTop(n.id);
+        const tag = !top ? '' : admin
+          ? '<i class="dc-own">Pengelola: ' + (owners(n).length ? esc(owners(n).join(', ')) : 'belum diatur') + '</i>'
+          : (mine(n.id) ? '<i class="dc-own on">Anda pengelola</i>' : '');
         return '<div class="dc-row">' +
-          '<button type="button" class="dc-item" data-act="open" data-id="' + esc(n.id) + '">' +
+          '<button type="button" class="dc-item" data-act="open" data-id="' + id + '">' +
             '<span class="dc-ico fold">' + IC_FOLDER + '</span>' +
-            '<span class="dc-main"><strong>' + esc(n.name) + '</strong><span>' + meta + '</span>' + where + '</span>' +
+            '<span class="dc-main"><strong>' + esc(n.name) + '</strong><span>' + base + tag + '</span>' + where + '</span>' +
             '<span class="dc-go">›</span></button>' +
           '<div class="dc-act">' +
-            '<button type="button" class="dc-btn" data-act="rename" data-id="' + esc(n.id) + '">Ubah nama</button>' +
+            (admin && top ? '<button type="button" class="dc-btn" data-act="access" data-id="' + id + '">Atur akses</button>' : '') +
+            (canEditNode(n.id) ? '<button type="button" class="dc-btn" data-act="rename" data-id="' + id + '">Ubah nama</button>' : '') +
             delBtn(n.id) +
           '</div></div>';
       }
       const href = /^https?:\/\//i.test(n.url) ? n.url : '#';
       const meta = [n.rev, n.date].filter(Boolean).join(' · ');
       return '<div class="dc-row">' +
-        '<button type="button" class="dc-item" data-act="preview" data-id="' + esc(n.id) + '">' +
+        '<button type="button" class="dc-item" data-act="preview" data-id="' + id + '">' +
           '<span class="dc-ico">' + IC_FILE + '</span>' +
           '<span class="dc-main"><strong>' + esc(n.name) + '</strong>' +
             '<span>' + (n.code ? '<b class="dc-code">' + esc(n.code) + '</b> ' : '') + esc(meta) + '</span>' + where + '</span></button>' +
         '<div class="dc-act">' +
-          '<button type="button" class="dc-btn pri" data-act="preview" data-id="' + esc(n.id) + '">Preview</button>' +
+          '<button type="button" class="dc-btn pri" data-act="preview" data-id="' + id + '">Preview</button>' +
           '<a class="dc-btn" href="' + esc(href) + '" target="_blank" rel="noopener">Buka ↗</a>' +
-          '<button type="button" class="dc-btn" data-act="edit" data-id="' + esc(n.id) + '">Edit</button>' +
+          (canEditNode(n.id) ? '<button type="button" class="dc-btn" data-act="edit" data-id="' + id + '">Edit</button>' : '') +
           delBtn(n.id) +
         '</div></div>';
-    }).join('') : '<p class="dc-empty">' + (terms.length ? 'Tidak ada yang cocok.' : 'Folder ini masih kosong. Tambahkan folder atau dokumen.') + '</p>';
+    }).join('') : '<p class="dc-empty">' + (terms.length ? 'Tidak ada yang cocok.' : 'Folder ini masih kosong.' + (canAdd ? ' Tambahkan folder atau dokumen.' : '')) + '</p>';
   }
 
   /* ---------- simpan ke server ---------- */
@@ -401,14 +440,14 @@
 
   /* ---------- modal ---------- */
   function syncLock() {
-    const open = ['fm', 'dm', 'pv'].some(id => !$(id).hidden);
+    const open = ['fm', 'dm', 'am', 'pv'].some(id => !$(id).hidden);
     document.documentElement.classList.toggle('dc-lock', open);
   }
   function openModal(id) { $(id).hidden = false; syncLock(); }
   function closeModal(id) { $(id).hidden = true; syncLock(); }
 
   document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
-  ['fm', 'dm'].forEach(id => $(id).addEventListener('click', e => { if (e.target.id === id) closeModal(id); }));
+  ['fm', 'dm', 'am'].forEach(id => $(id).addEventListener('click', e => { if (e.target.id === id) closeModal(id); }));
 
   function openFolderForm(node) {
     editFolder = node ? node.id : null;
@@ -429,6 +468,15 @@
     $('dm-err').textContent = '';
     openModal('dm');
     $('dm-name').focus();
+  }
+  function openAccess(node) {
+    accessId = node.id;
+    $('am-t').textContent = 'Atur akses: ' + node.name;
+    $('am-ids').value = owners(node).join(', ');
+    $('am-users').innerHTML = userIds.length ? 'ID terdaftar: ' + userIds.map(u => '<code>' + esc(u) + '</code>').join(' ') : '';
+    $('am-err').textContent = '';
+    openModal('am');
+    $('am-ids').focus();
   }
 
   $('dc-addf').addEventListener('click', () => openFolderForm(null));
@@ -467,6 +515,17 @@
     save(next, $('dm-err'), $('dm-save'), 'dm');
   });
 
+  $('am-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const ids = [...new Set($('am-ids').value.split(',').map(s => s.trim()).filter(Boolean))];
+    const bad = userIds.length ? ids.filter(x => userIds.indexOf(x) < 0) : [];
+    if (bad.length) { $('am-err').textContent = 'ID tidak terdaftar: ' + bad.join(', '); return; }
+    const next = clone(docs);
+    const r = locate(next, accessId);
+    if (r) r.list[r.i].owners = ids;
+    save(next, $('am-err'), $('am-save'), 'am');
+  });
+
   /* ---------- preview ---------- */
   function openPreview(node) {
     $('pv-title').textContent = (node.code ? node.code + ' · ' : '') + node.name;
@@ -488,6 +547,7 @@
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
     if (!$('pv').hidden) closePreview();
+    else if (!$('am').hidden) closeModal('am');
     else if (!$('dm').hidden) closeModal('dm');
     else if (!$('fm').hidden) closeModal('fm');
   });
@@ -503,8 +563,9 @@
 
     if (act === 'open') { path = pathTo(docs, id) || path; showEmpty = false; $('dc-q').value = ''; render(); return; }
     if (act === 'preview') { openPreview(node); return; }
-    if (act === 'edit') { openFileForm(node); return; }
-    if (act === 'rename') { openFolderForm(node); return; }
+    if (act === 'edit') { if (canEditNode(id)) openFileForm(node); return; }
+    if (act === 'rename') { if (canEditNode(id)) openFolderForm(node); return; }
+    if (act === 'access') { if (admin) openAccess(node); return; }
     if (act === 'copy' || act === 'cut') {
       if (!admin) return;
       clip = (clip && clip.mode === act && clip.id === id) ? null : { mode: act, id, name: node.name, type: node.type };
@@ -535,14 +596,9 @@
   $('dc-empty').addEventListener('click', () => { showEmpty = !showEmpty; $('dc-q').value = ''; render(); });
   $('dc-q').addEventListener('input', () => { if ($('dc-q').value) showEmpty = false; render(); });
   $('dc-out').addEventListener('click', lock);
-  
+
   /* ---------- clipboard admin: salin / potong / tempel ---------- */
-  const curName = () => {
-    if (!path.length) return 'Dokumen';
-    let l = docs, f = null;
-    for (const id of path) { f = l.find(n => n.id === id); if (!f) return 'Dokumen'; l = f.children; }
-    return f.name;
-  };
+  const curName = () => { const n = pathNames(); return n.length ? n[n.length - 1] : 'Dokumen'; };
   function dupe(n, suffix) {
     const c = clone(n);
     (function re(x, top) {
@@ -592,7 +648,7 @@
   }
   $('dc-paste').addEventListener('click', paste);
   $('dc-clip-x').addEventListener('click', () => { clip = null; render(); });
-  
+
   /* ---------- login ---------- */
   $('dc-form').addEventListener('submit', async e => {
     e.preventDefault();
@@ -608,7 +664,7 @@
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'Gagal masuk.');
       memToken = j.token;
-      show(j.docs, j.admin);
+      show(j.docs, j.admin, j.me, j.users);
     } catch (ex) {
       err.textContent = ex.message;
     } finally {
@@ -626,7 +682,7 @@
     if (!sec || !wrap) return;
     if (RM || !('IntersectionObserver' in window)) { wrap.classList.add('is-static'); return; }
 
-    const BLINK_IN = 1400, SHOW = 6000, BLINK_OUT = 1000, GAP = 1200;   // milidetik
+    const BLINK_IN = 1400, SHOW = 6000, BLINK_OUT = 1000, GAP = 1200;
     let timer = 0, running = false;
     const setState = s => {
       wrap.classList.remove('in', 'out');
