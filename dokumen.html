@@ -68,6 +68,11 @@
         </div>
       </div>
       <p class="dc-info" id="dc-info"></p>
+      <div class="dc-clip" id="dc-clip" hidden>
+        <span class="dc-clip-t" id="dc-clip-t"></span>
+        <button type="button" class="btn btn-primary" id="dc-paste">Tempel di sini</button>
+        <button type="button" class="btn btn-outline" id="dc-clip-x">Batal</button>
+      </div>
       <div class="dc-list" id="dc-list"></div>
     </div>
 
@@ -164,6 +169,7 @@
   let memToken = '';                  // token hanya hidup di memori halaman ini
   let docs = [], path = [];           // pohon dokumen, dan jalur folder yang sedang dibuka
   let admin = false, showEmpty = false;
+  let clip = null;                    // isi clipboard admin: { mode:'copy'|'cut', id, name, type }
   let editFile = null, editFolder = null;
   try { sessionStorage.removeItem('dcToken'); } catch (e) {}
 
@@ -252,6 +258,7 @@
   /* ---------- tampilan ---------- */
   function show(list, isAdmin) {
     docs = list; admin = !!isAdmin; path = []; showEmpty = false;
+    clip = null;
     $('dc-login').hidden = true;
     $('dc-app').hidden = false;
     $('dc-quote').hidden = false;
@@ -262,6 +269,7 @@
   function lock() {
     memToken = '';
     docs = []; path = []; admin = false; showEmpty = false;
+    clip = null;
     ['fm', 'dm', 'pv'].forEach(id => { $(id).hidden = true; });
     $('pv-frame').src = 'about:blank';
     syncLock();
@@ -271,10 +279,19 @@
     $('dc-pw').value = '';
   }
 
-  const delBtn = id => admin ? '<button type="button" class="dc-btn del" data-act="del" data-id="' + esc(id) + '">Hapus</button>' : '';
+    const delBtn = id => {
+    if (!admin) return '';
+    const cut = clip && clip.mode === 'cut' && clip.id === id;
+    const cp = clip && clip.mode === 'copy' && clip.id === id;
+    const a = 'data-id="' + esc(id) + '"';
+    return '<button type="button" class="dc-btn' + (cp ? ' marked' : '') + '" data-act="copy" ' + a + '>Salin</button>' +
+           '<button type="button" class="dc-btn' + (cut ? ' cutting' : '') + '" data-act="cut" ' + a + '>' + (cut ? 'Dipotong' : 'Potong') + '</button>' +
+           '<button type="button" class="dc-btn del" data-act="del" ' + a + '>Hapus</button>';
+  };
 
   function render() {
     const cur = fixPath();
+        renderClip();
     const terms = $('dc-q').value.toLowerCase().split(/\s+/).filter(Boolean);
     const emp = emptyFolders(docs, [], []);
     if (!emp.length) showEmpty = false;
@@ -479,6 +496,12 @@
     if (act === 'preview') { openPreview(node); return; }
     if (act === 'edit') { openFileForm(node); return; }
     if (act === 'rename') { openFolderForm(node); return; }
+    if (act === 'copy' || act === 'cut') {
+      if (!admin) return;
+      clip = (clip && clip.mode === act && clip.id === id) ? null : { mode: act, id, name: node.name, type: node.type };
+      render();
+      return;
+    }
     if (act === 'del') {
       if (!admin) return;
       const msg = node.type === 'folder'
@@ -503,7 +526,64 @@
   $('dc-empty').addEventListener('click', () => { showEmpty = !showEmpty; $('dc-q').value = ''; render(); });
   $('dc-q').addEventListener('input', () => { if ($('dc-q').value) showEmpty = false; render(); });
   $('dc-out').addEventListener('click', lock);
-
+  
+  /* ---------- clipboard admin: salin / potong / tempel ---------- */
+  const curName = () => {
+    if (!path.length) return 'Dokumen';
+    let l = docs, f = null;
+    for (const id of path) { f = l.find(n => n.id === id); if (!f) return 'Dokumen'; l = f.children; }
+    return f.name;
+  };
+  function dupe(n, suffix) {
+    const c = clone(n);
+    (function re(x, top) {
+      x.id = nid();
+      if (top && suffix) x.name += ' (salinan)';
+      if (x.type === 'folder') x.children.forEach(ch => re(ch, false));
+    })(c, true);
+    return c;
+  }
+  function renderClip() {
+    const bar = $('dc-clip');
+    if (!admin || !clip) { bar.hidden = true; return; }
+    const r = locate(docs, clip.id);
+    if (!r) { clip = null; bar.hidden = true; return; }
+    const same = r.list === listAt(docs, path);
+    const inside = clip.type === 'folder' && path.indexOf(clip.id) > -1;
+    const bad = clip.mode === 'cut' && (same || inside);
+    bar.hidden = false;
+    $('dc-clip-t').innerHTML = (clip.mode === 'cut' ? '✂ Dipotong: ' : '⧉ Disalin: ') + '<b>' + esc(clip.name) + '</b> · ' +
+      (clip.type === 'folder' ? 'folder' : 'dokumen') + ' → tujuan: <b>' + esc(curName()) + '</b>' +
+      (bad ? (inside ? ' · tidak bisa dipindah ke dalam dirinya sendiri' : ' · sudah berada di folder ini') : '');
+    $('dc-paste').disabled = bad;
+  }
+  async function paste() {
+    if (!admin || !clip) return;
+    const next = clone(docs);
+    const r = locate(next, clip.id);
+    const dest = listAt(next, path);
+    if (!r || !dest) { clip = null; render(); alert('Item asal sudah tidak ada.'); return; }
+    const node = r.list[r.i];
+    if (clip.mode === 'cut') {
+      if (node.type === 'folder' && path.indexOf(node.id) > -1) { alert('Folder tidak bisa dipindah ke dalam dirinya sendiri.'); return; }
+      if (r.list === dest) return;
+      r.list.splice(r.i, 1);
+      dest.push(node);
+    } else {
+      dest.push(dupe(node, r.list === dest));
+    }
+    const btn = $('dc-paste'), old = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Menempel...';
+    try {
+      await persist(next);
+      if (clip && clip.mode === 'cut') clip = null;
+      render();
+    } catch (ex) { alert(ex.message); }
+    finally { btn.textContent = old; renderClip(); }
+  }
+  $('dc-paste').addEventListener('click', paste);
+  $('dc-clip-x').addEventListener('click', () => { clip = null; render(); });
+  
   /* ---------- login ---------- */
   $('dc-form').addEventListener('submit', async e => {
     e.preventDefault();
