@@ -219,6 +219,12 @@
     });
     return out;
   }
+    // nama-nama folder pada jalur yang sedang dibuka
+  function pathNames() {
+    const out = []; let l = docs;
+    path.forEach(id => { const f = l.find(n => n.id === id); if (f) { out.push(f.name); l = f.children; } });
+    return out;
+  }
 
   /* ---------- angka berhitung ---------- */
   let shownN = 0, rafN = 0;
@@ -293,7 +299,7 @@
     const cur = fixPath();
         renderClip();
     const terms = $('dc-q').value.toLowerCase().split(/\s+/).filter(Boolean);
-    const emp = emptyFolders(docs, [], []);
+    const emp = emptyFolders(cur, pathNames(), []);   // hanya isi folder yang sedang dibuka
     if (!emp.length) showEmpty = false;
 
     // penghitung folder kosong
@@ -303,7 +309,10 @@
     chip.disabled = !emp.length;
     chip.setAttribute('aria-pressed', showEmpty ? 'true' : 'false');
     $('dc-empty-n').hidden = !emp.length;
-    $('dc-empty-t').textContent = !emp.length ? 'Semua folder terisi ✓' : (showEmpty ? 'folder kosong · tutup ✕' : 'folder kosong · lihat');
+    const here = path.length > 0;
+    $('dc-empty-t').textContent = !emp.length
+      ? (here ? 'Tidak ada folder kosong di sini ✓' : 'Semua folder terisi ✓')
+      : (showEmpty ? 'folder kosong · tutup ✕' : (here ? 'folder kosong di sini · lihat' : 'folder kosong · lihat'));
     countTo($('dc-empty-n'), emp.length);
 
     // jejak folder
@@ -328,7 +337,7 @@
       $('dc-info').textContent = rows.length + ' hasil pencarian di semua folder';
     } else if (showEmpty) {
       rows = emp.map(e => ({ n: e.n, trail: e.trail }));
-      $('dc-info').textContent = emp.length + ' folder kosong — lengkapi isinya sebelum audit';
+      $('dc-info').textContent = emp.length + ' folder kosong' + (path.length ? ' di dalam folder ini' : '') + ' — lengkapi isinya sebelum audit';
     } else {
       rows = cur.filter(n => n.type === 'folder').concat(cur.filter(n => n.type !== 'folder')).map(n => ({ n, trail: null }));
       const nf = cur.filter(n => n.type === 'folder').length;
