@@ -98,6 +98,11 @@ function idsOf(nodes) {
   (function walk(a) { (a || []).forEach(n => { s.add(n.id); if (n.type === 'folder') walk(n.children); }); })(nodes);
   return s;
 }
+function parents(nodes) {
+  const m = new Map();
+  (function walk(a, p) { (a || []).forEach(n => { m.set(n.id, p); if (n.type === 'folder') walk(n.children, n.id); }); })(nodes, '');
+  return m;
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -124,9 +129,10 @@ module.exports = async (req, res) => {
       if (!R_URL || !R_TOKEN) throw fail(500, 'Penyimpanan belum tersambung.');
       const docs = clean((req.body || {}).docs);
       if (!isAdmin) {
-        const after = idsOf(docs);
-        for (const id of idsOf(await loadDocs())) {
+        const before = parents(await loadDocs()), after = parents(docs);
+        for (const [id, p] of before) {
           if (!after.has(id)) throw fail(403, 'Hanya admin yang boleh menghapus. Jika Anda tidak menghapus apa pun, muat ulang halaman (ada perubahan dari pengguna lain) lalu coba lagi.');
+          if (after.get(id) !== p) throw fail(403, 'Hanya admin yang boleh memindahkan dokumen atau folder.');
         }
       }
       await redis(['SET', KEY, JSON.stringify(docs)]);
