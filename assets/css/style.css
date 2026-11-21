@@ -2436,3 +2436,15 @@ html.dc-lock{overflow:hidden;}
 @media (prefers-reduced-motion: reduce){
   .mr-doc,.mr-fill{animation:none;}
 }
+
+/* clipboard admin */
+.dc-clip{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin:0 0 14px;padding:10px 12px 10px 18px;border-radius:14px;
+  background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;font-size:13.5px;
+}
+.dc-clip-t{flex:1;min-width:200px;}
+.dc-clip .btn{padding:9px 18px;font-size:13px;}
+.dc-clip .btn:disabled{opacity:.45;cursor:not-allowed;}
+.dc-row:has(.dc-btn.cutting){opacity:.45;}
+.dc-btn.cutting,.dc-btn.marked{border-color:var(--forge-500);color:var(--forge-500);background:#eff6ff;}
