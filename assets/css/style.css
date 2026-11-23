@@ -2566,3 +2566,19 @@ html,body{overflow-x:clip;}
   .split-quote{min-height:108px;padding:22px 18px;}
   .sq-mark{left:-6px;top:-40px;font-size:66px;}
 }
+
+/* bubble quote: pop-up saat bagian terlihat, menutup saat terlewat */
+.split-quote{transform-origin:100% 100%;}   /* membuka dari pojok kanan-bawah */
+
+.split-quote.sq-ready{
+  opacity:0;
+  transform:translateY(26px) scale(.55);
+  pointer-events:none;
+  transition:opacity .22s ease, transform .3s ease;
+}
+.split-quote.sq-ready.is-open{
+  opacity:1;
+  transform:none;
+  pointer-events:auto;
+  transition:opacity .35s ease .15s, transform .6s cubic-bezier(.34,1.56,.64,1) .15s;   /* pantulan kecil saat muncul */
+}
