@@ -2485,17 +2485,16 @@ html.dc-lock{overflow:hidden;}
 /* kotak biru bertitik-titik dihilangkan */
 .split-figure .tag{display:none;}
 
-/* quote: kotak putih + bayangan gradasi biru, teks gradasi biru */
+/* kotak quote: gradasi biru di belakang, putih di depan */
 .split-quote{
   position:absolute;right:24px;bottom:24px;left:auto;z-index:3;
   width:min(285px,calc(100% - 48px));margin:0;
-  padding:30px 26px 26px;
+  padding:50px 26px 26px;
+  background:transparent;box-shadow:none;
   border-radius:24px 24px 6px 24px;
-  background:#fff;
   animation:none;transform:none;white-space:normal;
-  box-shadow:0 18px 34px -14px rgba(13,27,61,.45);
 }
-/* bayangan gradasi biru di belakang kotak */
+/* lapisan belakang: gradasi biru, digeser ke kanan-bawah */
 .split-quote::before{
   content:'';position:absolute;inset:0;z-index:-1;
   border-radius:inherit;
@@ -2503,19 +2502,34 @@ html.dc-lock{overflow:hidden;}
   transform:translate(11px,11px);
   box-shadow:0 22px 38px -10px rgba(36,86,217,.6);
 }
-.split-quote p{
-  margin:0;
-  font-family:var(--f-display);font-size:16px;line-height:1.5;font-weight:600;
-  background:linear-gradient(135deg,#1e3a8a 0%,#2456d9 50%,#4f8cff 100%);
+/* lapisan depan: putih (digambar setelah ::before, jadi berada di atasnya) */
+.split-quote::after{
+  content:'';position:absolute;inset:0;z-index:-1;
+  border-radius:inherit;background:#fff;
+  box-shadow:0 18px 34px -14px rgba(13,27,61,.35);
+}
+
+/* tanda petik: lebih besar dan bergerak */
+.sq-mark{
+  position:absolute;left:18px;top:-4px;
+  font-family:var(--f-display);font-size:92px;font-weight:800;line-height:1;
+  background:var(--grad-blue);
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
-  white-space:normal;overflow-wrap:anywhere;
+  transform-origin:30% 70%;
+  animation:sq-swing 3.4s ease-in-out infinite;
 }
-.sq-mark{
-  position:absolute;left:20px;top:2px;
-  font-family:var(--f-display);font-size:54px;line-height:1;
-  background:var(--grad-blue);-webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;color:transparent;
+@keyframes sq-swing{
+  0%,100%{transform:translateY(0) rotate(-6deg) scale(1);}
+  50%{transform:translateY(-6px) rotate(6deg) scale(1.1);}
+}
+
+@media (max-width:560px){
+  .split-quote{padding:42px 20px 20px;}
+  .sq-mark{font-size:72px;left:14px;}
+}
+@media (prefers-reduced-motion: reduce){
+  .sq-mark{animation:none;}
 }
 @media (max-width:560px){
   .split-quote{right:16px;bottom:16px;width:min(250px,calc(100% - 32px));padding:26px 20px 20px;}
