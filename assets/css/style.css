@@ -2538,3 +2538,31 @@ html.dc-lock{overflow:hidden;}
 
 /* cegah scrollbar horizontal akibat elemen yang keluar layar */
 html,body{overflow-x:clip;}
+
+/* teks tepat di tengah bubble putih */
+.split-quote{
+  display:flex;align-items:center;justify-content:center;
+  min-height:128px;
+  padding:28px 26px;                 /* padding atas lama (untuk tanda petik) dihilangkan */
+  text-align:center;
+}
+.split-quote p{
+  text-align:center;
+  margin:0;
+}
+
+/* tanda petik: di luar bubble, kiri atas, putih, tetap bergerak */
+.sq-mark{
+  left:-12px;top:-50px;
+  font-size:84px;
+  background:none;
+  -webkit-background-clip:border-box;background-clip:border-box;
+  -webkit-text-fill-color:#fff;color:#fff;
+  text-shadow:0 4px 12px rgba(13,27,61,.45);   /* bayangan tipis supaya tetap terbaca di atas foto */
+  transform-origin:30% 70%;
+}
+
+@media (max-width:560px){
+  .split-quote{min-height:108px;padding:22px 18px;}
+  .sq-mark{left:-6px;top:-40px;font-size:66px;}
+}
