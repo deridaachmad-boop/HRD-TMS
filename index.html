@@ -323,6 +323,21 @@
 
 <script src="assets/js/main.js"></script>
 <script>
+(function () {
+  const fig = document.querySelector('.split-figure');
+  const q = fig && fig.querySelector('.split-quote');
+  if (!q) return;
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window);
+  if (still) return;                       // tanpa animasi: bubble tampil terus
+  q.classList.add('sq-ready');             // mulai dalam keadaan tertutup
+  new IntersectionObserver(es => {
+    const e = es[0];
+    if (e.intersectionRatio >= 0.4) q.classList.add('is-open');             // terlihat cukup: buka
+    else if (e.intersectionRatio < 0.15) q.classList.remove('is-open');     // sudah lewat: tutup
+  }, { threshold: [0, 0.15, 0.4] }).observe(fig);
+})();
+</script>
+<script>
   setTimeout(function(){
     var p=document.getElementById('preloader');
     if(p){p.classList.add('done');setTimeout(function(){p.remove()},700);}
