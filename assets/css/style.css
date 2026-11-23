@@ -2472,73 +2472,31 @@ html.dc-lock{overflow:hidden;}
   background:var(--paper-100);color:var(--ink-900);
 }
 
-/* =========================================================
-   QUOTE 3D di depan foto gedung (kanan bawah)
-   ========================================================= */
-.split-figure{overflow:visible;}                         /* kartu boleh sedikit keluar dari foto */
-.split-figure-img{border-radius:var(--radius-card);}
-
-.qcard-wrap{
-  position:absolute;right:-22px;bottom:-26px;z-index:3;
-  width:min(330px,82%);
-  perspective:900px;
+/* foto tetap di kolom kanan, quote menumpang di atasnya (diam, tidak berjalan) */
+.split-figure{position:relative;overflow:hidden;min-width:0;}
+.split-quote{
+  position:absolute;right:18px;bottom:18px;left:18px;
+  max-width:340px;margin:0 0 0 auto;z-index:3;
+  padding:16px 18px 16px 48px;
+  background:rgba(255,255,255,.96);color:var(--ink-900);
+  border-radius:18px 18px 4px 18px;               /* bentuk bubble chat */
+  box-shadow:0 18px 36px -16px rgba(13,27,61,.55);
+  animation:none;transform:none;white-space:normal;
 }
-.qcard{
-  position:relative;
-  padding:16px 20px 16px 54px;
-  border-radius:16px;
-  background:linear-gradient(135deg,rgba(255,255,255,.97),rgba(238,242,247,.93));
-  border:1px solid rgba(255,255,255,.8);
-  box-shadow:0 30px 50px -18px rgba(13,27,61,.55), 0 8px 18px -8px rgba(36,86,217,.35);
-  transform-style:preserve-3d;
-  animation:qcard-float 7s ease-in-out infinite;
+.split-quote p{
+  margin:0;font-family:var(--f-body);font-size:14.5px;line-height:1.5;font-weight:500;
+  white-space:normal;overflow-wrap:anywhere;
 }
-/* lapisan biru di belakang: memberi kesan kedalaman 3D */
-.qcard::before{
-  content:'';position:absolute;inset:0;border-radius:16px;
-  background:var(--grad-blue);
-  transform:translate3d(10px,10px,-26px);
-}
-/* kilau yang menyapu kartu */
-.qcard::after{
-  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.75) 50%,transparent 65%);
-  background-size:250% 100%;
-  animation:qcard-shine 6s ease-in-out infinite;
-}
-.qcard-mark{
-  position:absolute;left:18px;top:6px;
-  font-family:var(--f-display);font-weight:800;font-size:54px;line-height:1;
-  background:var(--grad-blue);
-  -webkit-background-clip:text;background-clip:text;
+.sq-mark{
+  position:absolute;left:14px;top:6px;
+  font-family:var(--f-display);font-size:44px;line-height:1;
+  background:var(--grad-blue);-webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
 }
-
-/* teks bergerak seperti tulisan berjalan sebelumnya */
-.qcard-view{
-  overflow:hidden;white-space:nowrap;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
-}
-.qcard-track{display:inline-flex;animation:qcard-run 20s linear infinite;}
-.qcard-track span{padding-right:44px;font-family:var(--f-mono);font-size:13px;color:var(--ink-900);}
-.qcard:hover .qcard-track{animation-play-state:paused;}
-
-@keyframes qcard-run{to{transform:translateX(-50%);}}
-@keyframes qcard-float{
-  0%,100%{transform:rotateY(-14deg) rotateX(5deg) translateY(0);}
-  50%{transform:rotateY(-5deg) rotateX(2deg) translateY(-7px);}
-}
-@keyframes qcard-shine{
-  0%,55%{background-position:130% 0;}
-  100%{background-position:-30% 0;}
+@media (max-width:560px){
+  .split-quote{max-width:none;padding:12px 14px 12px 42px;}
+  .split-quote p{font-size:13px;}
 }
 
-@media (max-width:880px){
-  .qcard-wrap{right:12px;bottom:12px;width:min(300px,86%);}
-}
-@media (prefers-reduced-motion: reduce){
-  .qcard-view{white-space:normal;-webkit-mask-image:none;mask-image:none;}
-  .qcard-track{display:block;}
-  .qcard-track span:nth-child(2){display:none;}
-}
+/* cegah scrollbar horizontal akibat elemen yang keluar layar */
+html,body{overflow-x:clip;}
