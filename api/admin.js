@@ -23,11 +23,11 @@ module.exports = async (req, res) => {
       if (!Array.isArray(soal) || soal.length > 200) return res.status(400).json({ error: "Format soal tidak valid" });
       const bersih = soal.map((q) => ({
         t: String(q.t || "").trim().slice(0, 600),
-        p: (Array.isArray(q.p) ? q.p : []).slice(0, 4).map((o) => String(o || "").trim().slice(0, 300)),
+        p: (Array.isArray(q.p) ? q.p : []).slice(0, 5).map((o) => String(o || "").trim().slice(0, 300)),
         j: Number(q.j),
       }));
-      if (bersih.some((q) => !q.t || q.p.length !== 4 || q.p.some((o) => !o) || ![0, 1, 2, 3].includes(q.j)))
-        return res.status(400).json({ error: "Ada soal yang belum lengkap (pertanyaan, 4 pilihan, kunci)" });
+      if (bersih.some((q) => !q.t || q.p.length < 4 || q.p.length > 5 || q.p.some((o) => !o) || !Number.isInteger(q.j) || q.j < 0 || q.j >= q.p.length))
+        return res.status(400).json({ error: "Ada soal yang belum lengkap (pertanyaan, 4–5 pilihan, kunci)" });
       await redis.set("soal:" + b, bersih);
       const d = Math.min(180, Math.max(1, Math.round(Number(durasi) || 15)));
       await redis.set("durasi", d);
