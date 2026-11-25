@@ -35,7 +35,7 @@ th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}th{co
       <button id="btnImpor">Impor CSV</button><input id="file" type="file" accept=".csv,text/csv" hidden>
       <button id="tpl">Unduh template CSV</button><span class="muted" id="cnt"></span>
       <button class="p" id="simpan" style="margin-left:auto">Simpan</button></div>
-      <p class="muted" style="margin:0">Format CSV: pertanyaan, A, B, C, D, kunci (A–D). Dari Excel, pilih Simpan sebagai CSV.</p></div>
+      <p class="muted" style="margin:0">Format CSV: pertanyaan, A, B, C, D, E (boleh kosong), kunci (A–E). Dari Excel, pilih Simpan sebagai CSV.</p></div>
     <div id="list"></div>
   </div>
 
@@ -47,7 +47,7 @@ th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}th{co
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const $=id=>document.getElementById(id),H=["A","B","C","D"];
+const $=id=>document.getElementById(id),H=["A","B","C","D","E"];
 const BID={metalurgi:"T. Metalurgi",mesin:"T. Mesin",industri:"T. Industri",k3:"K3",lingkungan:"T. Lingkungan"};
 let pw=sessionStorage.getItem("pw")||"",S=[],R=[];
 const h=(t,p={},...c)=>{const e=document.createElement(t);Object.assign(e,p);e.append(...c);return e};
@@ -64,18 +64,19 @@ $("t1").onclick=()=>tab(1);$("t2").onclick=()=>{tab(2);muatHasil()};
 function tab(n){$("p1").hidden=n!==1;$("p2").hidden=n!==2;$("t1").classList.toggle("on",n===1);$("t2").classList.toggle("on",n===2);msg("")}
 $("bsel").onchange=muatSoal;
 async function muatSoal(){try{const d=await api("get",{b:$("bsel").value});
-  S=d.soal.map(q=>({t:q.t,p:[0,1,2,3].map(i=>q.p[i]||""),j:q.j}));$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
+  S=d.soal.map(q=>({t:q.t,p:[...q.p,"","","",""].slice(0,Math.max(4,q.p.length)),j:q.j}));$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
 function draw(){const L=$("list");L.replaceChildren();$("cnt").textContent=S.length+" soal";
   S.forEach((q,k)=>{const ta=h("textarea",{value:q.t,rows:2,placeholder:"Tulis pertanyaan",oninput:()=>q.t=ta.value});
     const ops=q.p.map((o,x)=>h("div",{className:"opt"},h("input",{type:"radio",name:"j"+k,checked:q.j===x,onchange:()=>q.j=x}),
       h("b",{textContent:H[x]+"."}),h("input",{type:"text",value:o,placeholder:"Pilihan "+H[x],oninput:e=>q.p[x]=e.target.value})));
     L.append(h("div",{className:"q"},h("div",{className:"qh"},h("b",{textContent:"Soal "+(k+1)}),
-      h("button",{className:"x",textContent:"Hapus",onclick:()=>{S.splice(k,1);draw()}})),ta,...ops,
+            h("span",{},h("button",{textContent:q.p.length===4?"+ Pilihan E":"Hapus pilihan E",onclick:()=>{if(q.p.length===4)q.p.push("");else{q.p.pop();if(q.j>3)q.j=0}draw()}}),
+      h("button",{className:"x",textContent:"Hapus",onclick:()=>{S.splice(k,1);draw()}}))),ta,...ops,
       h("div",{className:"muted",textContent:"Kunci jawaban: pilih lingkaran di sebelah jawaban yang benar."})))})}
 $("tambah").onclick=()=>{S.push({t:"",p:["","","",""],j:0});draw();window.scrollTo(0,document.body.scrollHeight)};
 $("simpan").onclick=async()=>{msg("Menyimpan…");try{const d=await api("simpan",{b:$("bsel").value,soal:S,durasi:+$("dur").value});msg("Tersimpan: "+d.jumlah+" soal untuk "+BID[$("bsel").value]+".")}catch(e){msg(e.message,1)}};
 function unduhFile(n,t){const a=h("a",{href:URL.createObjectURL(new Blob(["\uFEFF"+t],{type:"text/csv"})),download:n});a.click()}
-$("tpl").onclick=()=>unduhFile("template-soal.csv","pertanyaan,A,B,C,D,kunci\nBerapa hasil 15% dari 240?,32,36,40,48,B\n");
+$("tpl").onclick=()=>unduhFile("template-soal.csv","pertanyaan,A,B,C,D,E,kunci\nBerapa hasil 15% dari 240?,32,36,40,48,50,B\n");
 $("btnImpor").onclick=()=>$("file").click();
 function parseCSV(t){t=t.replace(/^\uFEFF/,"");const f=t.split("\n")[0],d=(f.match(/;/g)||[]).length>(f.match(/,/g)||[]).length?";":",";
   const rows=[];let r=[],c="",q=false;
@@ -86,9 +87,10 @@ function parseCSV(t){t=t.replace(/^\uFEFF/,"");const f=t.split("\n")[0],d=(f.mat
   r.push(c);if(r.some(x=>x.trim()))rows.push(r);return rows}
 $("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();
   fr.onload=()=>{let ok=0,skip=0;parseCSV(fr.result).forEach(r=>{if(/^pertanyaan$/i.test(r[0].trim()))return;
-    const k=(r[5]||"").trim().toUpperCase();let j="ABCD".indexOf(k);if(k.length!==1)j=-1;if(j<0&&/^[1-4]$/.test(k))j=+k-1;
-    if(r.length<6||!r[0].trim()||r.slice(1,5).some(x=>!x.trim())||j<0){skip++;return}
-    S.push({t:r[0].trim(),p:r.slice(1,5).map(x=>x.trim()),j});ok++});
+    const n=(r.length>=7&&r[5].trim())?5:4;const k=(r[r.length>=7?6:5]||"").trim().toUpperCase();
+    let j="ABCDE".indexOf(k);if(k.length!==1)j=-1;if(j<0&&/^[1-5]$/.test(k))j=+k-1;
+    if(r.length<6||!r[0].trim()||r.slice(1,n+1).some(x=>!x.trim())||j<0||j>=n){skip++;return}
+    S.push({t:r[0].trim(),p:r.slice(1,n+1).map(x=>x.trim()),j});ok++});
     draw();msg(ok+" soal diimpor, "+skip+" baris dilewati. Periksa lalu klik Simpan.",!ok);e.target.value=""};fr.readAsText(f)};
 async function muatHasil(){try{R=(await api("hasil")).hasil;tabel()}catch(e){msg(e.message,1)}}
 $("muat").onclick=muatHasil;$("fb").onchange=tabel;
