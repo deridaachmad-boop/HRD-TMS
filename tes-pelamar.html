@@ -54,7 +54,7 @@ button.primary{background:var(--accent);color:var(--at);border-color:var(--accen
 </div>
 <div class="ov" id="ov" hidden><div class="card"><h2>⚠️ Peringatan</h2><p id="ovt"></p><button class="primary" id="ovb">Kembali ke Tes</button></div></div>
 <script>
-const $=id=>document.getElementById(id),H=["A","B","C","D"];
+const $=id=>document.getElementById(id),H=["A","B","C","D","E"];
 let soal=[],ans=[],i=0,left=0,tm=null,nama="",bid="",dur=15,sent=false,viol=0,away=false,quiet=0;
 async function jget(u){const r=await fetch(u),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal");return d}
 (async()=>{try{const d=await jget("/api/quiz");dur=d.durasi;
