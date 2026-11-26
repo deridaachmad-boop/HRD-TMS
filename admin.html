@@ -44,7 +44,7 @@ small,.muted{color:var(--muted);font-size:.88rem}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.row>*{width:auto}.grow{flex:1;min-width:150px}
 .q{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card)}.qh{display:flex;justify-content:space-between;margin-bottom:8px;gap:8px}
 .opt{display:flex;gap:8px;align-items:center;margin-top:6px}.opt input[type=radio]{width:auto}.opt input[type=text]{flex:1}
-.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:640px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:640px}input[type=checkbox]{width:auto}
 th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600;font-size:.85rem}
 @media(max-width:860px){.side{position:fixed;left:-290px;z-index:30;transition:left .2s;box-shadow:var(--sh)}.side.open{left:0}.grid2{grid-template-columns:1fr}.menu{display:block}.content{padding:16px}.top{padding:12px 16px}.live{margin-left:0}}
 </style></head><body>
@@ -98,8 +98,8 @@ th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:
       </div>
 
       <div id="p2" hidden><div class="card"><div class="row"><select id="fb" class="grow"><option value="">Semua tes</option></select>
-        <button id="muat">Muat ulang</button><button class="p" id="unduh">Unduh Excel</button></div>
-        <div class="tw"><table><thead><tr><th>#</th><th>Nama</th><th>Tes</th><th>Nilai</th><th>Benar</th><th>Pelanggaran</th><th>Waktu</th></tr></thead><tbody id="tb"></tbody></table></div>
+        <button id="muat">Muat ulang</button><button class="p" id="unduh">Unduh Excel</button><button class="x" id="hapus" hidden>Hapus terpilih</button></div>
+        <div class="tw"><table><thead><tr><th><input type="checkbox" id="pilihSemua" title="Pilih semua"></th><th>#</th><th>Nama</th><th>Tes</th><th>Nilai</th><th>Benar</th><th>Pelanggaran</th><th>Waktu</th></tr></thead><tbody id="tb"></tbody></table></div>
         <p class="muted" id="hc"></p></div></div>
 
       <div id="p3" hidden><div class="card"><p class="muted" style="margin-top:0">Soal terkunci sampai Anda membukanya. Peserta hanya bisa memulai tes saat tesnya <b>dibuka</b>. Setelah ditutup, peserta yang sedang mengerjakan tetap bisa menyelesaikan, tetapi tidak ada yang bisa memulai baru. Satu nama hanya bisa memulai sekali per pembukaan.</p>
@@ -182,9 +182,14 @@ $("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileR
 async function muatHasil(){try{R=(await api("hasil")).hasil;tabel()}catch(e){msg(e.message,1)}}
 $("muat").onclick=muatHasil;$("fb").onchange=tabel;
 const rows=()=>R.filter(x=>!$("fb").value||x.bidang===$("fb").value);
-function tabel(){const L=rows();$("tb").replaceChildren(...L.map((x,i)=>h("tr",{},h("td",{textContent:i+1}),h("td",{textContent:x.nama}),h("td",{textContent:x.bidang}),
+function tabel(){const L=rows();$("tb").replaceChildren(...L.map((x,i)=>h("tr",{},h("td",{},h("input",{type:"checkbox",checked:PIL.has(x.id),onchange:e=>{e.target.checked?PIL.add(x.id):PIL.delete(x.id);cekPil()}})),h("td",{textContent:i+1}),h("td",{textContent:x.nama}),h("td",{textContent:x.bidang}),
   h("td",{textContent:x.nilai}),h("td",{textContent:x.benar+"/"+x.total}),h("td",{textContent:x.pelanggaran||0}),h("td",{textContent:new Date(x.waktu).toLocaleString("id-ID")}))));
-  $("hc").textContent=L.length+" hasil"+(L.length?" · rata-rata nilai "+Math.round(L.reduce((a,x)=>a+x.nilai,0)/L.length):"")}
+cekPil();$("hc").textContent=L.length+" hasil"+(L.length?" · rata-rata nilai "+Math.round(L.reduce((a,x)=>a+x.nilai,0)/L.length):"")}
+const PIL=new Set();
+function cekPil(){const ids=new Set(rows().map(x=>x.id));[...PIL].forEach(i=>{if(!ids.has(i))PIL.delete(i)});$("hapus").hidden=!PIL.size;$("hapus").textContent="Hapus terpilih ("+PIL.size+")";$("pilihSemua").checked=ids.size>0&&PIL.size===ids.size}
+$("pilihSemua").onchange=e=>{PIL.clear();if(e.target.checked)rows().forEach(x=>PIL.add(x.id));tabel()};
+$("hapus").onclick=async()=>{const n=PIL.size;if(!n||!confirm("Hapus "+n+" riwayat pengerjaan?\n\nTindakan ini tidak bisa dibatalkan. Disarankan klik Unduh Excel dulu sebagai arsip."))return;
+  try{const d=await api("hapusHasil",{ids:[...PIL]});PIL.clear();msg(d.dihapus+" riwayat dihapus.");muatHasil()}catch(e){msg(e.message,1)}};
 const fmtWaktu=w=>new Date(w).toLocaleString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).replace(",","");
 $("unduh").onclick=()=>{
   if(typeof XLSX==="undefined")return msg("Pustaka Excel belum termuat. Muat ulang halaman lalu coba lagi.",1);
