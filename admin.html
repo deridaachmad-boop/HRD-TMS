@@ -1,55 +1,120 @@
 <!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Admin Tes Pelamar — PT TMS</title>
+<title>Dashboard Admin — Tes Pelamar PT TMS</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--text:#1b1f27;--muted:#5d6675;--line:#dde1e8;--accent:#2457d6;--at:#fff;--bad:#c0392b}
-@media(prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1d222a;--text:#eceff4;--muted:#9aa4b2;--line:#2d343f;--accent:#6e95ff;--at:#0e1320;--bad:#ff8a7a;color-scheme:dark}}
+:root{--bg:#f4f6fb;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e5e9f2;--accent:#2563eb;--at:#fff;--bad:#dc2626;--ok:#16a34a;--side:#fff;--h1:#1e1b4b;--h2:#312e81;--soft:#eef2ff;--sh:0 1px 3px rgba(15,23,42,.07),0 6px 16px rgba(15,23,42,.05)}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1420;--card:#171d2b;--text:#e8ecf5;--muted:#93a0b8;--line:#263044;--accent:#5b8def;--at:#0b1020;--bad:#ff8a7a;--ok:#4ade80;--side:#131927;--h1:#1b1a45;--h2:#2a2870;--soft:#1f2740;color-scheme:dark}}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
-h1{font-size:1.3rem;margin:0 0 14px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font:inherit}
-button{font:inherit;cursor:pointer;border-radius:8px;padding:9px 14px;border:1px solid var(--line);background:var(--card);color:var(--text)}
-button.p{background:var(--accent);color:var(--at);border-color:var(--accent);font-weight:600}button.x{color:var(--bad)}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit}
+button{font:inherit;cursor:pointer;border-radius:10px;padding:9px 14px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+button.p{background:var(--accent);color:var(--at);border-color:var(--accent);font-weight:600}button.x{color:var(--bad)}button:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:20px;margin-bottom:16px}
+.shell{display:flex;min-height:100vh}
+.side{width:264px;flex:none;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{padding:22px 20px;border-bottom:1px solid var(--line);font-weight:800;font-size:1.3rem;display:flex;gap:10px;align-items:center}
+.brand i{font-style:normal;background:var(--accent);color:var(--at);border-radius:10px;padding:3px 9px;font-size:1rem}
+.who{padding:16px 20px;border-bottom:1px solid var(--line);font-size:.85rem;color:var(--muted)}.who b{display:block;color:var(--text);font-size:.98rem}
+.sec{padding:20px 20px 8px;font-size:.74rem;letter-spacing:.07em;color:var(--muted);font-weight:700}
+.nav{display:flex;flex-direction:column;gap:4px;padding:0 12px}
+.nav button{display:flex;gap:12px;align-items:center;text-align:left;border:0;background:none;padding:12px 14px;border-radius:12px;font-size:.96rem}
+.nav button.on{background:var(--accent);color:var(--at);font-weight:600}.nav button.out{color:var(--bad)}
+.main{flex:1;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 28px;background:var(--side);border-bottom:1px solid var(--line)}
+.top h1{margin:0;font-size:1.35rem}.menu{display:none;padding:8px 12px}
+.chip{display:flex;gap:10px;align-items:center;font-weight:700;font-size:.92rem}
+.av{width:38px;height:38px;border-radius:50%;background:var(--soft);color:var(--accent);display:grid;place-items:center;font-weight:800;flex:none}
+.content{padding:24px 28px 60px;max-width:1120px}
+.hero{background:linear-gradient(135deg,var(--h1),var(--h2));color:#fff;border-radius:20px;padding:24px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:18px;box-shadow:var(--sh)}
+.hero img{width:76px;height:76px;object-fit:contain;background:#fff;border-radius:14px;padding:6px}
+.hero h2{margin:0;font-size:1.55rem}.hero p{margin:4px 0 0;opacity:.8}
+.live{margin-left:auto;background:rgba(255,255,255,.13);border-radius:999px;padding:7px 14px;font-size:.85rem;display:flex;gap:8px;align-items:center}.live b{color:#4ade80}
+.live button{background:none;border:0;color:#fff;padding:0 2px;font-size:1rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:18px}
+.stat{background:var(--card);border-radius:16px;padding:18px;box-shadow:var(--sh);display:flex;justify-content:space-between;gap:10px}
+.stat .l{color:var(--muted)}.stat .n{font-size:2.1rem;font-weight:800;line-height:1.2;margin-top:6px}.stat .s{color:var(--muted);font-size:.85rem}
+.ic{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;font-size:1.3rem;background:var(--soft);flex:none}
+.grid2{display:grid;grid-template-columns:3fr 2fr;gap:16px}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px}.ph h3{margin:0;font-size:1.08rem}
+.li{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}.li .g{flex:1;min-width:0}.li .g b,.li .g small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+small,.muted{color:var(--muted);font-size:.88rem}
+.bd{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.8rem;font-weight:700;background:var(--soft);color:var(--accent)}
+.bd.ok{background:rgba(22,163,74,.14);color:var(--ok)}.bd.bad{background:rgba(220,38,38,.12);color:var(--bad)}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.row>*{width:auto}.grow{flex:1;min-width:150px}
-.tabs button.on{background:var(--accent);color:var(--at);border-color:var(--accent)}
-.q{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}.qh{display:flex;justify-content:space-between;margin-bottom:8px}
+.q{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card)}.qh{display:flex;justify-content:space-between;margin-bottom:8px;gap:8px}
 .opt{display:flex;gap:8px;align-items:center;margin-top:6px}.opt input[type=radio]{width:auto}.opt input[type=text]{flex:1}
-.muted{color:var(--muted);font-size:.9rem}.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:560px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}
-</style></head><body><div class="wrap">
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600;font-size:.85rem}
+@media(max-width:860px){.side{position:fixed;left:-290px;z-index:30;transition:left .2s;box-shadow:var(--sh)}.side.open{left:0}.grid2{grid-template-columns:1fr}.menu{display:block}.content{padding:16px}.top{padding:12px 16px}.live{margin-left:0}}
+</style></head><body>
 
-<div id="login" class="card" style="max-width:380px;margin:60px auto"><h1>Admin Tes Pelamar</h1>
-  <input id="pw" type="password" placeholder="Password admin" autocomplete="current-password">
-  <div class="row" style="margin-top:12px"><button class="p" id="btnMasuk">Masuk</button><span id="lerr" style="color:var(--bad)"></span></div></div>
+<div id="login" class="card" style="max-width:380px;margin:80px auto"><h2 style="margin:0 0 14px">Admin Tes Pelamar</h2>
+  <input id="pw" type="password" placeholder="Password admin" autocomplete="new-password">
+  <div class="row" style="margin:12px 0 0"><button class="p" id="btnMasuk">Masuk</button><span id="lerr" style="color:var(--bad)"></span></div></div>
 
-<div id="app" hidden>
-  <h1>Dashboard Admin — Tes Pelamar PT TMS</h1>
-  <div class="row tabs"><button id="t1" class="on">Kelola Soal</button><button id="t2">Hasil Peserta</button><button id="keluar" style="margin-left:auto">Keluar</button></div>
-  <div class="muted" id="msg" style="min-height:1.5em;margin-bottom:8px"></div>
+<div class="shell" id="app" hidden>
+  <aside class="side" id="side">
+    <div class="brand"><i>TMS</i> Tes Pelamar</div>
+    <div class="who">Login sebagai:<b>Admin HRD</b>PT Timur Megah Steel</div>
+    <div class="sec">MENU UTAMA</div>
+    <div class="nav">
+      <button id="n0">📊 Dashboard</button><button id="n1">📝 Kelola Soal</button>
+      <button id="n2">👥 Hasil Peserta</button><button id="n3">🔑 Akses Peserta</button>
+    </div>
+    <div class="sec">PENGATURAN</div>
+    <div class="nav"><button id="keluar" class="out">↪ Keluar (Logout)</button></div>
+  </aside>
+  <div class="main">
+    <div class="top"><div class="row" style="margin:0"><button class="menu" id="menu">☰</button><h1 id="jdl">Dashboard</h1></div>
+      <div class="chip"><span class="av">P</span><span>PT TIMUR MEGAH STEEL</span></div></div>
+    <div class="content">
+      <div class="muted" id="msg" style="min-height:1.5em;margin-bottom:8px"></div>
 
-  <div id="p1">
-    <div class="card"><div class="row"><select id="bsel" class="grow"></select>
-      <label class="muted">Durasi (menit)</label><input id="dur" type="number" min="1" max="180" style="width:80px"></div>
-      <div class="row"><button id="tambah">+ Tambah soal</button>
-      <button id="btnImpor">Impor CSV</button><input id="file" type="file" accept=".csv,text/csv" hidden>
-      <button id="tpl">Unduh template CSV</button><span class="muted" id="cnt"></span>
-      <button class="p" id="simpan" style="margin-left:auto">Simpan</button></div>
-      <p class="muted" style="margin:0">Format CSV: pertanyaan, A, B, C, D, E (boleh kosong), kunci (A–E). Dari Excel, pilih Simpan sebagai CSV.</p></div>
-    <div id="list"></div>
+      <div id="p0">
+        <div class="hero"><img src="assets/img/logo_tms_NO.png" alt="" onerror="this.style.display='none'">
+          <div><h2>PT TIMUR MEGAH STEEL</h2><p>Tes Seleksi Pelamar · Human Resource Development</p></div>
+          <div class="live"><b>LIVE</b>•<span id="live">Memuat…</span><button id="segar" title="Segarkan">⟳</button></div></div>
+        <div class="stats">
+          <div class="stat"><div><div class="l">Total Peserta</div><div class="n" id="st0">–</div><div class="s">Tes yang sudah dikumpulkan</div></div><div class="ic">👥</div></div>
+          <div class="stat"><div><div class="l">Tes Dibuka</div><div class="n" id="st1">–</div><div class="s" id="st1s"></div></div><div class="ic">🔓</div></div>
+          <div class="stat"><div><div class="l">Total Soal</div><div class="n" id="st2">–</div><div class="s">Seluruh bank soal</div></div><div class="ic">📝</div></div>
+          <div class="stat"><div><div class="l">Rata-rata Nilai</div><div class="n" id="st3">–</div><div class="s">Dari semua peserta</div></div><div class="ic">🏆</div></div>
+        </div>
+        <div class="grid2">
+          <div class="card"><div class="ph"><h3>Peserta Terbaru</h3><button id="semuaHasil">Lihat Semua →</button></div><div id="recent"></div></div>
+          <div class="card"><div class="ph"><h3>Status Akses Tes</h3><button id="kelolaAkses">Kelola →</button></div><div id="statlist"></div></div>
+        </div>
+      </div>
+
+      <div id="p1" hidden>
+        <div class="card"><div class="row"><select id="bsel" class="grow"></select>
+          <label class="muted">Durasi tes ini (menit)</label><input id="dur" type="number" min="1" max="240" style="width:90px"></div>
+          <div class="row"><button id="tambah">+ Tambah soal</button><button id="btnImpor">Impor CSV</button><input id="file" type="file" accept=".csv,text/csv" hidden>
+          <button id="tpl">Template CSV</button><button id="cadangan">Unduh cadangan soal</button><span class="muted" id="cnt"></span>
+          <button class="p" id="simpan" style="margin-left:auto">Simpan</button></div>
+          <p class="muted" style="margin:0">Format CSV: pertanyaan, A, B, C, D, E (boleh kosong), kunci (A–E). Dari Excel, pilih Simpan sebagai CSV.</p></div>
+        <div id="list"></div>
+      </div>
+
+      <div id="p2" hidden><div class="card"><div class="row"><select id="fb" class="grow"><option value="">Semua tes</option></select>
+        <button id="muat">Muat ulang</button><button class="p" id="unduh">Unduh Excel</button></div>
+        <div class="tw"><table><thead><tr><th>#</th><th>Nama</th><th>Tes</th><th>Nilai</th><th>Benar</th><th>Pelanggaran</th><th>Waktu</th></tr></thead><tbody id="tb"></tbody></table></div>
+        <p class="muted" id="hc"></p></div></div>
+
+      <div id="p3" hidden><div class="card"><p class="muted" style="margin-top:0">Soal terkunci sampai Anda membukanya. Peserta hanya bisa memulai tes saat tesnya <b>dibuka</b>. Setelah ditutup, peserta yang sedang mengerjakan tetap bisa menyelesaikan, tetapi tidak ada yang bisa memulai baru. Satu nama hanya bisa memulai sekali per pembukaan.</p>
+        <div class="tw"><table><thead><tr><th>Tes</th><th>Jenis</th><th>Soal</th><th>Durasi</th><th>Status</th><th></th></tr></thead><tbody id="sb"></tbody></table></div></div></div>
+    </div>
   </div>
+</div>
 
-  <div id="p2" hidden><div class="card"><div class="row"><select id="fb" class="grow"><option value="">Semua bidang</option></select>
-    <button id="muat">Muat ulang</button><button class="p" id="unduh">Unduh Excel</button></div>
-    <div class="tw"><table><thead><tr><th>#</th><th>Nama</th><th>Bidang</th><th>Nilai</th><th>Benar</th><th>Pelanggaran</th><th>Waktu</th></tr></thead><tbody id="tb"></tbody></table></div>
-    <p class="muted" id="hc"></p></div></div>
-</div>
-</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const $=id=>document.getElementById(id),H=["A","B","C","D","E"];
-const BID={metalurgi:"T. Metalurgi",mesin:"T. Mesin",industri:"T. Industri",k3:"K3",lingkungan:"T. Lingkungan"};
-let pw=sessionStorage.getItem("pw")||"",S=[],R=[];
+const GRUP=[["Tes Kompetensi",[["metalurgi","T. Metalurgi"],["mesin","T. Mesin"],["industri","T. Industri"],["k3","K3"],["lingkungan","T. Lingkungan"]]],["Tes Kognitif",[["kognitif","Tes Kognitif"]]],["Tes Psikologi",[["psikologi","Tes Psikologi"]]]];
+const NAMA={};GRUP.forEach(([,l])=>l.forEach(([k,v])=>NAMA[k]=v));
+const JUDUL=["Dashboard","Kelola Soal","Hasil Peserta","Akses Peserta"];
+let pw=sessionStorage.getItem("pw")||"",S=[],R=[],ST=[];
 const h=(t,p={},...c)=>{const e=document.createElement(t);Object.assign(e,p);e.append(...c);return e};
 const msg=(t,bad)=>{$("msg").textContent=t;$("msg").style.color=bad?"var(--bad)":"var(--muted)"};
 async function api(act,data){const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json","x-admin-password":pw},body:JSON.stringify({act,...data})});
@@ -57,11 +122,31 @@ async function api(act,data){const r=await fetch("/api/admin",{method:"POST",hea
 $("btnMasuk").onclick=masuk;$("pw").onkeydown=e=>{if(e.key==="Enter")masuk()};
 async function masuk(){pw=$("pw").value;$("lerr").textContent="";try{await api("ping");sessionStorage.setItem("pw",pw);mulai()}catch(e){$("lerr").textContent=e.message}}
 $("keluar").onclick=()=>{sessionStorage.clear();location.reload()};
-Object.entries(BID).forEach(([k,v])=>{$("bsel").append(h("option",{value:k,textContent:v}));$("fb").append(h("option",{value:v,textContent:v}))});
-async function mulai(){$("login").hidden=true;$("app").hidden=false;muatSoal()}
+function mulai(){$("login").hidden=true;$("app").hidden=false;go(0)}
 if(pw)api("ping").then(mulai).catch(()=>{});
-$("t1").onclick=()=>tab(1);$("t2").onclick=()=>{tab(2);muatHasil()};
-function tab(n){$("p1").hidden=n!==1;$("p2").hidden=n!==2;$("t1").classList.toggle("on",n===1);$("t2").classList.toggle("on",n===2);msg("")}
+GRUP.forEach(([g,l])=>{const og=h("optgroup",{label:g});l.forEach(([k,v])=>og.append(h("option",{value:k,textContent:v})));$("bsel").append(og)});
+$("fb").append(...Object.values(NAMA).map(v=>h("option",{value:v,textContent:v})));
+[0,1,2,3].forEach(i=>$("n"+i).onclick=()=>go(i));
+$("menu").onclick=()=>$("side").classList.toggle("open");
+$("semuaHasil").onclick=()=>go(2);$("kelolaAkses").onclick=()=>go(3);$("segar").onclick=muatDash;
+function go(n){[0,1,2,3].forEach(i=>{$("p"+i).hidden=n!==i;$("n"+i).classList.toggle("on",n===i)});$("jdl").textContent=JUDUL[n];$("side").classList.remove("open");msg("");
+  if(n===0)muatDash();if(n===1)muatSoal();if(n===2)muatHasil();if(n===3)muatStatus()}
+const jam=()=>new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+async function muatDash(){try{const [s,r]=await Promise.all([api("status"),api("hasil")]);ST=s.status;R=r.hasil;
+  const buka=ST.filter(x=>x.buka).length;
+  $("st0").textContent=R.length;$("st1").textContent=buka;$("st1s").textContent="dari "+ST.length+" tes";
+  $("st2").textContent=ST.reduce((a,x)=>a+x.jumlah,0);$("st3").textContent=R.length?Math.round(R.reduce((a,x)=>a+x.nilai,0)/R.length):"–";
+  $("live").textContent="Diperbarui "+jam();
+  $("recent").replaceChildren(...(R.length?R.slice(0,6).map(x=>h("div",{className:"li"},h("span",{className:"av",textContent:(x.nama||"?")[0].toUpperCase()}),
+    h("div",{className:"g"},h("b",{textContent:x.nama}),h("small",{textContent:x.bidang+" · "+new Date(x.waktu).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})})),
+    h("span",{className:"bd",textContent:"Nilai "+x.nilai}),x.pelanggaran?h("span",{className:"bd bad",textContent:"⚠ "+x.pelanggaran}):""))
+    :[h("p",{className:"muted",textContent:"Belum ada peserta yang menyelesaikan tes."})]));
+  $("statlist").replaceChildren(...ST.map(x=>h("div",{className:"li"},h("div",{className:"g"},h("b",{textContent:x.nama}),h("small",{textContent:x.jenis+" · "+x.jumlah+" soal · "+x.durasi+" menit"})),
+    h("span",{className:"bd "+(x.buka?"ok":""),textContent:x.buka?"🔓 Dibuka":"🔒 Terkunci"}))))}catch(e){msg(e.message,1)}}
+async function muatStatus(){try{const d=await api("status");ST=d.status;$("sb").replaceChildren(...ST.map(s=>h("tr",{},h("td",{textContent:s.nama}),h("td",{textContent:s.jenis}),h("td",{textContent:s.jumlah+" soal"}),h("td",{textContent:s.durasi+" menit"}),
+  h("td",{textContent:s.buka?"🔓 Dibuka":"🔒 Terkunci"}),
+  h("td",{},h("button",{className:s.buka?"x":"p",textContent:s.buka?"Tutup tes":"Buka tes",disabled:!s.jumlah,onclick:()=>ubahAkses(s)})))))}catch(e){msg(e.message,1)}}
+async function ubahAkses(s){if(!confirm((s.buka?"Tutup":"Buka")+" tes "+s.nama+"?"))return;try{await api(s.buka?"tutup":"buka",{b:s.id});msg("Tes "+s.nama+(s.buka?" ditutup.":" dibuka."));muatStatus()}catch(e){msg(e.message,1)}}
 $("bsel").onchange=muatSoal;
 async function muatSoal(){try{const d=await api("get",{b:$("bsel").value});
   S=d.soal.map(q=>({t:q.t,p:[...q.p,"","","",""].slice(0,Math.max(4,q.p.length)),j:q.j}));$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
@@ -70,13 +155,15 @@ function draw(){const L=$("list");L.replaceChildren();$("cnt").textContent=S.len
     const ops=q.p.map((o,x)=>h("div",{className:"opt"},h("input",{type:"radio",name:"j"+k,checked:q.j===x,onchange:()=>q.j=x}),
       h("b",{textContent:H[x]+"."}),h("input",{type:"text",value:o,placeholder:"Pilihan "+H[x],oninput:e=>q.p[x]=e.target.value})));
     L.append(h("div",{className:"q"},h("div",{className:"qh"},h("b",{textContent:"Soal "+(k+1)}),
-            h("span",{},h("button",{textContent:q.p.length===4?"+ Pilihan E":"Hapus pilihan E",onclick:()=>{if(q.p.length===4)q.p.push("");else{q.p.pop();if(q.j>3)q.j=0}draw()}}),
+      h("span",{},h("button",{textContent:q.p.length===4?"+ Pilihan E":"Hapus pilihan E",onclick:()=>{if(q.p.length===4)q.p.push("");else{q.p.pop();if(q.j>3)q.j=0}draw()}}),
       h("button",{className:"x",textContent:"Hapus",onclick:()=>{S.splice(k,1);draw()}}))),ta,...ops,
       h("div",{className:"muted",textContent:"Kunci jawaban: pilih lingkaran di sebelah jawaban yang benar."})))})}
 $("tambah").onclick=()=>{S.push({t:"",p:["","","",""],j:0});draw();window.scrollTo(0,document.body.scrollHeight)};
-$("simpan").onclick=async()=>{msg("Menyimpan…");try{const d=await api("simpan",{b:$("bsel").value,soal:S,durasi:+$("dur").value});msg("Tersimpan: "+d.jumlah+" soal untuk "+BID[$("bsel").value]+".")}catch(e){msg(e.message,1)}};
+$("simpan").onclick=async()=>{msg("Menyimpan…");try{const d=await api("simpan",{b:$("bsel").value,soal:S,durasi:+$("dur").value});msg("Tersimpan: "+d.jumlah+" soal untuk "+NAMA[$("bsel").value]+".")}catch(e){msg(e.message,1)}};
 function unduhFile(n,t){const a=h("a",{href:URL.createObjectURL(new Blob(["\uFEFF"+t],{type:"text/csv"})),download:n});a.click()}
 $("tpl").onclick=()=>unduhFile("template-soal.csv","pertanyaan,A,B,C,D,E,kunci\nBerapa hasil 15% dari 240?,32,36,40,48,50,B\n");
+$("cadangan").onclick=()=>{if(!S.length)return msg("Belum ada soal untuk dicadangkan.",1);const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  unduhFile("cadangan-soal-"+$("bsel").value+".csv",["pertanyaan,A,B,C,D,E,kunci"].concat(S.map(x=>[x.t,0,1,2,3,4].map((v,i)=>i?x.p[v]||"":v).concat(H[x.j]).map(q).join(","))).join("\n")+"\n")};
 $("btnImpor").onclick=()=>$("file").click();
 function parseCSV(t){t=t.replace(/^\uFEFF/,"");const f=t.split("\n")[0],d=(f.match(/;/g)||[]).length>(f.match(/,/g)||[]).length?";":",";
   const rows=[];let r=[],c="",q=false;
@@ -102,7 +189,7 @@ const fmtWaktu=w=>new Date(w).toLocaleString("id-ID",{day:"2-digit",month:"2-dig
 $("unduh").onclick=()=>{
   if(typeof XLSX==="undefined")return msg("Pustaka Excel belum termuat. Muat ulang halaman lalu coba lagi.",1);
   const L=rows();if(!L.length)return msg("Belum ada hasil untuk diunduh.",1);
-  const aoa=[["No","Nama","Bidang","Nilai","Benar","Total Soal","Pelanggaran","Waktu Pengerjaan"]]
+  const aoa=[["No","Nama","Tes","Nilai","Benar","Total Soal","Pelanggaran","Waktu Pengerjaan"]]
     .concat(L.map((x,i)=>[i+1,x.nama,x.bidang,x.nilai,x.benar,x.total,x.pelanggaran||0,fmtWaktu(x.waktu)]));
   const ws=XLSX.utils.aoa_to_sheet(aoa);
   ws["!cols"]=[{wch:5},{wch:28},{wch:16},{wch:8},{wch:8},{wch:11},{wch:12},{wch:18}];
