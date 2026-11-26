@@ -1,4 +1,4 @@
-const { redis, BIDANG, cekAdmin } = require("./_lib");
+const { redis, TES, BIDANG, cekAdmin, getDurasi, rebuildMeta } = require("./_lib");
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") return res.status(405).json({ error: "Metode tidak didukung" });
@@ -14,10 +14,26 @@ module.exports = async (req, res) => {
     const { act, b, soal, durasi } = req.body || {};
     if (act === "ping") return res.json({ ok: true });
     if (act === "hasil") return res.json({ hasil: await redis.lrange("hasil", 0, -1) });
-    if (!BIDANG[b]) return res.status(400).json({ error: "Bidang tidak valid" });
+    if (act === "status") {
+      const m = await rebuildMeta();
+      return res.json({ status: Object.keys(TES).map((k) => ({ id: k, nama: TES[k].nama, jenis: TES[k].jenis, ...m[k] })) });
+    }
+    if (!BIDANG[b]) return res.status(400).json({ error: "Tes tidak valid" });
+    if (act === "buka") {
+      const s = await redis.get("soal:" + b);
+      if (!Array.isArray(s) || !s.length) return res.status(400).json({ error: "Belum ada soal untuk tes ini" });
+      await redis.set("buka:" + b, Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+      await rebuildMeta();
+      return res.json({ ok: true });
+    }
+    if (act === "tutup") {
+      await redis.del("buka:" + b);
+      await rebuildMeta();
+      return res.json({ ok: true });
+    }
     if (act === "get") {
       const s = await redis.get("soal:" + b);
-      return res.json({ soal: Array.isArray(s) ? s : [], durasi: Number(await redis.get("durasi")) || 15 });
+      return res.json({ soal: Array.isArray(s) ? s : [], durasi: await getDurasi(b) });
     }
     if (act === "simpan") {
       if (!Array.isArray(soal) || soal.length > 200) return res.status(400).json({ error: "Format soal tidak valid" });
@@ -29,8 +45,8 @@ module.exports = async (req, res) => {
       if (bersih.some((q) => !q.t || q.p.length < 4 || q.p.length > 5 || q.p.some((o) => !o) || !Number.isInteger(q.j) || q.j < 0 || q.j >= q.p.length))
         return res.status(400).json({ error: "Ada soal yang belum lengkap (pertanyaan, 4–5 pilihan, kunci)" });
       await redis.set("soal:" + b, bersih);
-      const d = Math.min(180, Math.max(1, Math.round(Number(durasi) || 15)));
-      await redis.set("durasi", d);
+      await redis.set("durasi:" + b, Math.min(240, Math.max(1, Math.round(Number(durasi) || 15))));
+      await rebuildMeta();
       return res.json({ ok: true, jumlah: bersih.length });
     }
     res.status(400).json({ error: "Aksi tidak dikenal" });
