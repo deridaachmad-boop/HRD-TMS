@@ -11,9 +11,19 @@ module.exports = async (req, res) => {
       return res.status(401).json({ error: "Password salah" });
     }
     await redis.del(gk);
-    const { act, b, soal, durasi } = req.body || {};
+    const { act, b, soal, durasi, ids } = req.body || {};
     if (act === "ping") return res.json({ ok: true });
     if (act === "hasil") return res.json({ hasil: await redis.lrange("hasil", 0, -1) });
+    if (act === "hapusHasil") {
+      const pilih = new Set((Array.isArray(ids) ? ids : []).map(String));
+      if (!pilih.size) return res.status(400).json({ error: "Tidak ada data yang dipilih" });
+      const semua = await redis.lrange("hasil", 0, -1);
+      const sisa = semua.filter((x) => !pilih.has(String(x.id)));
+      const tx = redis.multi().del("hasil");
+      if (sisa.length) tx.rpush("hasil", ...sisa);
+      await tx.exec();
+      return res.json({ ok: true, dihapus: semua.length - sisa.length });
+    }
     if (act === "status") {
       const m = await rebuildMeta();
       return res.json({ status: Object.keys(TES).map((k) => ({ id: k, nama: TES[k].nama, jenis: TES[k].jenis, ...m[k] })) });
