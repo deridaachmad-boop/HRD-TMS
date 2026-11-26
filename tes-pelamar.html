@@ -31,10 +31,10 @@ button.primary{background:var(--accent);color:var(--at);border-color:var(--accen
   <p>PT Timur Megah Steel — Human Resource Development</p>
   <label for="nama">Nama lengkap</label>
   <input id="nama" type="text" maxlength="80" placeholder="Masukkan nama lengkap Anda" autocomplete="name">
-  <label for="bid">Pilih bidang tes</label>
-  <select id="bid"><option value="">— Pilih bidang —</option></select>
+  <label for="bid">Pilih tes</label>
+  <select id="bid"><option value="">— Pilih tes —</option></select>
   <p id="info" style="margin-top:12px"></p>
-  <p>Setiap soal pilihan ganda. Jawaban dikumpulkan otomatis saat waktu habis. Selama tes berlangsung, berpindah tab atau keluar dari halaman akan diperingatkan dan dicatat.</p>
+  <p>Setiap soal pilihan ganda. Tes hanya dapat dimulai setelah dibuka oleh HRD, dan durasi mengikuti tes yang dipilih. Jawaban dikumpulkan otomatis saat waktu habis. Selama tes berlangsung, berpindah tab atau keluar dari halaman akan diperingatkan dan dicatat.</p>
   <button class="primary" id="mulai">Mulai Tes</button>
   <div class="err" id="err"></div>
 </div>
@@ -55,19 +55,23 @@ button.primary{background:var(--accent);color:var(--at);border-color:var(--accen
 <div class="ov" id="ov" hidden><div class="card"><h2>⚠️ Peringatan</h2><p id="ovt"></p><button class="primary" id="ovb">Kembali ke Tes</button></div></div>
 <script>
 const $=id=>document.getElementById(id),H=["A","B","C","D","E"];
-let soal=[],ans=[],i=0,left=0,tm=null,nama="",bid="",dur=15,sent=false,viol=0,away=false,quiet=0;
+let soal=[],ans=[],i=0,left=0,tm=null,nama="",bid="",DUR={},sent=false,viol=0,away=false,quiet=0,sesi="";
 async function jget(u){const r=await fetch(u),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal");return d}
-(async()=>{try{const d=await jget("/api/quiz");dur=d.durasi;
-  d.bidang.forEach(b=>{const o=document.createElement("option");o.value=b.id;o.textContent=b.nama+(b.jumlah?"":" (belum tersedia)");o.disabled=!b.jumlah;$("bid").append(o)});
-  $("info").textContent="Durasi tes: "+dur+" menit."}catch(e){$("err").textContent="Gagal memuat data. Muat ulang halaman."}})();
+async function muatBidang(){try{const d=await jget("/api/quiz"),v=$("bid").value,g={};DUR={};$("bid").replaceChildren(new Option("— Pilih tes —",""));
+  d.bidang.forEach(b=>{DUR[b.id]=b.durasi;let og=g[b.jenis];if(!og){og=g[b.jenis]=document.createElement("optgroup");og.label=b.jenis;$("bid").append(og)}
+    const o=new Option(b.nama+(!b.jumlah?" (belum tersedia)":!b.buka?" (belum dibuka)":""),b.id);o.disabled=!b.jumlah||!b.buka;og.append(o)});
+  $("bid").value=v;if($("bid").selectedOptions[0].disabled)$("bid").value="";info()}catch(e){$("err").textContent="Gagal memuat data. Muat ulang halaman."}}
+function info(){const v=$("bid").value;$("info").textContent=v&&DUR[v]?"Durasi tes: "+DUR[v]+" menit.":""}
+$("bid").onchange=info;
+muatBidang();setInterval(()=>{if(!$("s1").hidden&&!document.hidden)muatBidang()},15000);
 $("mulai").onclick=async()=>{
   nama=$("nama").value.trim();bid=$("bid").value;$("err").textContent="";
   if(!nama)return $("err").textContent="Mohon isi nama lengkap.";
-  if(!bid)return $("err").textContent="Mohon pilih bidang tes.";
+  if(!bid)return $("err").textContent="Mohon pilih tes.";
   $("mulai").disabled=true;
-  try{const d=await jget("/api/quiz?b="+encodeURIComponent(bid));soal=d.soal;ans=Array(soal.length).fill(null);left=d.durasi*60;
+  try{const r=await fetch("/api/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({aksi:"mulai",nama,b:bid})}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal memulai tes");sesi=d.id;soal=d.soal;ans=Array(soal.length).fill(null);left=d.durasi*60;
     $("s1").hidden=true;$("s2").hidden=false;draw();tick();tm=setInterval(tick,1000)}
-  catch(e){$("err").textContent=e.message;$("mulai").disabled=false}};
+  catch(e){$("err").textContent=e.message;$("mulai").disabled=false;muatBidang()}};
 function tick(){const m=Math.floor(left/60),s=left%60;$("tmr").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
   $("tmr").classList.toggle("low",left<=60);if(left--<=0)finish(true)}
 function draw(){const q=soal[i];$("prog").textContent="Soal "+(i+1)+" dari "+soal.length;
@@ -83,7 +87,7 @@ function draw(){const q=soal[i];$("prog").textContent="Soal "+(i+1)+" dari "+soa
     d.textContent=k+1;d.onclick=()=>{i=k;draw()};$("dots").append(d)})}
 function finish(auto){if(sent)return;sent=true;$("ov").hidden=true;clearInterval(tm);$("s2").hidden=true;$("s3").hidden=false;kirim(auto)}
 async function kirim(auto){$("retry").hidden=true;$("who").textContent="Peserta: "+nama;$("sc").textContent="…";$("sum").textContent="Mengirim jawaban, mohon tunggu.";
-  try{const r=await fetch("/api/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nama,b:bid,a:ans,v:viol})}),d=await r.json();
+  try{const r=await fetch("/api/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({aksi:"kirim",id:sesi,a:ans,v:viol})}),d=await r.json();
     if(!r.ok)throw new Error(d.error);$("sc").textContent=d.nilai;
     $("sum").textContent=(auto?"Waktu habis. ":"")+"Benar "+d.benar+" dari "+d.total+" soal. Jawaban Anda telah diterima HRD. Terima kasih.";}
   catch(e){$("sc").textContent="!";$("sum").textContent="Jawaban belum terkirim ("+e.message+"). Jangan tutup halaman ini, lalu klik Kirim Ulang.";$("retry").hidden=false;$("retry").onclick=()=>kirim(auto)}}
