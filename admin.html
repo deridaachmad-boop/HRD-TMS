@@ -44,7 +44,7 @@ small,.muted{color:var(--muted);font-size:.88rem}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.row>*{width:auto}.grow{flex:1;min-width:150px}
 .q{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card)}.qh{display:flex;justify-content:space-between;margin-bottom:8px;gap:8px}
 .opt{display:flex;gap:8px;align-items:center;margin-top:6px}.opt input[type=radio]{width:auto}.opt input[type=text]{flex:1}
-.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:640px}input[type=checkbox]{width:auto}.gb{margin:8px 0}.gb img{display:block;max-height:150px;max-width:100%;border:1px solid var(--line);border-radius:8px;margin-bottom:6px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:640px}input[type=checkbox]{width:auto}.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow:auto;z-index:50}.ov .card{width:100%;max-width:760px;margin:0}.jw{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;margin:6px 0 8px}.sk{display:flex;gap:8px;align-items:center}.sk input{width:90px}.gb{margin:8px 0}.gb img{display:block;max-height:150px;max-width:100%;border:1px solid var(--line);border-radius:8px;margin-bottom:6px}
 th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600;font-size:.85rem}
 @media(max-width:860px){.side{position:fixed;left:-290px;z-index:30;transition:left .2s;box-shadow:var(--sh)}.side.open{left:0}.grid2{grid-template-columns:1fr}.menu{display:block}.content{padding:16px}.top{padding:12px 16px}.live{margin-left:0}}
 </style></head><body>
@@ -90,16 +90,16 @@ th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:
       <div id="p1" hidden>
         <div class="card"><div class="row"><select id="bsel" class="grow"></select>
           <label class="muted">Durasi tes ini (menit)</label><input id="dur" type="number" min="1" max="240" style="width:90px"></div>
-          <div class="row"><button id="tambah">+ Tambah soal</button><button id="btnImpor">Impor CSV</button><input id="file" type="file" accept=".csv,text/csv" hidden>
+          <div class="row"><button id="tambah">+ Tambah soal</button><button id="tambahEsai">+ Tambah soal essay</button><button id="btnImpor">Impor CSV</button><input id="file" type="file" accept=".csv,text/csv" hidden>
           <button id="tpl">Template CSV</button><button id="cadangan">Unduh cadangan soal</button><span class="muted" id="cnt"></span>
           <button class="p" id="simpan" style="margin-left:auto">Simpan</button></div>
-          <p class="muted" style="margin:0">Format CSV: pertanyaan, A, B, C, D, E (boleh kosong), kunci (A–E). Dari Excel, pilih Simpan sebagai CSV.</p></div>
+          <p class="muted" style="margin:0">Format CSV: pertanyaan, A, B, C, D, E (boleh kosong), kunci (A–E). Soal essay: kosongkan A–E, kunci diisi ESSAY:poin (contoh ESSAY:10). Dari Excel, pilih Simpan sebagai CSV.</p></div>
         <div id="list"></div>
       </div>
 
       <div id="p2" hidden><div class="card"><div class="row"><select id="fb" class="grow"><option value="">Semua tes</option></select>
         <button id="muat">Muat ulang</button><button class="p" id="unduh">Unduh Excel</button><button class="x" id="hapus" hidden>Hapus terpilih</button></div>
-        <div class="tw"><table><thead><tr><th><input type="checkbox" id="pilihSemua" title="Pilih semua"></th><th>#</th><th>Nama</th><th>Tes</th><th>Nilai</th><th>Benar</th><th>Pelanggaran</th><th>Waktu</th></tr></thead><tbody id="tb"></tbody></table></div>
+        <div class="tw"><table><thead><tr><th><input type="checkbox" id="pilihSemua" title="Pilih semua"></th><th>#</th><th>Nama</th><th>Tes</th><th>Nilai</th><th>Benar</th><th>Pelanggaran</th><th>Waktu</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
         <p class="muted" id="hc"></p></div></div>
 
       <div id="p3" hidden><div class="card"><p class="muted" style="margin-top:0">Soal terkunci sampai Anda membukanya. Peserta hanya bisa memulai tes saat tesnya <b>dibuka</b>. Setelah ditutup, peserta yang sedang mengerjakan tetap bisa menyelesaikan, tetapi tidak ada yang bisa memulai baru. Satu nama hanya bisa memulai sekali per pembukaan.</p>
@@ -108,6 +108,7 @@ th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:
   </div>
 </div>
 
+<div class="ov" id="ov" hidden><div class="card"><div class="ph"><h3 id="ovj">Periksa Essay</h3><button id="ovx">✕ Tutup</button></div><div id="ovb"></div><div class="row" style="margin-top:12px"><button class="p" id="ovs">Simpan nilai</button><span class="muted" id="ovm"></span></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const $=id=>document.getElementById(id),H=["A","B","C","D","E"];
@@ -135,11 +136,11 @@ const jam=()=>new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-di
 async function muatDash(){try{const [s,r]=await Promise.all([api("status"),api("hasil")]);ST=s.status;R=r.hasil;
   const buka=ST.filter(x=>x.buka).length;
   $("st0").textContent=R.length;$("st1").textContent=buka;$("st1s").textContent="dari "+ST.length+" tes";
-  $("st2").textContent=ST.reduce((a,x)=>a+x.jumlah,0);$("st3").textContent=R.length?Math.round(R.reduce((a,x)=>a+x.nilai,0)/R.length):"–";
+  $("st2").textContent=ST.reduce((a,x)=>a+x.jumlah,0);const G=R.filter(x=>x.nilai!=null);$("st3").textContent=G.length?Math.round(G.reduce((a,x)=>a+x.nilai,0)/G.length):"–";
   $("live").textContent="Diperbarui "+jam();
   $("recent").replaceChildren(...(R.length?R.slice(0,6).map(x=>h("div",{className:"li"},h("span",{className:"av",textContent:(x.nama||"?")[0].toUpperCase()}),
     h("div",{className:"g"},h("b",{textContent:x.nama}),h("small",{textContent:x.bidang+" · "+new Date(x.waktu).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})})),
-    h("span",{className:"bd",textContent:"Nilai "+x.nilai}),x.pelanggaran?h("span",{className:"bd bad",textContent:"⚠ "+x.pelanggaran}):""))
+    h("span",{className:"bd",textContent:x.nilai==null?"Menunggu essay":"Nilai "+x.nilai}),x.pelanggaran?h("span",{className:"bd bad",textContent:"⚠ "+x.pelanggaran}):""))
     :[h("p",{className:"muted",textContent:"Belum ada peserta yang menyelesaikan tes."})]));
   $("statlist").replaceChildren(...ST.map(x=>h("div",{className:"li"},h("div",{className:"g"},h("b",{textContent:x.nama}),h("small",{textContent:x.jenis+" · "+x.jumlah+" soal · "+x.durasi+" menit"})),
     h("span",{className:"bd "+(x.buka?"ok":""),textContent:x.buka?"🔓 Dibuka":"🔒 Terkunci"}))))}catch(e){msg(e.message,1)}}
@@ -149,16 +150,17 @@ async function muatStatus(){try{const d=await api("status");ST=d.status;$("sb").
 async function ubahAkses(s){if(!confirm((s.buka?"Tutup":"Buka")+" tes "+s.nama+"?"))return;try{await api(s.buka?"tutup":"buka",{b:s.id});msg("Tes "+s.nama+(s.buka?" ditutup.":" dibuka."));muatStatus()}catch(e){msg(e.message,1)}}
 $("bsel").onchange=muatSoal;
 async function muatSoal(){try{const d=await api("get",{b:$("bsel").value});
-  S=d.soal.map(q=>({t:q.t,p:[...q.p,"","","",""].slice(0,Math.max(4,q.p.length)),j:q.j,g:q.g||null}));$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
+  S=d.soal.map(q=>q.e?{t:q.t,e:true,bobot:q.bobot||10,p:[],j:0,g:q.g||null}:{t:q.t,p:[...q.p,"","","",""].slice(0,Math.max(4,q.p.length)),j:q.j,g:q.g||null});$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
 function draw(){const L=$("list");L.replaceChildren();$("cnt").textContent=S.length+" soal";
   S.forEach((q,k)=>{const ta=h("textarea",{value:q.t,rows:2,placeholder:"Tulis pertanyaan",oninput:()=>q.t=ta.value});
     const ops=q.p.map((o,x)=>h("div",{className:"opt"},h("input",{type:"radio",name:"j"+k,checked:q.j===x,onchange:()=>q.j=x}),
       h("b",{textContent:H[x]+"."}),h("input",{type:"text",value:o,placeholder:"Pilihan "+H[x],oninput:e=>q.p[x]=e.target.value})));
     const gb=h("div",{className:"gb"},...(q.g?[h("img",{src:"/api/img?id="+q.g,alt:""}),h("button",{className:"x",textContent:"Hapus gambar",onclick:()=>{q.g=null;draw()}})]:[h("button",{textContent:"🖼 Tambah gambar",onclick:()=>pilihGambar(q)})]));
-  L.append(h("div",{className:"q"},h("div",{className:"qh"},h("b",{textContent:"Soal "+(k+1)}),
-      h("span",{},h("button",{textContent:q.p.length===4?"+ Pilihan E":"Hapus pilihan E",onclick:()=>{if(q.p.length===4)q.p.push("");else{q.p.pop();if(q.j>3)q.j=0}draw()}}),
+    L.append(h("div",{className:"q"},h("div",{className:"qh"},h("b",{textContent:"Soal "+(k+1)+(q.e?" (Essay)":"")}),
+      h("span",{},q.e?"":h("button",{textContent:q.p.length===4?"+ Pilihan E":"Hapus pilihan E",onclick:()=>{if(q.p.length===4)q.p.push("");else{q.p.pop();if(q.j>3)q.j=0}draw()}}),
       h("button",{className:"x",textContent:"Hapus",onclick:()=>{S.splice(k,1);draw()}}))),ta,gb,...ops,
-      h("div",{className:"muted",textContent:"Kunci jawaban: pilih lingkaran di sebelah jawaban yang benar."})))})}
+      q.e?h("div",{className:"sk"},h("span",{className:"muted",textContent:"Soal essay · poin maksimal:"}),h("input",{type:"number",min:1,max:100,value:q.bobot,oninput:e=>q.bobot=+e.target.value||10}),h("span",{className:"muted",textContent:"(dinilai manual oleh HRD)"})):h("div",{className:"muted",textContent:"Kunci jawaban: pilih lingkaran di sebelah jawaban yang benar."})))})}
+$("tambahEsai").onclick=()=>{S.push({t:"",e:true,bobot:10,p:[],j:0,g:null});draw();window.scrollTo(0,document.body.scrollHeight)};
 async function kecilkan(f){const b=await createImageBitmap(f);let s=Math.min(1,900/Math.max(b.width,b.height)),q=.85,out="";
   for(let i=0;i<6;i++){const c=document.createElement("canvas");c.width=Math.max(1,Math.round(b.width*s));c.height=Math.max(1,Math.round(b.height*s));
     const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(b,0,0,c.width,c.height);
@@ -169,9 +171,9 @@ function pilihGambar(q){const i=h("input",{type:"file",accept:"image/png,image/j
 $("tambah").onclick=()=>{S.push({t:"",p:["","","",""],j:0});draw();window.scrollTo(0,document.body.scrollHeight)};
 $("simpan").onclick=async()=>{msg("Menyimpan…");try{const d=await api("simpan",{b:$("bsel").value,soal:S,durasi:+$("dur").value});msg("Tersimpan: "+d.jumlah+" soal untuk "+NAMA[$("bsel").value]+".")}catch(e){msg(e.message,1)}};
 function unduhFile(n,t){const a=h("a",{href:URL.createObjectURL(new Blob(["\uFEFF"+t],{type:"text/csv"})),download:n});a.click()}
-$("tpl").onclick=()=>unduhFile("template-soal.csv","pertanyaan,A,B,C,D,E,kunci\nBerapa hasil 15% dari 240?,32,36,40,48,50,B\n");
+$("tpl").onclick=()=>unduhFile("template-soal.csv","pertanyaan,A,B,C,D,E,kunci\nBerapa hasil 15% dari 240?,32,36,40,48,50,B\nJelaskan proses annealing pada baja.,,,,,,ESSAY:10\n");
 $("cadangan").onclick=()=>{if(!S.length)return msg("Belum ada soal untuk dicadangkan.",1);const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
-  unduhFile("cadangan-soal-"+$("bsel").value+".csv",["pertanyaan,A,B,C,D,E,kunci"].concat(S.map(x=>[x.t,0,1,2,3,4].map((v,i)=>i?x.p[v]||"":v).concat(H[x.j]).map(q).join(","))).join("\n")+"\n")};
+  unduhFile("cadangan-soal-"+$("bsel").value+".csv",["pertanyaan,A,B,C,D,E,kunci"].concat(S.map(x=>x.e?[x.t,"","","","","","ESSAY:"+x.bobot].map(q).join(","):[x.t,0,1,2,3,4].map((v,i)=>i?x.p[v]||"":v).concat(H[x.j]).map(q).join(","))).join("\n")+"\n")};
 $("btnImpor").onclick=()=>$("file").click();
 function parseCSV(t){t=t.replace(/^\uFEFF/,"");const f=t.split("\n")[0],d=(f.match(/;/g)||[]).length>(f.match(/,/g)||[]).length?";":",";
   const rows=[];let r=[],c="",q=false;
@@ -182,6 +184,7 @@ function parseCSV(t){t=t.replace(/^\uFEFF/,"");const f=t.split("\n")[0],d=(f.mat
   r.push(c);if(r.some(x=>x.trim()))rows.push(r);return rows}
 $("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();
   fr.onload=()=>{let ok=0,skip=0;parseCSV(fr.result).forEach(r=>{if(/^pertanyaan$/i.test(r[0].trim()))return;
+    const kc=(r[r.length>=7?6:5]||"").trim(),me=kc.match(/^(?:ESSAY|ESAI)(?:\s*[:\-]?\s*(\d+))?$/i);if(me&&r[0].trim()&&r.length>=6){S.push({t:r[0].trim(),e:true,bobot:Math.min(100,+me[1]||10),p:[],j:0,g:null});ok++;return}
     const n=(r.length>=7&&r[5].trim())?5:4;const k=(r[r.length>=7?6:5]||"").trim().toUpperCase();
     let j="ABCDE".indexOf(k);if(k.length!==1)j=-1;if(j<0&&/^[1-5]$/.test(k))j=+k-1;
     if(r.length<6||!r[0].trim()||r.slice(1,n+1).some(x=>!x.trim())||j<0||j>=n){skip++;return}
@@ -191,8 +194,18 @@ async function muatHasil(){try{R=(await api("hasil")).hasil;tabel()}catch(e){msg
 $("muat").onclick=muatHasil;$("fb").onchange=tabel;
 const rows=()=>R.filter(x=>!$("fb").value||x.bidang===$("fb").value);
 function tabel(){const L=rows();$("tb").replaceChildren(...L.map((x,i)=>h("tr",{},h("td",{},h("input",{type:"checkbox",checked:PIL.has(x.id),onchange:e=>{e.target.checked?PIL.add(x.id):PIL.delete(x.id);cekPil()}})),h("td",{textContent:i+1}),h("td",{textContent:x.nama}),h("td",{textContent:x.bidang}),
-  h("td",{textContent:x.nilai}),h("td",{textContent:x.benar+"/"+x.total}),h("td",{textContent:x.pelanggaran||0}),h("td",{textContent:new Date(x.waktu).toLocaleString("id-ID")}))));
-cekPil();$("hc").textContent=L.length+" hasil"+(L.length?" · rata-rata nilai "+Math.round(L.reduce((a,x)=>a+x.nilai,0)/L.length):"")}
+  h("td",{textContent:x.nilai==null?"⏳ Menunggu essay":x.nilai}),h("td",{textContent:x.benar+"/"+x.total}),h("td",{textContent:x.pelanggaran||0}),h("td",{textContent:new Date(x.waktu).toLocaleString("id-ID")}),h("td",{},x.esai?h("button",{textContent:x.dinilai?"Lihat/ubah":"Periksa",onclick:()=>periksa(x)}):""))));
+  cekPil();$("hc").textContent=L.length+" hasil"+(L.filter(x=>x.nilai!=null).length?" · rata-rata nilai "+Math.round(L.filter(x=>x.nilai!=null).reduce((a,x)=>a+x.nilai,0)/L.filter(x=>x.nilai!=null).length):"")}
+let PX=null;
+async function periksa(x){try{const e=await api("esaiGet",{id:x.id});PX=x;$("ovj").textContent="Periksa Essay — "+x.nama+" ("+x.bidang+")";$("ovm").textContent="";
+  $("ovb").replaceChildren(h("p",{className:"muted",textContent:"Pilihan ganda: benar "+x.benar+" dari "+x.total+". Nilai akhir dihitung dari poin pilihan ganda + poin essay."}),
+  ...e.items.map((it,k)=>h("div",{className:"q"},h("b",{textContent:"Essay "+(k+1)+" · poin maksimal "+it.bobot}),h("p",{textContent:it.t,style:"margin:6px 0"}),
+    h("div",{className:"jw",textContent:it.a||"(tidak dijawab)"}),
+    h("div",{className:"sk"},h("span",{className:"muted",textContent:"Skor:"}),h("input",{type:"number",min:0,max:it.bobot,step:"0.5",value:e.skor?e.skor[k]:"",className:"skr"}),h("span",{className:"muted",textContent:"/ "+it.bobot})))));
+  $("ov").hidden=false}catch(er){msg(er.message,1)}}
+$("ovx").onclick=()=>{$("ov").hidden=true};
+$("ovs").onclick=async()=>{const skor=[...document.querySelectorAll("#ovb .skr")].map(i=>+i.value||0);$("ovm").textContent="Menyimpan…";
+  try{const d=await api("esaiNilai",{id:PX.id,skor});$("ov").hidden=true;msg("Nilai tersimpan. Nilai akhir "+PX.nama+": "+d.nilai);muatHasil()}catch(er){$("ovm").textContent=er.message}};
 const PIL=new Set();
 function cekPil(){const ids=new Set(rows().map(x=>x.id));[...PIL].forEach(i=>{if(!ids.has(i))PIL.delete(i)});$("hapus").hidden=!PIL.size;$("hapus").textContent="Hapus terpilih ("+PIL.size+")";$("pilihSemua").checked=ids.size>0&&PIL.size===ids.size}
 $("pilihSemua").onchange=e=>{PIL.clear();if(e.target.checked)rows().forEach(x=>PIL.add(x.id));tabel()};
@@ -203,7 +216,7 @@ $("unduh").onclick=()=>{
   if(typeof XLSX==="undefined")return msg("Pustaka Excel belum termuat. Muat ulang halaman lalu coba lagi.",1);
   const L=rows();if(!L.length)return msg("Belum ada hasil untuk diunduh.",1);
   const aoa=[["No","Nama","Tes","Nilai","Benar","Total Soal","Pelanggaran","Waktu Pengerjaan"]]
-    .concat(L.map((x,i)=>[i+1,x.nama,x.bidang,x.nilai,x.benar,x.total,x.pelanggaran||0,fmtWaktu(x.waktu)]));
+    .concat(L.map((x,i)=>[i+1,x.nama,x.bidang,x.nilai==null?"Menunggu essay":x.nilai,x.benar,x.total,x.pelanggaran||0,fmtWaktu(x.waktu)]));
   const ws=XLSX.utils.aoa_to_sheet(aoa);
   ws["!cols"]=[{wch:5},{wch:28},{wch:16},{wch:8},{wch:8},{wch:11},{wch:12},{wch:18}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Hasil Tes");
