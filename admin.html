@@ -150,7 +150,7 @@ async function muatStatus(){try{const d=await api("status");ST=d.status;$("sb").
 async function ubahAkses(s){if(!confirm((s.buka?"Tutup":"Buka")+" tes "+s.nama+"?"))return;try{await api(s.buka?"tutup":"buka",{b:s.id});msg("Tes "+s.nama+(s.buka?" ditutup.":" dibuka."));muatStatus()}catch(e){msg(e.message,1)}}
 $("bsel").onchange=muatSoal;
 async function muatSoal(){try{const d=await api("get",{b:$("bsel").value});
-  S=d.soal.map(q=>q.e?{t:q.t,e:true,bobot:q.bobot||10,p:[],j:0,g:q.g||null}:{t:q.t,p:p:[...q.p],j:q.j,g:q.g||null});$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
+    S=d.soal.map(q=>q.e?{t:q.t,e:true,bobot:q.bobot||10,p:[],j:0,g:q.g||null}:{t:q.t,p:[...q.p],j:q.j,g:q.g||null});$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
 function draw(){const L=$("list");L.replaceChildren();$("cnt").textContent=S.length+" soal";
   S.forEach((q,k)=>{const ta=h("textarea",{value:q.t,rows:2,placeholder:"Tulis pertanyaan",oninput:()=>q.t=ta.value});
     const ops=q.p.map((o,x)=>h("div",{className:"opt"},h("input",{type:"radio",name:"j"+k,checked:q.j===x,onchange:()=>q.j=x}),
