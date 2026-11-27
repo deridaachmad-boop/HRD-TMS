@@ -9,6 +9,7 @@ const TES = {
   k3: { nama: "K3", jenis: K },
   lingkungan: { nama: "T. Lingkungan", jenis: K },
   kognitif: { nama: "Tes Kognitif", jenis: "Tes Kognitif" },
+  ketelitian: { nama: "Tes Ketelitian", jenis: "Tes Kognitif" },
   psikologi: { nama: "Tes Psikologi", jenis: "Tes Psikologi" },
 };
 const BIDANG = Object.fromEntries(Object.entries(TES).map(([k, v]) => [k, v.nama]));
