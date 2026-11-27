@@ -44,7 +44,7 @@ small,.muted{color:var(--muted);font-size:.88rem}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.row>*{width:auto}.grow{flex:1;min-width:150px}
 .q{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card)}.qh{display:flex;justify-content:space-between;margin-bottom:8px;gap:8px}
 .opt{display:flex;gap:8px;align-items:center;margin-top:6px}.opt input[type=radio]{width:auto}.opt input[type=text]{flex:1}
-.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:640px}input[type=checkbox]{width:auto}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:640px}input[type=checkbox]{width:auto}.gb{margin:8px 0}.gb img{display:block;max-height:150px;max-width:100%;border:1px solid var(--line);border-radius:8px;margin-bottom:6px}
 th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600;font-size:.85rem}
 @media(max-width:860px){.side{position:fixed;left:-290px;z-index:30;transition:left .2s;box-shadow:var(--sh)}.side.open{left:0}.grid2{grid-template-columns:1fr}.menu{display:block}.content{padding:16px}.top{padding:12px 16px}.live{margin-left:0}}
 </style></head><body>
@@ -149,15 +149,23 @@ async function muatStatus(){try{const d=await api("status");ST=d.status;$("sb").
 async function ubahAkses(s){if(!confirm((s.buka?"Tutup":"Buka")+" tes "+s.nama+"?"))return;try{await api(s.buka?"tutup":"buka",{b:s.id});msg("Tes "+s.nama+(s.buka?" ditutup.":" dibuka."));muatStatus()}catch(e){msg(e.message,1)}}
 $("bsel").onchange=muatSoal;
 async function muatSoal(){try{const d=await api("get",{b:$("bsel").value});
-  S=d.soal.map(q=>({t:q.t,p:[...q.p,"","","",""].slice(0,Math.max(4,q.p.length)),j:q.j}));$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
+  S=d.soal.map(q=>({t:q.t,p:[...q.p,"","","",""].slice(0,Math.max(4,q.p.length)),j:q.j,g:q.g||null}));$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
 function draw(){const L=$("list");L.replaceChildren();$("cnt").textContent=S.length+" soal";
   S.forEach((q,k)=>{const ta=h("textarea",{value:q.t,rows:2,placeholder:"Tulis pertanyaan",oninput:()=>q.t=ta.value});
     const ops=q.p.map((o,x)=>h("div",{className:"opt"},h("input",{type:"radio",name:"j"+k,checked:q.j===x,onchange:()=>q.j=x}),
       h("b",{textContent:H[x]+"."}),h("input",{type:"text",value:o,placeholder:"Pilihan "+H[x],oninput:e=>q.p[x]=e.target.value})));
-    L.append(h("div",{className:"q"},h("div",{className:"qh"},h("b",{textContent:"Soal "+(k+1)}),
+    const gb=h("div",{className:"gb"},...(q.g?[h("img",{src:"/api/img?id="+q.g,alt:""}),h("button",{className:"x",textContent:"Hapus gambar",onclick:()=>{q.g=null;draw()}})]:[h("button",{textContent:"🖼 Tambah gambar",onclick:()=>pilihGambar(q)})]));
+  L.append(h("div",{className:"q"},h("div",{className:"qh"},h("b",{textContent:"Soal "+(k+1)}),
       h("span",{},h("button",{textContent:q.p.length===4?"+ Pilihan E":"Hapus pilihan E",onclick:()=>{if(q.p.length===4)q.p.push("");else{q.p.pop();if(q.j>3)q.j=0}draw()}}),
-      h("button",{className:"x",textContent:"Hapus",onclick:()=>{S.splice(k,1);draw()}}))),ta,...ops,
+      h("button",{className:"x",textContent:"Hapus",onclick:()=>{S.splice(k,1);draw()}}))),ta,gb,...ops,
       h("div",{className:"muted",textContent:"Kunci jawaban: pilih lingkaran di sebelah jawaban yang benar."})))})}
+async function kecilkan(f){const b=await createImageBitmap(f);let s=Math.min(1,900/Math.max(b.width,b.height)),q=.85,out="";
+  for(let i=0;i<6;i++){const c=document.createElement("canvas");c.width=Math.max(1,Math.round(b.width*s));c.height=Math.max(1,Math.round(b.height*s));
+    const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(b,0,0,c.width,c.height);
+    out=c.toDataURL("image/jpeg",q).split(",")[1];if(out.length<600000)break;s*=.8;q=Math.max(.6,q-.08)}
+  return out}
+function pilihGambar(q){const i=h("input",{type:"file",accept:"image/png,image/jpeg,image/webp",onchange:async()=>{const f=i.files[0];if(!f)return;msg("Mengunggah gambar…");
+  try{const d=await kecilkan(f);if(d.length>=700000)throw new Error("Gambar terlalu besar");const r=await api("unggahGambar",{mime:"image/jpeg",data:d});q.g=r.id;draw();msg("Gambar terunggah. Klik Simpan untuk menyimpan soal.")}catch(e){msg(e.message||"Gagal mengunggah gambar",1)}}});i.click()}
 $("tambah").onclick=()=>{S.push({t:"",p:["","","",""],j:0});draw();window.scrollTo(0,document.body.scrollHeight)};
 $("simpan").onclick=async()=>{msg("Menyimpan…");try{const d=await api("simpan",{b:$("bsel").value,soal:S,durasi:+$("dur").value});msg("Tersimpan: "+d.jumlah+" soal untuk "+NAMA[$("bsel").value]+".")}catch(e){msg(e.message,1)}};
 function unduhFile(n,t){const a=h("a",{href:URL.createObjectURL(new Blob(["\uFEFF"+t],{type:"text/csv"})),download:n});a.click()}
