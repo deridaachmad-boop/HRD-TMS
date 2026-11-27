@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
       const durasi = await getDurasi(b);
       const id = crypto.randomBytes(16).toString("hex");
       await redis.set("sesi:" + id, { nama: n, b, mulai: Date.now(), durasi }, { ex: durasi * 60 + 900 });
-      return res.json({ id, durasi, soal: s.map((q) => ({ t: q.t, p: q.p })) }); // kunci tidak dikirim
+      return res.json({ id, durasi, soal: s.map((q) => ({ t: q.t, p: q.p, g: q.g })) }); // kunci tidak dikirim
     }
 
     if (body.aksi === "kirim") {
