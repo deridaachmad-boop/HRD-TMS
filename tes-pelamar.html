@@ -25,6 +25,7 @@ button.primary{background:var(--accent);color:var(--at);border-color:var(--accen
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}.ov .card{max-width:420px;text-align:center}#s2{user-select:none;-webkit-user-select:none}
 #gambar{display:block;max-width:100%;max-height:420px;margin:0 auto 16px;border:1px solid var(--line);border-radius:10px;pointer-events:none;-webkit-user-drag:none}
 textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;resize:vertical}#s2 textarea{user-select:text;-webkit-user-select:text}.cnt{color:var(--muted);font-size:.85rem;margin-top:6px;text-align:right}
+#q{white-space:pre-wrap}
 .score{font-size:2.6rem;font-weight:800;margin:6px 0}.err{color:var(--bad);margin-top:10px}
 </style></head><body><div class="wrap">
 
@@ -83,13 +84,18 @@ function draw(){const q=soal[i];$("prog").textContent="Soal "+(i+1)+" dari "+soa
   $("bar").style.width=ans.filter(a=>a!==null).length/soal.length*100+"%";$("q").textContent=q.t;const im=$("gambar");if(q.g){im.src="/api/img?id="+q.g;im.hidden=false}else{im.hidden=true;im.removeAttribute("src")}$("opts").replaceChildren();
   if(q.e)essayBox(q);else q.p.forEach((o,k)=>{const b=document.createElement("button");b.className="opt"+(ans[i]===k?" sel":"");
     const l=document.createElement("b");l.textContent=H[k]+".";const t=document.createElement("span");t.textContent=o;b.append(l,t);
-    b.onclick=()=>{ans[i]=k;draw()};$("opts").append(b)});
+    b.onclick=()=>{ans[i]=k;if(q.p.length===2&&i<soal.length-1)i++;draw()};$("opts").append(b)});
+  if(!q.e&&q.p.length===2){const t=document.createElement("div");t.className="cnt";t.textContent="Tekan A atau B di keyboard. Otomatis lanjut ke soal berikutnya.";$("opts").append(t)}
   $("prev").disabled=i===0;const last=i===soal.length-1;$("next").textContent=last?"Kumpulkan ✓":"Berikutnya →";
   $("next").onclick=last?()=>{const n=ans.filter(a=>a===null).length;
     quiet=Date.now()+60000;const ok=confirm(n?"Masih ada "+n+" soal belum dijawab. Kumpulkan sekarang?":"Kumpulkan jawaban sekarang?");quiet=Date.now()+800;if(ok)finish(false)}:()=>{i++;draw()};
   $("prev").onclick=()=>{i--;draw()};$("dots").replaceChildren();
   soal.forEach((_,k)=>{const d=document.createElement("button");d.className="dot"+(ans[k]!==null?" done":"")+(k===i?" cur":"");
     d.textContent=k+1;d.onclick=()=>{i=k;draw()};$("dots").append(d)})}
+document.addEventListener("keydown",e=>{if($("s2").hidden||sent||!$("ov").hidden||/TEXTAREA|INPUT/.test((document.activeElement||{}).tagName||""))return;
+  const q=soal[i],k="abcde".indexOf(e.key.toLowerCase());
+  if(e.key.length===1&&k>=0&&!q.e&&k<q.p.length)$("opts").children[k].click();
+  else if(e.key==="ArrowRight"&&i<soal.length-1){i++;draw()}else if(e.key==="ArrowLeft"&&i>0){i--;draw()}});
 function finish(auto){if(sent)return;sent=true;$("ov").hidden=true;clearInterval(tm);$("s2").hidden=true;$("s3").hidden=false;kirim(auto)}
 async function kirim(auto){$("retry").hidden=true;$("who").textContent="Peserta: "+nama;$("sc").textContent="…";$("sum").textContent="Mengirim jawaban, mohon tunggu.";
   try{const r=await fetch("/api/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({aksi:"kirim",id:sesi,a:ans,v:viol})}),d=await r.json();
