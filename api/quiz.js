@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
       const durasi = await getDurasi(b);
       const id = crypto.randomBytes(16).toString("hex");
       await redis.set("sesi:" + id, { nama: n, b, mulai: Date.now(), durasi }, { ex: durasi * 60 + 900 });
-      return res.json({ id, durasi, soal: s.map((q) => ({ t: q.t, p: q.p, g: q.g })) }); // kunci tidak dikirim
+      return res.json({ id, durasi, soal: s.map((q) => ({ t: q.t, p: q.p, g: q.g, e: q.e ? 1 : undefined })) }); // kunci tidak dikirim
     }
 
     if (body.aksi === "kirim") {
@@ -43,16 +43,32 @@ module.exports = async (req, res) => {
       try {
         const s = await redis.get("soal:" + ses.b);
         if (!Array.isArray(s) || !s.length) throw new Error("soal");
-        const benar = s.filter((q, i) => a[i] === q.j).length;
-        const nilai = Math.round((benar / s.length) * 100);
-        await redis.lpush("hasil", {
-          id, nama: ses.nama, bidang: BIDANG[ses.b], jenis: TES[ses.b].jenis, benar, total: s.length, nilai,
+        let benar = 0, maksPG = 0, maksEsai = 0;
+        const esai = [];
+        s.forEach((q, i) => {
+          if (q.e) {
+            const bobot = q.bobot || 10;
+            maksEsai += bobot;
+            esai.push({ i, t: q.t, bobot, a: String(a[i] == null ? "" : a[i]).slice(0, 2000) });
+          } else {
+            maksPG++;
+            if (a[i] === q.j) benar++;
+          }
+        });
+        const rec = {
+          id, nama: ses.nama, bidang: BIDANG[ses.b], jenis: TES[ses.b].jenis, b: ses.b, benar, total: maksPG,
+          nilai: esai.length ? null : Math.round((benar / maksPG) * 100),
           pelanggaran: Math.min(99, Math.max(0, parseInt(v) || 0)),
           terlambat: Date.now() - ses.mulai > ses.durasi * 60000 + 90000,
           waktu: new Date().toISOString(),
-        });
+        };
+        if (esai.length) {
+          rec.esai = esai.length; rec.maksPG = maksPG; rec.maksEsai = maksEsai;
+          await redis.set("esai:" + id, { nama: ses.nama, bidang: BIDANG[ses.b], items: esai });
+        }
+        await redis.lpush("hasil", rec);
         await redis.del("sesi:" + id);
-        return res.json({ nilai, benar, total: s.length });
+        return res.json({ nilai: rec.nilai, benar, total: maksPG, esai: esai.length });
       } catch (e) {
         await redis.del("kirim:" + id);
         throw e;
