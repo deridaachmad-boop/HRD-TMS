@@ -23,6 +23,7 @@ button.primary{background:var(--accent);color:var(--at);border-color:var(--accen
 .dots{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}.dot{width:30px;height:30px;padding:0;border-radius:8px;font-size:.8rem}
 .dot.done{background:var(--accent);color:var(--at);border-color:var(--accent)}.dot.cur{outline:2px solid var(--text);outline-offset:1px}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}.ov .card{max-width:420px;text-align:center}#s2{user-select:none;-webkit-user-select:none}
+#gambar{display:block;max-width:100%;max-height:420px;margin:0 auto 16px;border:1px solid var(--line);border-radius:10px;pointer-events:none;-webkit-user-drag:none}
 .score{font-size:2.6rem;font-weight:800;margin:6px 0}.err{color:var(--bad);margin-top:10px}
 </style></head><body><div class="wrap">
 
@@ -42,7 +43,7 @@ button.primary{background:var(--accent);color:var(--at);border-color:var(--accen
 <div id="s2" hidden>
   <div class="top"><span id="prog"></span><span>Sisa waktu: <span class="timer" id="tmr"></span></span></div>
   <div class="bar"><div id="bar"></div></div>
-  <div class="card"><h2 id="q"></h2><div id="opts"></div>
+  <div class="card"><h2 id="q"></h2><img id="gambar" alt="" hidden><div id="opts"></div>
     <div class="nav"><button id="prev">← Sebelumnya</button><button id="next" class="primary">Berikutnya →</button></div></div>
   <div class="dots" id="dots"></div>
 </div>
@@ -69,13 +70,13 @@ $("mulai").onclick=async()=>{
   if(!nama)return $("err").textContent="Mohon isi nama lengkap.";
   if(!bid)return $("err").textContent="Mohon pilih tes.";
   $("mulai").disabled=true;
-  try{const r=await fetch("/api/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({aksi:"mulai",nama,b:bid})}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal memulai tes");sesi=d.id;soal=d.soal;ans=Array(soal.length).fill(null);left=d.durasi*60;
+  try{const r=await fetch("/api/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({aksi:"mulai",nama,b:bid})}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal memulai tes");sesi=d.id;soal=d.soal;soal.forEach(x=>{if(x.g)new Image().src="/api/img?id="+x.g});ans=Array(soal.length).fill(null);left=d.durasi*60;
     $("s1").hidden=true;$("s2").hidden=false;draw();tick();tm=setInterval(tick,1000)}
   catch(e){$("err").textContent=e.message;$("mulai").disabled=false;muatBidang()}};
 function tick(){const m=Math.floor(left/60),s=left%60;$("tmr").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
   $("tmr").classList.toggle("low",left<=60);if(left--<=0)finish(true)}
 function draw(){const q=soal[i];$("prog").textContent="Soal "+(i+1)+" dari "+soal.length;
-  $("bar").style.width=ans.filter(a=>a!==null).length/soal.length*100+"%";$("q").textContent=q.t;$("opts").replaceChildren();
+  $("bar").style.width=ans.filter(a=>a!==null).length/soal.length*100+"%";$("q").textContent=q.t;const im=$("gambar");if(q.g){im.src="/api/img?id="+q.g;im.hidden=false}else{im.hidden=true;im.removeAttribute("src")}$("opts").replaceChildren();
   q.p.forEach((o,k)=>{const b=document.createElement("button");b.className="opt"+(ans[i]===k?" sel":"");
     const l=document.createElement("b");l.textContent=H[k]+".";const t=document.createElement("span");t.textContent=o;b.append(l,t);
     b.onclick=()=>{ans[i]=k;draw()};$("opts").append(b)});
