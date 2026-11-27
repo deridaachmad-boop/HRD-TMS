@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const { redis, TES, BIDANG, cekAdmin, getDurasi, rebuildMeta } = require("./_lib");
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
@@ -11,9 +12,18 @@ module.exports = async (req, res) => {
       return res.status(401).json({ error: "Password salah" });
     }
     await redis.del(gk);
-    const { act, b, soal, durasi, ids } = req.body || {};
+    const { act, b, soal, durasi, ids, data, mime } = req.body || {};
     if (act === "ping") return res.json({ ok: true });
     if (act === "hasil") return res.json({ hasil: await redis.lrange("hasil", 0, -1) });
+    if (act === "unggahGambar") {
+      const magic = { "image/jpeg": [0xff, 0xd8, 0xff], "image/png": [0x89, 0x50, 0x4e, 0x47] }[mime];
+      if (!magic || typeof data !== "string" || data.length > 700000) return res.status(400).json({ error: "Gambar tidak valid atau terlalu besar" });
+      const buf = Buffer.from(data, "base64");
+      if (!magic.every((v, i) => buf[i] === v)) return res.status(400).json({ error: "Berkas bukan gambar yang valid" });
+      const id = crypto.randomBytes(16).toString("hex");
+      await redis.set("img:" + id, { m: mime, d: data });
+      return res.json({ id });
+    }
     if (act === "hapusHasil") {
       const pilih = new Set((Array.isArray(ids) ? ids : []).map(String));
       if (!pilih.size) return res.status(400).json({ error: "Tidak ada data yang dipilih" });
@@ -51,10 +61,15 @@ module.exports = async (req, res) => {
         t: String(q.t || "").trim().slice(0, 600),
         p: (Array.isArray(q.p) ? q.p : []).slice(0, 5).map((o) => String(o || "").trim().slice(0, 300)),
         j: Number(q.j),
+        g: /^[a-f0-9]{32}$/.test(String(q.g || "")) ? q.g : undefined,
       }));
       if (bersih.some((q) => !q.t || q.p.length < 4 || q.p.length > 5 || q.p.some((o) => !o) || !Number.isInteger(q.j) || q.j < 0 || q.j >= q.p.length))
         return res.status(400).json({ error: "Ada soal yang belum lengkap (pertanyaan, 4–5 pilihan, kunci)" });
+      const lama = await redis.get("soal:" + b);
       await redis.set("soal:" + b, bersih);
+      const pakai = new Set(bersih.map((q) => q.g).filter(Boolean));
+      const buang = (Array.isArray(lama) ? lama : []).map((q) => q.g).filter((g) => g && !pakai.has(g));
+      await Promise.all(buang.map((g) => redis.del("img:" + g)));
       await redis.set("durasi:" + b, Math.min(240, Math.max(1, Math.round(Number(durasi) || 15))));
       await rebuildMeta();
       return res.json({ ok: true, jumlah: bersih.length });
