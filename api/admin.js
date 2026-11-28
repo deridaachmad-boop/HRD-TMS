@@ -101,6 +101,7 @@ module.exports = async (req, res) => {
     }
     res.status(400).json({ error: "Aksi tidak dikenal" });
   } catch (e) {
+    console.error("[api/admin]", e && e.stack ? e.stack : e);
     res.status(500).json({ error: "Terjadi kesalahan server" });
   }
 };
