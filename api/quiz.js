@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
           if (q.e) {
             const bobot = q.bobot || 10;
             maksEsai += bobot;
-            esai.push({ i, t: q.t, bobot, a: String(a[i] == null ? "" : a[i]).slice(0, 2000) });
+            esai.push({ i, t: q.t, bobot, k: String(q.k || "").slice(0, 1000), a: String(a[i] == null ? "" : a[i]).slice(0, 2000) });
           } else {
             maksPG++;
             if (a[i] === q.j) benar++;
