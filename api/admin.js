@@ -85,7 +85,7 @@ module.exports = async (req, res) => {
       const bersih = soal.map((q) => {
         const t = String(q.t || "").trim().slice(0, 600);
         const g = /^[a-f0-9]{32}$/.test(String(q.g || "")) ? q.g : undefined;
-        if (q.e) return { t, e: true, bobot: Math.min(100, Math.max(1, Math.round(Number(q.bobot) || 10))), k: String(q.k || "").trim().slice(0, 2000), p: [], j: 0, g };
+        if (q.e) return { t, e: true, bobot: Math.min(100, Math.max(1, Math.round(Number(q.bobot) || 10))), p: [], j: 0, g };
         return { t, p: (Array.isArray(q.p) ? q.p : []).slice(0, 5).map((o) => String(o || "").trim().slice(0, 300)), j: Number(q.j), g };
       });
       if (bersih.some((q) => !q.t || (!q.e && (q.p.length < 2 || q.p.length > 5 || q.p.some((o) => !o) || !Number.isInteger(q.j) || q.j < 0 || q.j >= q.p.length))))
@@ -101,7 +101,6 @@ module.exports = async (req, res) => {
     }
     res.status(400).json({ error: "Aksi tidak dikenal" });
   } catch (e) {
-    console.error("[api/admin]", e && e.stack ? e.stack : e);
     res.status(500).json({ error: "Terjadi kesalahan server" });
   }
 };
