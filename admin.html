@@ -93,7 +93,7 @@ th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:
           <div class="row"><button id="tambah">+ Tambah soal</button><button id="tambahEsai">+ Tambah soal essay</button><button id="btnImpor">Impor CSV</button><input id="file" type="file" accept=".csv,text/csv" hidden>
           <button id="tpl">Template CSV</button><button id="cadangan">Unduh cadangan soal</button><span class="muted" id="cnt"></span>
           <button class="p" id="simpan" style="margin-left:auto">Simpan</button></div>
-          <p class="muted" style="margin:0">Format CSV: pertanyaan, A, B, C, D, E (boleh kosong), kunci (A–E). Soal essay: kosongkan A–E, kunci diisi ESSAY:poin (contoh ESSAY:10). Dari Excel, pilih Simpan sebagai CSV.</p></div>
+          <p class="muted" style="margin:0">Format CSV: pertanyaan, A, B, C, D, E (boleh kosong), kunci (A–E). Soal essay: kosongkan A–E, kunci diisi ESSAY:poin (contoh ESSAY:10), lalu kolom ke-8 (kunci_essay) boleh diisi kunci jawaban essay. Dari Excel, pilih Simpan sebagai CSV.</p></div>
         <div id="list"></div>
       </div>
 
@@ -150,17 +150,18 @@ async function muatStatus(){try{const d=await api("status");ST=d.status;$("sb").
 async function ubahAkses(s){if(!confirm((s.buka?"Tutup":"Buka")+" tes "+s.nama+"?"))return;try{await api(s.buka?"tutup":"buka",{b:s.id});msg("Tes "+s.nama+(s.buka?" ditutup.":" dibuka."));muatStatus()}catch(e){msg(e.message,1)}}
 $("bsel").onchange=muatSoal;
 async function muatSoal(){try{const d=await api("get",{b:$("bsel").value});
-    S=d.soal.map(q=>q.e?{t:q.t,e:true,bobot:q.bobot||10,p:[],j:0,g:q.g||null}:{t:q.t,p:[...q.p],j:q.j,g:q.g||null});$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
+    S=d.soal.map(q=>q.e?{t:q.t,e:true,bobot:q.bobot||10,p:[],j:0,g:q.g||null,k:q.k||""}:{t:q.t,p:[...q.p],j:q.j,g:q.g||null});$("dur").value=d.durasi;draw();msg("")}catch(e){msg(e.message,1)}}
 function draw(){const L=$("list");L.replaceChildren();$("cnt").textContent=S.length+" soal";
   S.forEach((q,k)=>{const ta=h("textarea",{value:q.t,rows:2,placeholder:"Tulis pertanyaan",oninput:()=>q.t=ta.value});
     const ops=q.p.map((o,x)=>h("div",{className:"opt"},h("input",{type:"radio",name:"j"+k,checked:q.j===x,onchange:()=>q.j=x}),
       h("b",{textContent:H[x]+"."}),h("input",{type:"text",value:o,placeholder:"Pilihan "+H[x],oninput:e=>q.p[x]=e.target.value})));
     const gb=h("div",{className:"gb"},...(q.g?[h("img",{src:"/api/img?id="+q.g,alt:""}),h("button",{className:"x",textContent:"Hapus gambar",onclick:()=>{q.g=null;draw()}})]:[h("button",{textContent:"🖼 Tambah gambar",onclick:()=>pilihGambar(q)})]));
+    const kk=q.e?h("div",{},h("div",{className:"muted",textContent:"Kunci jawaban / pedoman penilaian (opsional). Hanya terlihat oleh HRD saat koreksi, tidak ditampilkan ke peserta:"}),h("textarea",{value:q.k||"",rows:3,placeholder:"Tulis kunci jawaban atau poin-poin yang harus ada dalam jawaban",oninput:e=>q.k=e.target.value})):"";
     L.append(h("div",{className:"q"},h("div",{className:"qh"},h("b",{textContent:"Soal "+(k+1)+(q.e?" (Essay)":"")}),
       h("span",{},q.e||q.p.length<4?"":h("button",{textContent:q.p.length===4?"+ Pilihan E":"Hapus pilihan E",onclick:()=>{if(q.p.length===4)q.p.push("");else{q.p.pop();if(q.j>3)q.j=0}draw()}}),
-      h("button",{className:"x",textContent:"Hapus",onclick:()=>{S.splice(k,1);draw()}}))),ta,gb,...ops,
-      q.e?h("div",{className:"sk"},h("span",{className:"muted",textContent:"Soal essay · poin maksimal:"}),h("input",{type:"number",min:1,max:100,value:q.bobot,oninput:e=>q.bobot=+e.target.value||10}),h("span",{className:"muted",textContent:"(dinilai manual oleh HRD)"})):h("div",{className:"muted",textContent:"Kunci jawaban: pilih lingkaran di sebelah jawaban yang benar."})))})}
-$("tambahEsai").onclick=()=>{S.push({t:"",e:true,bobot:10,p:[],j:0,g:null});draw();window.scrollTo(0,document.body.scrollHeight)};
+      h("button",{className:"x",textContent:"Hapus",onclick:()=>{S.splice(k,1);draw()}}))),ta,gb,kk,...ops,
+      q.e?h("div",{className:"sk"},h("span",{className:"muted",textContent:"Soal essay · poin maksimal:"}),h("input",{type:"number",min:1,max:100,value:q.bobot,oninput:e=>q.bobot=+e.target.value||10}),h("span",{className:"muted",textContent:"(HRD menilai Benar/Salah. Benar = poin penuh, Salah = 0)"})):h("div",{className:"muted",textContent:"Kunci jawaban: pilih lingkaran di sebelah jawaban yang benar."})))})}
+$("tambahEsai").onclick=()=>{S.push({t:"",e:true,bobot:10,p:[],j:0,g:null,k:""});draw();window.scrollTo(0,document.body.scrollHeight)};
 async function kecilkan(f){const b=await createImageBitmap(f);let s=Math.min(1,900/Math.max(b.width,b.height)),q=.85,out="";
   for(let i=0;i<6;i++){const c=document.createElement("canvas");c.width=Math.max(1,Math.round(b.width*s));c.height=Math.max(1,Math.round(b.height*s));
     const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(b,0,0,c.width,c.height);
@@ -171,9 +172,9 @@ function pilihGambar(q){const i=h("input",{type:"file",accept:"image/png,image/j
 $("tambah").onclick=()=>{S.push({t:"",p:["","","",""],j:0});draw();window.scrollTo(0,document.body.scrollHeight)};
 $("simpan").onclick=async()=>{msg("Menyimpan…");try{const d=await api("simpan",{b:$("bsel").value,soal:S,durasi:+$("dur").value});msg("Tersimpan: "+d.jumlah+" soal untuk "+NAMA[$("bsel").value]+".")}catch(e){msg(e.message,1)}};
 function unduhFile(n,t){const a=h("a",{href:URL.createObjectURL(new Blob(["\uFEFF"+t],{type:"text/csv"})),download:n});a.click()}
-$("tpl").onclick=()=>unduhFile("template-soal.csv","pertanyaan,A,B,C,D,E,kunci\nBerapa hasil 15% dari 240?,32,36,40,48,50,B\nJelaskan proses annealing pada baja.,,,,,,ESSAY:10\n");
+$("tpl").onclick=()=>unduhFile("template-soal.csv","pertanyaan,A,B,C,D,E,kunci,kunci_essay\nBerapa hasil 15% dari 240?,32,36,40,48,50,B,\nJelaskan proses annealing pada baja.,,,,,,ESSAY:10,Pemanasan lalu pendinginan lambat untuk melunakkan baja\n");
 $("cadangan").onclick=()=>{if(!S.length)return msg("Belum ada soal untuk dicadangkan.",1);const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
-  unduhFile("cadangan-soal-"+$("bsel").value+".csv",["pertanyaan,A,B,C,D,E,kunci"].concat(S.map(x=>x.e?[x.t,"","","","","","ESSAY:"+x.bobot].map(q).join(","):[x.t,0,1,2,3,4].map((v,i)=>i?x.p[v]||"":v).concat(H[x.j]).map(q).join(","))).join("\n")+"\n")};
+  unduhFile("cadangan-soal-"+$("bsel").value+".csv",["pertanyaan,A,B,C,D,E,kunci,kunci_essay"].concat(S.map(x=>x.e?[x.t,"","","","","","ESSAY:"+x.bobot,x.k||""].map(q).join(","):[x.t,0,1,2,3,4].map((v,i)=>i?x.p[v]||"":v).concat(H[x.j]).map(q).join(","))).join("\n")+"\n")};
 $("btnImpor").onclick=()=>$("file").click();
 function parseCSV(t){t=t.replace(/^\uFEFF/,"");const f=t.split("\n")[0],d=(f.match(/;/g)||[]).length>(f.match(/,/g)||[]).length?";":",";
   const rows=[];let r=[],c="",q=false;
@@ -184,7 +185,7 @@ function parseCSV(t){t=t.replace(/^\uFEFF/,"");const f=t.split("\n")[0],d=(f.mat
   r.push(c);if(r.some(x=>x.trim()))rows.push(r);return rows}
 $("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();
   fr.onload=()=>{let ok=0,skip=0;parseCSV(fr.result).forEach(r=>{if(/^pertanyaan$/i.test(r[0].trim()))return;
-    const kc=(r[r.length>=7?6:5]||"").trim(),me=kc.match(/^(?:ESSAY|ESAI)(?:\s*[:\-]?\s*(\d+))?$/i);if(me&&r[0].trim()&&r.length>=6){S.push({t:r[0].trim(),e:true,bobot:Math.min(100,+me[1]||10),p:[],j:0,g:null});ok++;return}
+    const kc=(r[r.length>=7?6:5]||"").trim(),me=kc.match(/^(?:ESSAY|ESAI)(?:\s*[:\-]?\s*(\d+))?$/i);if(me&&r[0].trim()&&r.length>=6){S.push({t:r[0].trim(),e:true,bobot:Math.min(100,+me[1]||10),p:[],j:0,g:null,k:(r[7]||"").trim().slice(0,1000)});ok++;return}
    const n=r.length>=7?r.slice(1,6).reduce((m,x,i)=>x.trim()?i+1:m,0):4;const k=(r[r.length>=7?6:5]||"").trim().toUpperCase();
     let j="ABCDE".indexOf(k);if(k.length!==1)j=-1;if(j<0&&/^[1-5]$/.test(k))j=+k-1;
     if(r.length<6||n<2||!r[0].trim()||r.slice(1,n+1).some(x=>!x.trim())||j<0||j>=n){skip++;return}
@@ -201,10 +202,12 @@ async function periksa(x){try{const e=await api("esaiGet",{id:x.id});PX=x;$("ovj
   $("ovb").replaceChildren(h("p",{className:"muted",textContent:"Pilihan ganda: benar "+x.benar+" dari "+x.total+". Nilai akhir dihitung dari poin pilihan ganda + poin essay."}),
   ...e.items.map((it,k)=>h("div",{className:"q"},h("b",{textContent:"Essay "+(k+1)+" · poin maksimal "+it.bobot}),h("p",{textContent:it.t,style:"margin:6px 0"}),
     h("div",{className:"jw",textContent:it.a||"(tidak dijawab)"}),
-    h("div",{className:"sk"},h("span",{className:"muted",textContent:"Skor:"}),h("input",{type:"number",min:0,max:it.bobot,step:"0.5",value:e.skor?e.skor[k]:"",className:"skr"}),h("span",{className:"muted",textContent:"/ "+it.bobot})))));
+    it.k?h("div",{className:"jw",style:"border-color:var(--ok)",textContent:"Kunci: "+it.k}):h("div",{className:"muted",textContent:"(Kunci jawaban tidak diisi)"}),
+    h("div",{className:"sk"},...[["b","Benar (+"+it.bobot+")"],["s","Salah (0)"]].map(([v,l])=>h("label",{className:"sk",style:"margin:0;font-weight:600"},h("input",{type:"radio",name:"sk"+k,value:v,style:"width:auto",checked:!!e.skor&&(v==="b")===(e.skor[k]>=it.bobot)}),l))))));
   $("ov").hidden=false}catch(er){msg(er.message,1)}}
 $("ovx").onclick=()=>{$("ov").hidden=true};
-$("ovs").onclick=async()=>{const skor=[...document.querySelectorAll("#ovb .skr")].map(i=>+i.value||0);$("ovm").textContent="Menyimpan…";
+$("ovs").onclick=async()=>{const n=document.querySelectorAll("#ovb .q").length,skor=[];for(let k=0;k<n;k++){const r=document.querySelector('#ovb input[name="sk'+k+'"]:checked');skor.push(r?r.value==="b":null)}
+  if(skor.some(v=>v===null))return $("ovm").textContent="Pilih Benar atau Salah untuk setiap soal essay.";$("ovm").textContent="Menyimpan…";
   try{const d=await api("esaiNilai",{id:PX.id,skor});$("ov").hidden=true;msg("Nilai tersimpan. Nilai akhir "+PX.nama+": "+d.nilai);muatHasil()}catch(er){$("ovm").textContent=er.message}};
 const PIL=new Set();
 function cekPil(){const ids=new Set(rows().map(x=>x.id));[...PIL].forEach(i=>{if(!ids.has(i))PIL.delete(i)});$("hapus").hidden=!PIL.size;$("hapus").textContent="Hapus terpilih ("+PIL.size+")";$("pilihSemua").checked=ids.size>0&&PIL.size===ids.size}
