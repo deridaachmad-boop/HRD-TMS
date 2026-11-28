@@ -49,7 +49,8 @@ module.exports = async (req, res) => {
           if (q.e) {
             const bobot = q.bobot || 10;
             maksEsai += bobot;
-            esai.push({ i, t: q.t, bobot, a: String(a[i] == null ? "" : a[i]).slice(0, 2000) });
+            // k = kunci/pedoman jawaban essay; hanya disimpan di data koreksi (admin), tidak pernah dikirim ke peserta
+            esai.push({ i, t: q.t, bobot, k: q.k || "", a: String(a[i] == null ? "" : a[i]).slice(0, 2000) });
           } else {
             maksPG++;
             if (a[i] === q.j) benar++;
@@ -59,6 +60,7 @@ module.exports = async (req, res) => {
           id, nama: ses.nama, bidang: BIDANG[ses.b], jenis: TES[ses.b].jenis, b: ses.b, benar, total: maksPG,
           nilai: esai.length ? null : Math.round((benar / maksPG) * 100),
           pelanggaran: Math.min(99, Math.max(0, parseInt(v) || 0)),
+          lama: Math.max(0, Math.round((Date.now() - ses.mulai) / 1000)), // lama pengerjaan (detik), dihitung server
           terlambat: Date.now() - ses.mulai > ses.durasi * 60000 + 90000,
           waktu: new Date().toISOString(),
         };
@@ -76,6 +78,7 @@ module.exports = async (req, res) => {
     }
     res.status(400).json({ error: "Aksi tidak dikenal" });
   } catch (e) {
+    console.error("[api/quiz]", e && e.stack ? e.stack : e);
     res.status(500).json({ error: "Terjadi kesalahan server" });
   }
 };
