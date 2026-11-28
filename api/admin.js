@@ -30,7 +30,8 @@ module.exports = async (req, res) => {
       if (!e || !Array.isArray(skor) || skor.length !== e.items.length) return res.status(400).json({ error: "Data penilaian tidak valid" });
       const rec = (await redis.lrange("hasil", 0, -1)).find((x) => String(x.id) === key);
       if (!rec) return res.status(404).json({ error: "Hasil peserta tidak ditemukan" });
-      const angka = skor.map((v, k) => Math.min(e.items[k].bobot, Math.max(0, Math.round((Number(v) || 0) * 10) / 10)));
+      // Penilaian Benar/Salah: benar = poin penuh (bobot), salah = 0
+      const angka = skor.map((v, k) => (v === true || v === "benar" ? e.items[k].bobot : 0));
       const skorEsai = Math.round(angka.reduce((a, v) => a + v, 0) * 10) / 10;
       const maks = (rec.maksPG || 0) + (rec.maksEsai || 0) || 1;
       const nilai = Math.round(((rec.benar + skorEsai) / maks) * 100);
@@ -85,7 +86,7 @@ module.exports = async (req, res) => {
       const bersih = soal.map((q) => {
         const t = String(q.t || "").trim().slice(0, 600);
         const g = /^[a-f0-9]{32}$/.test(String(q.g || "")) ? q.g : undefined;
-        if (q.e) return { t, e: true, bobot: Math.min(100, Math.max(1, Math.round(Number(q.bobot) || 10))), p: [], j: 0, g };
+        if (q.e) return { t, e: true, bobot: Math.min(100, Math.max(1, Math.round(Number(q.bobot) || 10))), p: [], j: 0, g, k: String(q.k || "").trim().slice(0, 1000) };
         return { t, p: (Array.isArray(q.p) ? q.p : []).slice(0, 5).map((o) => String(o || "").trim().slice(0, 300)), j: Number(q.j), g };
       });
       if (bersih.some((q) => !q.t || (!q.e && (q.p.length < 2 || q.p.length > 5 || q.p.some((o) => !o) || !Number.isInteger(q.j) || q.j < 0 || q.j >= q.p.length))))
