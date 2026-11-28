@@ -10,6 +10,7 @@ const TES = {
   lingkungan: { nama: "T. Lingkungan", jenis: K },
   kognitif: { nama: "Tes Kognitif", jenis: "Tes Kognitif" },
   ketelitian: { nama: "Tes Ketelitian", jenis: "Tes Kognitif" },
+  wpt: { nama: "Tes WPT", jenis: "Tes Kognitif" },
   psikologi: { nama: "Tes Psikologi", jenis: "Tes Psikologi" },
 };
 const BIDANG = Object.fromEntries(Object.entries(TES).map(([k, v]) => [k, v.nama]));
@@ -35,4 +36,34 @@ async function rebuildMeta() {
   await redis.set("meta", m);
   return m;
 }
-module.exports = { redis, TES, BIDANG, cekAdmin, getDurasi, rebuildMeta };
+// ---- Penilaian soal isian singkat ----
+const teks = (s) => String(s == null ? "" : s).toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+function angka(s) {
+  s = String(s == null ? "" : s).trim().toLowerCase().replace(/\s+/g, "");
+  const m = s.match(/^(-?[\d.,]+)\/([\d.,]+)$/);
+  if (m) {
+    const a = angka(m[1]), b = angka(m[2]);
+    return a != null && b ? a / b : null;
+  }
+  if (/^[1-9]\d{0,2}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, "").replace(",", ".");
+  else s = s.replace(",", ".");
+  return /^-?(\d+\.?\d*|\.\d+)$/.test(s) ? parseFloat(s) : null;
+}
+function daftar(s, kunci) {
+  let t = String(s == null ? "" : s).match(/\d+/g) || [];
+  const k = String(kunci).match(/\d+/g) || [];
+  if (t.length === 1 && t[0].length > 1 && k.every((x) => x.length === 1)) t = t[0].split("");
+  const urut = (a) => a.map(Number).sort((x, y) => x - y).join(",");
+  return t.length === k.length && urut(t) === urut(k);
+}
+function cocok(q, a) {
+  const ks = Array.isArray(q.k) ? q.k : [];
+  if (a == null || String(a).trim() === "") return false;
+  return ks.some((k) => {
+    if (q.d) return daftar(a, k);
+    const nk = angka(k), na = angka(a);
+    if (nk != null) return na != null && Math.abs(nk - na) < 1e-9;
+    return teks(k) !== "" && teks(k) === teks(a);
+  });
+}
+module.exports = { redis, TES, BIDANG, cekAdmin, getDurasi, rebuildMeta, cocok };
